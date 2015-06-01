@@ -34,7 +34,7 @@ selecting a safe default for everyone.
 Run `make`.
 
 Run `rumpbake` on `src/mpg123`.  You will most likely want to use the
-`hw_generic` target, i.e. `rumpbake -T hw_generic -o mpg123.bin src/mpg123`.
+`hw_generic` target, i.e. `rumpbake hw_generic mpg123.bin src/mpg123`.
 
 Use `rumprun` as normal.  You need to specify `-a /dev/audio0` as the
 audio device argument to mpg123 for now.
