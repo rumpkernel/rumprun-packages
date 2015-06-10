@@ -29,7 +29,8 @@ rumprun-bmk-configure ./configure --enable-modules=no --enable-static=yes --enab
 ```
 
 You can be more adventurous with the CPU if you like, we are just
-selecting a safe default for everyone.
+selecting a safe default for everyone.  If you are building for amd64,
+you can use `--with-cpu=x86-64` or just leave the argument out.
 
 Run `make`.
 
