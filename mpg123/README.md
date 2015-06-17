@@ -37,18 +37,17 @@ Run `make`.
 Run `rumpbake` on `src/mpg123`.  You will most likely want to use the
 `hw_generic` target, i.e. `rumpbake hw_generic mpg123.bin src/mpg123`.
 
-Use `rumprun` as normal.  You need to specify `-a /dev/audio0` as the
-audio device argument to mpg123 for now.
+Use `rumprun` as normal.
 
 Examples:
 
 ```
-rumprun kvm -i -b ~/tosi.iso,/mp3 -g '-soundhw es1370' mpg123.bin -a /dev/audio0 -v -z -@ /mp3/allmp3.txt
+rumprun kvm -i -b ~/tosi.iso,/mp3 -g '-soundhw es1370' mpg123.bin -v -z -@ /mp3/allmp3.txt
 ```
 (assumes `tosi.iso` contains mp3's along with a list of them)
 
 ```
-rumprun kvm -i -I iftag,vioif,'-net user' -W iftag,inet,dhcp -g '-soundhw es1370' mpg123.bin -a /dev/audio0 -v 'http://10.0.0.10/test.mp3'
+rumprun kvm -i -I iftag,vioif,'-net user' -W iftag,inet,dhcp -g '-soundhw es1370' mpg123.bin -v 'http://10.0.0.10/test.mp3'
 ```
 (tested working, but network configuration is left as an exercise to the reader.
 if you want DNS, remember to provide a stub `/etc`)
