@@ -13,12 +13,6 @@ Fetch mpg123 sources from http://mpg123.org/
 (or location of your choosing)
 
 
-Patches
-=======
-
-No patches are necessary.
-
-
 Instructions
 ============
 
