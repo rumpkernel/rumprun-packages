@@ -33,7 +33,9 @@ Run `rumpbake` on `src/mpg123`.  You will most likely want to use the
 
 Use `rumprun` as normal.
 
-Examples:
+
+Examples
+========
 
 ```
 rumprun kvm -i -b ~/tosi.iso,/mp3 -g '-soundhw es1370' mpg123.bin -v -z -@ /mp3/allmp3.txt
