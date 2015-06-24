@@ -18,8 +18,7 @@ Patches
 =======
 
 patch-crosscompile-? adjusts the build system to generate only static libraries
-and build all the tests. patch-tmpfsmaxsize adjusts the max size of /tmp where
-the tests and benchmarks create temporary databases.
+and build all the tests. 
 
 Instructions
 ============
@@ -39,14 +38,21 @@ db_bench.bin ./db_bench`.
 Examples
 ========
 
-```
-rumprun kvm -i -M 512 db_bench.bin
-```
+First, create a filesystem for the block device that will hold the temporary
+databases.
 
 ```
-rumpbake hw_generic corruption_test.bin ./corruption_test
+mkfs.ext2 data.img 512M
 ```
 
+and then run...
+
 ```
-rumprun kvm -i -M 512 corruption_test.bin
+rumprun kvm -i -M 512 -b data.img,/data -e TEST_TMPDIR=/data ./db_bench.bin
+```
+
+or a test...
+
+```
+rumprun kvm -i -M 512 -b data.img,/data -e TEST_TMPDIR=/data ./corruption_test.bin
 ```
