@@ -18,4 +18,5 @@ When adding new packages, include the following sections:
 
 * Overview: a sentence or two on how the package can be used
 * Download: where to obtain the upstream sources from
-* Instructions: how to build and a few examples on how to run
+* Instructions: how to build.  If this section is "run script/make", excellent!
+* Examples: a few examples on how to run/use the resulting package
