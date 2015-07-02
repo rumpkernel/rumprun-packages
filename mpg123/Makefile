@@ -1,5 +1,7 @@
 UPSTREAM=http://downloads.sourceforge.net/project/mpg123/mpg123/1.22.2/mpg123-1.22.2.tar.bz2
 
+HOST=$(subst -cc,,$(CC))
+
 all: bin/mpg123
 
 bin/mpg123: build/src/mpg123
@@ -17,11 +19,10 @@ MPG123_CONF_OPTS += \
 	--with-default-audio=sun
 
 # useful only for 32bit
-# NOTE!  If building for 32bit x86, also change --host for configure script
 #MPG123_CONF_OPTS += --with-cpu=i486
 
 build/Makefile: build/configure
-	(cd build; ./configure --host=x86_64-rumprun-netbsd $(MPG123_CONF_OPTS))
+	(cd build; ./configure --host=$(HOST) $(MPG123_CONF_OPTS))
 
 build/configure:
 	mkdir -p build
