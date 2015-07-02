@@ -9,27 +9,26 @@ via PCI passthrough, but doing so is left as an exercise for the reader.
 Download
 ========
 
-Fetch mpg123 sources from http://mpg123.org/
-(or location of your choosing)
+Upstream source will be downloaded by the build process.
+
 
 
 Instructions
 ============
 
-Untar and run configure as (for x86_64):
+Run `make`, setting `CC` to target architecture cross-compiler, e.g.
 
 ```
-x86_64-rumprun-netbsd-configure ./configure --enable-modules=no --enable-static=yes --enable-shared=no --enable-buffer=no --with-cpu=i486 --with-default-audio=sun
+make CC=x86_64-rumprun-netbsd-cc
 ```
 
-You can be more adventurous with the CPU if you like, we are just
-selecting a safe default for everyone.  If you are building for amd64,
-you can use `--with-cpu=x86-64` or just leave the argument out.
+Note, if you want to compile a 32bit build, you also need to edit
+`Makefile`.
 
-Run `make`.
-
-Run `rumpbake` on `src/mpg123`.  You will most likely want to use the
-`hw_generic` target, i.e. `rumpbake hw_generic mpg123.bin src/mpg123`.
+Bake the final unikernel image:
+```
+rumpbake hw_generic bin/mpg123.bin bin/mpg123
+```
 
 Use `rumprun` as normal.
 
