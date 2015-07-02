@@ -24,7 +24,7 @@ Instructions
 ============
 
 ```
-rumprun-bmk-make TARGET_OS=NetBSD
+x86_64-rumprun-netbsd-make TARGET_OS=NetBSD
 ```
 
 That should build the static library and a bunch of tests along with a

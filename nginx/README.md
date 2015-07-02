@@ -22,11 +22,10 @@ Instructions
 The build script also requires `genisoimage` in order to build the ISO images
 for `/data` and `/etc`.
 
-Run `make`, setting `CC` to either `rumprun-xen-cc` or `rumprun-bmk-cc`,
-depending on the platform you are building for:
+Run `make`, setting `CC` to target architecture cross-compiler, e.g.
 
 ```
-make CC=rumprun-xen-cc
+make CC=x86_64-rumprun-netbsd-cc
 ```
 
 Bake the final unikernel image:

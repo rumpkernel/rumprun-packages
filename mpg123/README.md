@@ -16,10 +16,10 @@ Fetch mpg123 sources from http://mpg123.org/
 Instructions
 ============
 
-Untar and run configure as:
+Untar and run configure as (for x86_64):
 
 ```
-rumprun-bmk-configure ./configure --enable-modules=no --enable-static=yes --enable-shared=no --enable-buffer=no --with-cpu=i486 --with-default-audio=sun
+x86_64-rumprun-netbsd-configure ./configure --enable-modules=no --enable-static=yes --enable-shared=no --enable-buffer=no --with-cpu=i486 --with-default-audio=sun
 ```
 
 You can be more adventurous with the CPU if you like, we are just

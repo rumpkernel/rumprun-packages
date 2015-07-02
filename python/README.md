@@ -35,11 +35,11 @@ Copy `config.site` from this directory to your python source directory.
 Run the configure script:
 
 ```
-export AR=rumprun-bmk-ar
-export RANLIB=rumprun-bmk-ranlib
-export READELF=rumprun-bmk-readelf
+export AR=x86_64-rumprun-netbsd-ar
+export RANLIB=x86_64-rumprun-netbsd-ranlib
+export READELF=x86_64-rumprun-netbsd-readelf
 export CONFIG_SITE=$(pwd)/config.site
-rumprun-bmk-configure ./configure --disable-shared --build $(rumprun-bmk-cc -dumpmachine) --disable-ipv6 --prefix $(pwd)/pythondist
+x86_64-rumprun-netbsd-configure ./configure --disable-shared --build $(x86_64-rumprun-netbsd-cc -dumpmachine) --disable-ipv6 --prefix $(pwd)/pythondist
 ```
 
 Notably, --disable-ipv6 is required because python complains about
@@ -74,7 +74,7 @@ your development host.  Then run:
 
 ```
 cython --embed hw.py
-rumprun-bmk-cc hw.c -I[...]/pythondist/include/python3.4m -L[...]/pythondist/lib -lpython3.4m -lutil -lm
+x86_64-rumprun-netbsd-cc hw.c -I[...]/pythondist/include/python3.4m -L[...]/pythondist/lib -lpython3.4m -lutil -lm
 rumpbake hw_generic a.bin a.out
 ```
 
