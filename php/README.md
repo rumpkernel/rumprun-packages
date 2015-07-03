@@ -25,15 +25,34 @@ Run `make`, setting `CC` to target architecture cross-compiler, e.g.
 make CC=x86_64-rumprun-netbsd-cc
 ```
 
-Bake the final unikernel image:
+Bake the final unikernel images:
 ```
 rumpbake xen_pv bin/php-cgi.bin bin/php-cgi
+rumpbake xen_pv bin/phpi.bin bin/php
 ```
 
 (Replace `xen_pv` with the platform you are baking for.)
 
 Examples
 ========
+
+Running a standalone PHP unikernel
+----------------------------------
+
+PHP includes a built-in webserver for development and testing. You can use this
+to run a standalone PHP unikernel with no need for Nginx.
+
+
+```
+rumprun xen -di -M 128 \
+    -I net1,xenif -W net1,inet,static,10.0.120.201/24 \
+    -b ../images/data.iso,/data \
+    -- ../bin/php.bin -S 0.0.0.0:80 -t /data/www
+```
+
+Note that this is *not* intended for production use, for that you will want a
+setup using FastCGI, see below. The above script is also included as
+`examples/run_standalone.sh`.
 
 Running a nginx + PHP demo
 --------------------------

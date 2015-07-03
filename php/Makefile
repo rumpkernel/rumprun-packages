@@ -2,17 +2,24 @@ UPSTREAM=http://de1.php.net/get/php-5.6.10.tar.bz2/from/this/mirror
 
 HOST=$(subst -cc,,$(notdir $(CC)))
 
-all: bin/php-cgi images
+all: bin/php-cgi bin/php images
 
 bin/php-cgi: build/sapi/cgi/php-cgi
+	mkdir -p bin
+	cp $< $@
+
+bin/php: build/sapi/cli/php
 	mkdir -p bin
 	cp $< $@
 
 build/sapi/cgi/php-cgi: build/Makefile
 	$(MAKE) -C build sapi/cgi/php-cgi
 
+build/sapi/cli/php: build/Makefile
+	$(MAKE) -C build sapi/cli/php
+
 build/Makefile: build/configure
-	(cd build && ./configure --host=$(HOST) --disable-shared --disable-all)
+	(cd build && ./configure --host=$(HOST) --disable-shared --disable-all --enable-cli)
 
 build/configure:
 	mkdir -p build
