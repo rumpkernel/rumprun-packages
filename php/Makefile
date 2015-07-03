@@ -1,6 +1,6 @@
 UPSTREAM=http://de1.php.net/get/php-5.6.10.tar.bz2/from/this/mirror
 
-HOST=$(subst -cc,,$(notdir $(CC)))
+HOST=$(subst -gcc,,$(notdir $(CC)))
 
 all: bin/php-cgi bin/php images
 

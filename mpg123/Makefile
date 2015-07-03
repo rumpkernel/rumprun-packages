@@ -1,6 +1,6 @@
 UPSTREAM=http://downloads.sourceforge.net/project/mpg123/mpg123/1.22.2/mpg123-1.22.2.tar.bz2
 
-HOST=$(subst -cc,,$(notdir $(CC)))
+HOST=$(subst -gcc,,$(notdir $(CC)))
 
 all: bin/mpg123
 
