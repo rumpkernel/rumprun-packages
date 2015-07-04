@@ -35,11 +35,8 @@ Copy `config.site` from this directory to your python source directory.
 Run the configure script:
 
 ```
-export AR=x86_64-rumprun-netbsd-ar
-export RANLIB=x86_64-rumprun-netbsd-ranlib
-export READELF=x86_64-rumprun-netbsd-readelf
 export CONFIG_SITE=$(pwd)/config.site
-x86_64-rumprun-netbsd-configure ./configure --disable-shared --build $(x86_64-rumprun-netbsd-gcc -dumpmachine) --disable-ipv6 --prefix $(pwd)/pythondist
+./configure --disable-shared --host=x86_64-rumprun-netbsd --build $(x86_64-rumprun-netbsd-gcc -dumpmachine) --disable-ipv6 --prefix $(pwd)/pythondist
 ```
 
 Notably, --disable-ipv6 is required because python complains about
