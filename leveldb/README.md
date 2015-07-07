@@ -9,31 +9,31 @@ not tested yet.
 Download
 =========
 
-Download and untar the leveldb sources from
-https://github.com/google/leveldb/releases/latest
-
-v1.18 is the latest at this time of writing and so we'll be using that.
+The build process downloads the latest upstream release.
 
 Patches
 =======
 
-patch-crosscompile-? adjusts the build system to generate only static libraries
-and build all the tests. 
+Patches for cross-compilation are found inside the patches/ directory and are
+applied as part of the build process.
 
 Instructions
 ============
 
+Run make, setting CC and CXX to the target architecture cross-compiler. Eg:
+
 ```
-x86_64-rumprun-netbsd-make TARGET_OS=NetBSD
+make CC=x86_64-rumprun-netbsd-gcc CXX=x86_64-rumprun-netbsd-g++
 ```
 
 That should build the static library and a bunch of tests along with a
-benchmark.
+benchmark. By default, these are installed in bin/. The static library and
+headers are installed to lib/ and include/ respectivey. To change the
+installation directory, adjust INSTALL_PREFIX in the Makefile.
 
 Run `rumpbake` on the desired test and the benchmark programs. You will most
 likely want to use the `hw_generic` target, e.g `rumpbake hw_generic
-db_bench.bin ./db_bench`.
-
+bin/db_bench.bin bin/db_bench`.
 
 Examples
 ========
@@ -48,11 +48,16 @@ mkfs.ext2 data.img 512M
 and then run...
 
 ```
-rumprun kvm -i -M 512 -b data.img,/data -e TEST_TMPDIR=/data ./db_bench.bin
+rumprun qemu -i -M 512 -b data.img,/data -e TEST_TMPDIR=/data bin/db_bench.bin
 ```
 
 or a test...
 
 ```
-rumprun kvm -i -M 512 -b data.img,/data -e TEST_TMPDIR=/data ./corruption_test.bin
+rumprun qemu -i -M 512 -b data.img,/data -e TEST_TMPDIR=/data bin/corruption_test.bin
 ```
+
+Todo
+====
+
+- support for compression using snappy
