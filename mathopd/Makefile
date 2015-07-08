@@ -1,3 +1,4 @@
+include ../Makefile.inc
 UPSTREAM=http://www.mathopd.org/dist/mathopd-1.6b15.tar.gz
 
 all: bin/mathopd images
@@ -7,7 +8,7 @@ bin/mathopd: build/src/mathopd
 	cp $< $@
 
 build/src/mathopd: build/src/Makefile
-	$(MAKE) -C build/src
+	$(MAKE) -C build/src CC=$(RUMPRUN_CC)
 
 build/src/Makefile:
 	mkdir -p build
@@ -25,6 +26,6 @@ images/data.iso: images/data/mathopd.conf images/data/www/*
 
 .PHONY: clean
 clean:
-	$(MAKE) -C build/src clean
+	-$(MAKE) -C build/src clean
 	rm -f bin/*
 	rm -f images/stubetc.iso images/data.iso

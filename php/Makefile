@@ -1,6 +1,5 @@
+include ../Makefile.inc
 UPSTREAM=http://de1.php.net/get/php-5.6.10.tar.bz2/from/this/mirror
-
-HOST=$(subst -gcc,,$(notdir $(CC)))
 
 all: bin/php-cgi bin/php images
 
@@ -19,7 +18,7 @@ build/sapi/cli/php: build/Makefile
 	$(MAKE) -C build sapi/cli/php
 
 build/Makefile: build/configure
-	(cd build && ./configure --host=$(HOST) --disable-shared --disable-all --enable-cli)
+	(cd build && ./configure --host=$(RUMPRUN_PLATFORM) --disable-shared --disable-all --enable-cli)
 
 build/configure:
 	mkdir -p build
@@ -37,6 +36,6 @@ images/data.iso: images/data/conf/* images/data/www/* images/data/www/static/*
 
 .PHONY: clean
 clean:
-	$(MAKE) -C build clean
+	-$(MAKE) -C build clean
 	rm -f bin/*
 	rm -f images/stubetc.iso images/data.iso
