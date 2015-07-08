@@ -1,6 +1,5 @@
+include ../Makefile.inc
 UPSTREAM=https://www.hiawatha-webserver.org/files/hiawatha-9.13.tar.gz
-HOST=$(subst -gcc,,$(notdir $(CC)))
-TOOLCHAIN=$(dir $(shell which $(CC)))$(HOST)-toolchain.cmake
 
 all: bin/hiawatha images
 
@@ -14,7 +13,7 @@ build/build/hiawatha: build/build/Makefile
 build/build/Makefile: build/CMakeLists.txt
 	mkdir -p build/build
 	(cd build/build && \
-	    cmake -DCMAKE_TOOLCHAIN_FILE=$(TOOLCHAIN) \
+	    cmake -DCMAKE_TOOLCHAIN_FILE=$(RUMPRUN_CMAKE_TOOLCHAIN) \
 	          -DENABLE_XSLT=off \
 		  -Wno-dev \
 		  ..)

@@ -20,10 +20,10 @@ applied as part of the build process.
 Instructions
 ============
 
-Run make, setting CC and CXX to the target architecture cross-compiler. Eg:
+Run make:
 
 ```
-make CC=x86_64-rumprun-netbsd-gcc CXX=x86_64-rumprun-netbsd-g++
+make
 ```
 
 That should build the static library and a bunch of tests along with a

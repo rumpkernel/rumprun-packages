@@ -16,10 +16,10 @@ Upstream source will be downloaded by the build process.
 Instructions
 ============
 
-Run `make`, setting `CC` to target cross-compiler, e.g.
+Run `make`:
 
 ```
-make CC=x86_64-rumprun-netbsd-gcc
+make
 ```
 
 Note, if you want to compile a 32bit build, you also need to edit

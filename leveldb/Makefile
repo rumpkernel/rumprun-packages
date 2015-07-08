@@ -1,5 +1,9 @@
+include ../Makefile.inc
 UPSTREAM=https://github.com/google/leveldb/archive/v1.18.tar.gz
 INSTALL_PREFIX ?= $(shell pwd)
+CC=$(RUMPRUN_CC)
+CXX=$(RUMPRUN_CXX)
+export CC CXX
 
 all: bin/db_bench 
 
@@ -20,5 +24,5 @@ build/Makefile:
 
 .PHONY: clean
 clean:
-	$(MAKE) -C build clean
+	-$(MAKE) -C build clean
 	rm -f bin/*

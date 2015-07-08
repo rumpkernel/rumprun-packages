@@ -1,3 +1,4 @@
+include ../Makefile.inc
 UPSTREAM=http://nginx.org/download/nginx-1.8.0.tar.gz
 
 all: bin/nginx images
@@ -23,7 +24,7 @@ NGINX_CONF_ENV += \
 
 NGINX_CONF_OPTS += \
 	--crossbuild=NetBSD \
-	--with-cc=${CC} \
+	--with-cc=$(RUMPRUN_CC) \
 	--prefix=/none \
 	--conf-path=/data/conf/nginx.conf \
 	--sbin-path=/none \
@@ -62,6 +63,6 @@ images/data.iso: images/data/conf/* images/data/www/*
 
 .PHONY: clean
 clean:
-	$(MAKE) -C build clean
+	-$(MAKE) -C build clean
 	rm -f bin/*
 	rm -f images/stubetc.iso images/data.iso
