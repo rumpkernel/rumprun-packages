@@ -21,7 +21,7 @@ MPG123_CONF_OPTS += \
 #MPG123_CONF_OPTS += --with-cpu=i486
 
 build/Makefile: build/configure
-	(cd build; ./configure --host=$(RUMPRUN_PLATFORM) $(MPG123_CONF_OPTS))
+	(cd build; ./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) $(MPG123_CONF_OPTS))
 
 build/configure:
 	mkdir -p build
