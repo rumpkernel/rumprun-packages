@@ -18,7 +18,7 @@ build/sapi/cli/php: build/Makefile
 	$(MAKE) -C build sapi/cli/php
 
 build/Makefile: build/configure
-	(cd build && ./configure --host=$(RUMPRUN_PLATFORM) --disable-shared --disable-all --enable-cli)
+	(cd build && ./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) --disable-shared --disable-all --enable-cli)
 
 build/configure:
 	mkdir -p build

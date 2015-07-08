@@ -16,8 +16,9 @@ To get started:
 
 1. Build a rumprun toolchain.
 2. Add the `app-tools` directory to your `$PATH`.
-3. Edit the `config.mk` file to specify the target of the rumprun toolchain you
-   want to build packages for.
+3. Copy the `config.mk.dist` file to `config.mk` and set
+   `RUMPRUN_TOOLCHAIN_TUPLE` to specify the compiler toolchain to use for
+   building, for example, `x86_64-rumprun-netbsd` or `i486-rumprun-netbsdelf`.
 4. Refer to the package-specific README file for build instructions.
 
 Contributing new packages

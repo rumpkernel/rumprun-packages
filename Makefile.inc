@@ -5,11 +5,11 @@
 -include ../config.mk
 
 # If the user has not setup config.mk, complain.
-ifeq ($(RUMPRUN_PLATFORM),)
-$(error Please set RUMPRUN_PLATFORM in the top-level config.mk)
+ifeq ($(RUMPRUN_TOOLCHAIN_TUPLE),)
+$(error Please set RUMPRUN_TOOLCHAIN_TUPLE in the top-level config.mk)
 endif
 
 # Set convenience variables for use by package-specific Makefiles.
-RUMPRUN_CC=$(RUMPRUN_PLATFORM)-gcc
-RUMPRUN_CXX=$(RUMPRUN_PLATFORM)-g++
-RUMPRUN_CMAKE_TOOLCHAIN=$(dir$(shell which $(RUMPRUN_CC)))$(RUMPRUN_PLATFORM)-toolchain.cmake
+RUMPRUN_CC=$(RUMPRUN_TOOLCHAIN_TUPLE)-gcc
+RUMPRUN_CXX=$(RUMPRUN_TOOLCHAIN_TUPLE)-g++
+RUMPRUN_CMAKE_TOOLCHAIN=$(dir$(shell which $(RUMPRUN_CC)))$(RUMPRUN_TOOLCHAIN_TUPLE)-toolchain.cmake
