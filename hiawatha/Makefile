@@ -13,7 +13,7 @@ build/build/hiawatha: build/build/Makefile
 build/build/Makefile: build/CMakeLists.txt
 	mkdir -p build/build
 	(cd build/build && \
-	    cmake -DCMAKE_TOOLCHAIN_FILE=$(RUMPRUN_CMAKE_TOOLCHAIN) \
+	    cmake -DCMAKE_TOOLCHAIN_FILE=$(RUMPRUN_CMAKE_TOOLCHAIN_FILE) \
 	          -DENABLE_XSLT=off \
 		  -Wno-dev \
 		  ..)
