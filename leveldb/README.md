@@ -6,11 +6,6 @@ its benchmark under the _hw_ platform. It should work on Xen as well but it is
 not tested yet.
 
 
-Download
-=========
-
-The build process downloads the latest upstream release.
-
 Patches
 =======
 

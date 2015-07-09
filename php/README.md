@@ -3,10 +3,6 @@ Overview
 
 Packaging of unmodified [PHP](http://php.net/) for rumprun.
 
-Download
-========
-
-Upstream source will be downloaded by the build process.
 
 Patches
 =======

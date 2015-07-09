@@ -6,13 +6,6 @@ _hw_ platform.  You could theoretically do the same for Xen platform
 via PCI passthrough, but doing so is left as an exercise for the reader.
 
 
-Download
-========
-
-Upstream source will be downloaded by the build process.
-
-
-
 Instructions
 ============
 
