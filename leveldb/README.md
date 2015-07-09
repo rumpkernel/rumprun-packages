@@ -1,9 +1,9 @@
 Overview
 ========
 
-The following instructions will build the leveldb key-value database and run
-its benchmark under the _hw_ platform. It should work on Xen as well but it is
-not tested yet.
+The following instructions will build the leveldb v1.18 key-value database
+and run its benchmark under the _hw_ platform. It should work on Xen as
+well but it is not tested yet.
 
 
 Patches
