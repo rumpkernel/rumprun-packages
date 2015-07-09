@@ -38,6 +38,6 @@ process.
 When adding new packages, include the following sections in the
 package-specific README:
 
-* Overview: a sentence or two on how the package can be used
+* Overview: name of the package, version number, and a sentence or two on how the package can be used
 * Instructions: how to build.  If this section is "run script/make", excellent!
 * Examples: a few examples on how to run/use the resulting package
