@@ -1,7 +1,7 @@
 Overview
 ========
 
-Packaging of unmodified [mathopd](http://mathopd.org/) for rumprun.
+Packaging of unmodified [mathopd](http://mathopd.org/) 1.6b15 for rumprun.
 
 Mathopd is a simple, non-forking HTTP/1.1 compliant webserver, and serves as an
 example of how a simple POSIX application can be cross-compiled, unmodified,

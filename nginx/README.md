@@ -1,7 +1,7 @@
 Overview
 ========
 
-Packaging of unmodified [Nginx](http://nginx.org/) for rumprun.
+Packaging of the [Nginx](http://nginx.org/) 1.8.0 web server for rumprun.
 
 
 Patches
