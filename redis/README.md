@@ -9,6 +9,11 @@ and store. It is often referred to as a data structure server
 since keys can contain strings, hashes, lists, sets, sorted sets,
 bitmaps and hyperloglogs.
 
+Known Issues
+------------
+
+- Data persistence is disabled in the config as redis forks to snapshot data.
+
 Patches
 =======
 
