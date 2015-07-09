@@ -21,6 +21,11 @@ To get started:
    building, for example, `x86_64-rumprun-netbsd` or `i486-rumprun-netbsdelf`.
 4. Refer to the package-specific README file for build instructions.
 
+Tutorials you may want to complete for more in-depth knowledge:
+
+* http://wiki.rumpkernel.org/Tutorial%3A-Building-Rumprun-Unikernels
+* http://wiki.rumpkernel.org/Tutorial%3A-Serve-a-static-website-as-a-Unikernel
+
 Contributing new packages
 -------------------------
 
