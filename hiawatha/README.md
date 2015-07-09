@@ -7,11 +7,6 @@ Hiawatha is a lightweight, threaded webserver which is well-suited to running
 as a unikernel. It also serves as an example for cross-compiling an application
 which uses CMake as its build system.
 
-Download
-========
-
-Upstream source will be downloaded by the build process.
-
 Patches
 =======
 
