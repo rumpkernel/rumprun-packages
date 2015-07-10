@@ -15,9 +15,6 @@ Run `make`:
 make
 ```
 
-Note, if you want to compile a 32bit build, you also need to edit
-`Makefile`.
-
 Bake the final unikernel image:
 ```
 rumpbake hw_generic bin/mpg123.bin bin/mpg123
