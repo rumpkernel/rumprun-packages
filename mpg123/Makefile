@@ -17,8 +17,9 @@ MPG123_CONF_OPTS += \
 	--enable-buffer=no \
 	--with-default-audio=sun
 
-# useful only for 32bit
-#MPG123_CONF_OPTS += --with-cpu=i486
+ifeq (i486-rumprun-netbsdelf,$(RUMPRUN_TOOLCHAIN_TUPLE))
+MPG123_CONF_OPTS += --with-cpu=i486
+endif
 
 build/Makefile: build/configure
 	(cd build; ./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) $(MPG123_CONF_OPTS))
