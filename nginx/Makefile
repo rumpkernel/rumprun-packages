@@ -38,6 +38,7 @@ NGINX_CONF_OPTS += \
 	--http-scgi-temp-path=/tmp/scgi \
 	--http-uwsgi-temp-path=/tmp/uwsgi \
 	--without-http_rewrite_module \
+	--with-http_ssl_module \
 	--with-ipv6
 
 build/Makefile: build/stamp_patch
