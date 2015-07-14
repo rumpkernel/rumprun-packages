@@ -22,7 +22,7 @@ TARGET=$2
 if type wget >/dev/null 2>&1; then
     wget -q ${URL} -O ${TARGET} || die
 elif type curl >/dev/null 2>&1; then
-    curl -s -o ${TARGET} ${URL} || die
+    curl -s -L -o ${TARGET} ${URL} || die
 else
     echo "error: Need curl or wget to download ${URL}" 1>&2
     exit 1
