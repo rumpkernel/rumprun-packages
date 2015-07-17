@@ -14,7 +14,7 @@ bin/php: build/sapi/cli/php
 build/sapi/cgi/php-cgi: build/Makefile
 	$(MAKE) -C build sapi/cgi/php-cgi
 
-build/sapi/cli/php: build/Makefile
+build/sapi/cli/php: build/Makefile build/sapi/cgi/php-cgi
 	$(MAKE) -C build sapi/cli/php
 
 build/Makefile: build/configure
