@@ -1,5 +1,7 @@
 include ../Makefile.inc
+
 UPSTREAM=http://nginx.org/download/nginx-1.8.0.tar.gz
+TARBALL=$(notdir $(UPSTREAM))
 
 all: bin/nginx images
 
@@ -48,10 +50,13 @@ build/stamp_patch: build/configure patches/*
 	../scripts/apply-patches.sh build/ patches/*
 	touch $@
 
-build/configure:
+dl/$(TARBALL):
+	mkdir -p dl
+	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
+
+build/configure: dl/$(TARBALL)
 	mkdir -p build
-	../scripts/fetch.sh ${UPSTREAM} build/nginx.tar.gz
-	(cd build && tar -xz --strip-components 1 -f nginx.tar.gz)
+	(cd build && tar -xz --strip-components 1 -f ../dl/$(TARBALL))
 
 .PHONY: images
 images: images/stubetc.iso images/data.iso
