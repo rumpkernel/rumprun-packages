@@ -16,7 +16,7 @@ LIBXML2_CONF_OPTS += \
 	--without-python \
 	--without-lzma \
 	--without-iconv \
-	--prefix=$(PKGS_DIR) \
+	--prefix=$(RUMPRUN_PKGS_DIR) \
 	--disable-shared
 
 build/Makefile: build/configure
