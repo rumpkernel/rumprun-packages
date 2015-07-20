@@ -13,3 +13,8 @@ Run `make`:
 ```
 make
 ```
+
+Examples
+========
+
+This is a library.  It is used by other packages.
