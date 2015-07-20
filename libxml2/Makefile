@@ -1,5 +1,6 @@
 include ../Makefile.inc
 UPSTREAM=ftp://xmlsoft.org/libxml2/libxml2-2.7.2.tar.gz
+TARBALL=$(notdir $(UPSTREAM))
 
 all: bin/libxml2
 
@@ -23,10 +24,13 @@ build/Makefile: build/configure
 	(cd build; \
 	./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) $(LIBXML2_CONF_OPTS);)
 
-build/configure:
+dl/$(TARBALL):
+	mkdir -p dl
+	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
+
+build/configure: dl/$(TARBALL)
 	mkdir -p build
-	../scripts/fetch.sh ${UPSTREAM} build/libxml2-2.7.2.tar.gz
-	(cd build && tar -zxv --strip-components 1 -f libxml2-2.7.2.tar.gz)
+	(cd build && tar -zxv --strip-components 1 -f ../dl/$(TARBALL))
 
 .PHONY: clean
 clean:
