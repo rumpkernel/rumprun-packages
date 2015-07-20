@@ -1,1 +1,4 @@
 config.mk
+php/images/data/www
+pkgs/*
+includes/*
