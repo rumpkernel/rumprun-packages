@@ -4,6 +4,11 @@ rumprun-packages
 rumprun-packages is a work-in-progress repository for software running on the
 rumprun unikernel.
 
+__NOTE__ to users: check the license of each individual package to make
+sure it suits your deployment needs.  Unlike everything else provided
+by the rump kernel project, we do not guarantee a BSD, ISC or CC0 style
+license for every piece of 3rd party software linked from here.
+
 We are working towards choosing a real packaging system, with support for
 versions and dependencies.  Until we reach that point, this repo is meant to
 assemble the build scripts and patches for running various applications on
