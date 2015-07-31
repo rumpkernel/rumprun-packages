@@ -3,7 +3,9 @@ include ../Makefile.inc
 UPSTREAM = https://github.com/ngircd/ngircd/archive/rel-22.1.tar.gz
 
 NGIRCD_CONF_OPTS += \
-	--without-pam
+	--without-pam \
+	--enable-ipv6 \
+	--with-openssl
 
 
 
@@ -15,7 +17,7 @@ all: bin/ngircd images/data/conf/ngircd.conf images/data/conf/Commands.txt
 images/data/conf/ngircd.conf: build/autogen.sh
 	mkdir -p images/data/conf
 	cp build/doc/sample-ngircd.conf.tmpl $@
-	sed -e 's#;HelpFile = :DOCDIR:/Commands.txt#HelpFile = /data/Commands.txt#' $@ > $@.tmp && mv $@.tmp $@
+	sed -e 's#;HelpFile = :DOCDIR:/Commands.txt#HelpFile = /data/conf/Commands.txt#' $@ > $@.tmp && mv $@.tmp $@
 	sed -e 's#;MotdPhrase = "Hello world!"#MotdPhrase = "IRC server running on a rump kernel!"#' $@ > $@.tmp && mv $@.tmp $@
 	sed -e 's#;ServerGID = 65534#ServerGID = 1#' $@ > $@.tmp && mv $@.tmp $@
 	sed -e 's#;ServerUID = 65534#ServerUID = 1#' $@ > $@.tmp && mv $@.tmp $@
@@ -50,7 +52,7 @@ images/stubetc.iso: ../stubetc/etc
 	genisoimage -l -r -o images/stubetc.iso $<
 
 images/data.iso: images/data/conf/ngircd.conf images/data/conf/Commands.txt
-	genisoimage -l -r -o images/data.iso $^
+	genisoimage -l -r -o images/data.iso images/data
 
 
 

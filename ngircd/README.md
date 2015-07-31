@@ -43,11 +43,15 @@ Examples
 
 To start a Xen domU running ngIRCd, as root run (for example):
 ````
-rumprun xen -M 128 -di \
+rumprun xen -M 32 -di \
     -n inet,static,10.10.10.10/24 \
     -b images/stubetc.iso,/etc \
     -b images/data.iso,/data \
-    -- bin/ngircd.bin --config /data/ngircd.conf --nodaemon
+    -- bin/ngircd.bin --config /data/conf/ngircd.conf --nodaemon
 ````
 The `--nodaemon` option is required to avoid ngIRCd calling `fork()`.  
 Replace `10.10.10.10/24` with a valid IP address on your Xen network.
+
+If SSL is needed, ngIRCd is build with OpenSSL support. You can follow a quick
+how-to on the [official site](http://ngircd.barton.de/doc/SSL.txt) to known how
+to configure ngIRCd for SSL and create a self-signed certificate.
