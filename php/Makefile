@@ -1,7 +1,20 @@
 include ../Makefile.inc
 UPSTREAM=http://de1.php.net/get/php-5.6.10.tar.bz2/from/this/mirror
 
-all: bin/php-cgi bin/php images
+# "Kitchen sink" build. Depends on libxml2 being built.
+# Fileinfo, iconv and opcache are disabled for now (patches needed).
+all: CONFIGURE_OPTS := --with-libxml-dir=$(RUMPRUN_PKGS_DIR) \
+        --disable-fileinfo --disable-opcache --without-iconv
+
+all: $(RUMPRUN_PKGS_DIR)/lib/libxml2.a bin/php-cgi bin/php images
+
+# "Minimal" build.
+minimal: CONFIGURE_OPTS := --disable-all --enable-cli
+
+minimal: bin/php-cgi bin/php images
+
+$(RUMPRUN_PKGS_DIR)/lib/libxml2.a:
+	$(MAKE) -C ../libxml2
 
 bin/php-cgi: build/sapi/cgi/php-cgi
 	mkdir -p bin
@@ -18,7 +31,8 @@ build/sapi/cli/php: build/Makefile build/sapi/cgi/php-cgi
 	$(MAKE) -C build sapi/cli/php
 
 build/Makefile: build/configure
-	(cd build && ./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) --disable-shared --disable-all --enable-cli)
+	(cd build && ./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
+	    --disable-shared $(CONFIGURE_OPTS))
 
 build/configure:
 	mkdir -p build
@@ -39,3 +53,7 @@ clean:
 	-$(MAKE) -C build clean
 	rm -f bin/*
 	rm -f images/stubetc.iso images/data.iso
+
+.PHONY: distclean
+distclean: clean
+	rm -rf build/
