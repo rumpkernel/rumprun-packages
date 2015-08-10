@@ -34,6 +34,10 @@ build/configure: | dl/$(TARBALL)
 
 .PHONY: clean
 clean:
+	-$(MAKE) -C build uninstall
 	-$(MAKE) -C build clean
+
+.PHONY: distclean
+distclean: clean
 	rm -rf build
 
