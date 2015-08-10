@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-UPSTREAM=http://de1.php.net/get/php-5.6.10.tar.bz2/from/this/mirror
+UPSTREAM=http://de1.php.net/get/php-5.6.12.tar.bz2/from/this/mirror
 TARBALL=php.tar.bz2
 
 # "Kitchen sink" build. Depends on libxml2 being built.
