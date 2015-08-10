@@ -15,6 +15,7 @@ minimal: CONFIGURE_OPTS := --disable-all --enable-cli
 
 minimal: bin/php-cgi bin/php images
 
+.NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libxml2.a
 $(RUMPRUN_PKGS_DIR)/lib/libxml2.a:
 	$(MAKE) -C ../libxml2
 
