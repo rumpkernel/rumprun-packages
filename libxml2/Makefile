@@ -28,7 +28,7 @@ dl/$(TARBALL):
 	mkdir -p dl
 	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
 
-build/configure: dl/$(TARBALL)
+build/configure: | dl/$(TARBALL)
 	mkdir -p build
 	(cd build && tar -zxv --strip-components 1 -f ../dl/$(TARBALL))
 
