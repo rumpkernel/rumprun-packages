@@ -1,5 +1,7 @@
 include ../Makefile.inc
+
 UPSTREAM=http://de1.php.net/get/php-5.6.10.tar.bz2/from/this/mirror
+TARBALL=php.tar.bz2
 
 # "Kitchen sink" build. Depends on libxml2 being built.
 # Fileinfo, iconv and opcache are disabled for now (patches needed).
@@ -34,10 +36,13 @@ build/Makefile: build/configure
 	(cd build && ./configure --host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	    --disable-shared $(CONFIGURE_OPTS))
 
-build/configure:
+dl/$(TARBALL):
+	mkdir -p dl
+	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
+
+build/configure: | dl/$(TARBALL)
 	mkdir -p build
-	../scripts/fetch.sh $(UPSTREAM) build/php.tar.bz2
-	(cd build && tar -xj --strip-components 1 -f php.tar.bz2)
+	(cd build && tar -xj --strip-components 1 -f ../dl/$(TARBALL))
 
 .PHONY: images
 images: images/stubetc.iso images/data.iso
