@@ -72,3 +72,7 @@ clean:
 	-$(MAKE) -C build clean
 	rm -f bin/*
 	rm -f images/stubetc.iso images/data.iso
+
+.PHONY: distclean
+distclean: clean
+	rm -rf build
