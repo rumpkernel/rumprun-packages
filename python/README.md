@@ -78,7 +78,7 @@ rumpbake hw_generic a.bin a.out
 To launch, `rumprun` it:
 
 ```
-rumprun kvm -i -b python.iso,/python/lib/python3.4 -b stubetc.iso,/etc -e PYTHONHOME=/python a.bin
+rumprun kvm -i -b python.iso,/python/lib/python3.4 -b stubetc.iso,/etc -e PYTHONHOME=/python -e HOME=/ a.bin
 ```
 
 You should see the helloworld text printed.
