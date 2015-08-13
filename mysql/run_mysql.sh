@@ -5,5 +5,5 @@ rumprun xen "$@" -M 128 -i \
     -b images/data.ffs,/data \
     -n inet6,auto \
     -- \
-    build/mysql/build-cross/sql/mysqld.bin \
+    bin/mysqld.bin \
         --defaults-file=/data/my.cnf --basedir=/data --user=daemon

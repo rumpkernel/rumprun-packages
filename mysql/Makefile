@@ -47,7 +47,7 @@ build/mysql_patch_stamp: patches/* build/mysql_extract_stamp
 #
 NATIVE_DIR=$(abspath $(BUILD_DIR)/build-native)
 build/mysql_native_stamp: build/mysql_patch_stamp
-	mkdir $(NATIVE_DIR) || true
+	mkdir -p $(NATIVE_DIR)
 	cd $(NATIVE_DIR) && cmake \
 	    -DWITH_SSL=system \
 	    -DWITH_ZLIB=system \
@@ -59,12 +59,14 @@ build/mysql_native_stamp: build/mysql_patch_stamp
 	$(MAKE) -C $(NATIVE_DIR)/scripts
 	$(MAKE) -C $(NATIVE_DIR)/extra
 	$(MAKE) -C $(NATIVE_DIR) mysqld
-	mkdir $(NATIVE_DIR)/bin || true
+	mkdir -p $(NATIVE_DIR)/bin
 	cp $(NATIVE_DIR)/sql/gen_lex_hash \
 	    $(NATIVE_DIR)/sql/gen_lex_token \
 	    $(NATIVE_DIR)/scripts/comp_sql \
 	    $(NATIVE_DIR)/extra/comp_err \
 	    $(NATIVE_DIR)/bin/
+	mkdir -p bin
+	cp $(NATIVE_DIR)/sql/mysqld bin/mysqld-bootstrap
 	touch $@
 
 #
@@ -72,7 +74,7 @@ build/mysql_native_stamp: build/mysql_patch_stamp
 #
 CROSS_DIR=$(abspath $(BUILD_DIR)/build-cross)
 build/mysql_cross_cmake_stamp: build/mysql_native_stamp
-	mkdir $(CROSS_DIR) || true
+	mkdir -p $(CROSS_DIR)
 	cd $(CROSS_DIR) && cmake \
 	    -C $(PWD)/CachePreseed.cmake \
 	    -DCMAKE_TOOLCHAIN_FILE=$(RUMPRUN_CMAKE_TOOLCHAIN_FILE) \
@@ -95,6 +97,8 @@ build/mysql_cross_cmake_stamp: build/mysql_native_stamp
 build/mysql_cross_build_stamp: build/mysql_cross_cmake_stamp
 	export PATH=$(NATIVE_DIR)/bin:$$PATH; \
 	$(MAKE) -C $(CROSS_DIR) mysqld
+	mkdir -p bin
+	cp $(CROSS_DIR)/sql/mysqld bin/mysqld
 	touch $@
 
 #
@@ -102,7 +106,7 @@ build/mysql_cross_build_stamp: build/mysql_cross_cmake_stamp
 #
 DATA_DIR=$(abspath images/data)
 images/data: build/mysql_native_stamp
-	mkdir -p $(DATA_DIR) $(DATA_DIR)/share|| true
+	mkdir -p $(DATA_DIR) $(DATA_DIR)/share
 	cp -f my.cnf $(DATA_DIR)
 	cp -rf $(NATIVE_DIR)/sql/share/english $(DATA_DIR)/share
 	perl $(NATIVE_DIR)/scripts/mysql_install_db \
@@ -113,7 +117,7 @@ images/data: build/mysql_native_stamp
 	    --lc-messages-dir=$(DATA_DIR)/share \
 	    --cross-bootstrap
 	cat mysql_rump_bootstrap.sql | \
-	    $(NATIVE_DIR)/sql/mysqld \
+	    bin/mysqld-bootstrap \
 	    --defaults-file=$(DATA_DIR)/my.cnf \
 	    --basedir=$(DATA_DIR) \
 	    --bootstrap
@@ -138,6 +142,8 @@ relink:
 	rm -f $(CROSS_DIR)/sql/mysqld
 	rm -f build/mysql_cross_build_stamp
 	$(MAKE) mysql
+	mkdir -p bin
+	cp $(CROSS_DIR)/sql/mysqld bin/mysqld
 
 #
 # Force re-build images from scratch, used during development
@@ -152,3 +158,4 @@ clean-images:
 .PHONY: clean
 clean: clean-images
 	rm -rf build
+	rm -rf bin/*

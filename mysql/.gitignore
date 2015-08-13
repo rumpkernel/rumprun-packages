@@ -4,3 +4,4 @@ images/*.ffs
 images/data
 images/share
 dl/*.*
+bin/
