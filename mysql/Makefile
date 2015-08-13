@@ -83,6 +83,10 @@ build/mysql_cross_cmake_stamp: build/mysql_native_stamp
 	    -DFEATURE_SET=small \
 	    -DWITHOUT_PERFSCHEMA_STORAGE_ENGINE=1 \
 	    ..
+# my_net.h insists on redefining in_addr_t, and nothing in the CMake build
+# files sets HAVE_IN_ADDR_T. TODO: Report this upstream.
+	echo '#define HAVE_IN_ADDR_T 1' >> $(CROSS_DIR)/include/config.h
+	echo '#define HAVE_IN_ADDR_T 1' >> $(CROSS_DIR)/include/my_config.h
 	touch $@
 
 #
