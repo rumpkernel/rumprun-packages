@@ -36,10 +36,10 @@ build/mysql_extract_stamp: dl/$(TARBALL)
 # sql_table.cc - fixes a bug introducted in 5.6.24 which breaks the build when
 # the partition storage engine is disabled.
 #
-build/mysql_patch_stamp: CMakeLists.txt.patch build/mysql_extract_stamp
-	( cd $(BUILD_DIR); patch -p0 < ../../CMakeLists.txt.patch )
-	( cd $(BUILD_DIR); patch -p0 < ../../my_global.h.patch )
-	( cd $(BUILD_DIR); patch -p0 < ../../sql_table.cc.patch )
+build/mysql_patch_stamp: patches/* build/mysql_extract_stamp
+	( cd $(BUILD_DIR); patch -p0 < ../../patches/CMakeLists.txt.patch )
+	( cd $(BUILD_DIR); patch -p0 < ../../patches/my_global.h.patch )
+	( cd $(BUILD_DIR); patch -p0 < ../../patches/sql_table.cc.patch )
 	touch $@
 
 #
