@@ -8,6 +8,7 @@ TARBALL=php.tar.bz2
 all: CONFIGURE_OPTS := --with-libxml-dir=$(RUMPRUN_PKGS_DIR) \
         --with-openssl=$(RUMPRUN_SYSROOT) \
         --with-zlib=$(RUMPRUN_SYSROOT) \
+        --with-mysql --with-pdo-mysql \
         --disable-fileinfo --disable-opcache --without-iconv
 
 all: $(RUMPRUN_PKGS_DIR)/lib/libxml2.a bin/php-cgi bin/php images
