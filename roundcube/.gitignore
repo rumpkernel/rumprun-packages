@@ -1,0 +1,13 @@
+build/
+config/bootstrap.sql
+config/config-gen.inc.php
+config/db-password
+config/nginx/cert.key
+config/nginx/cert.pem
+config/session-key
+data-common/
+data-mysql/
+data-nginx/
+etc-common/
+*.iso
+*.ffs
