@@ -60,13 +60,21 @@ To retrieve some server statistics:
 mysqladmin -h 10.0.0.10 -u rump status
 ````
 
-# Caveats
-
-There is currently no way to shut down mysqld cleanly. While `mysqladmin` can
-be used to attempt a shutdown, due to issues with rumprun `_exit()` in MT
-processes the following will just hang:
-
+To shut down the mysql server:
 ````
 mysqladmin -h 10.0.0.10 -u rump shutdown
-
 ````
+
+The "shutdown" command will appear to hang, however the mysql unikernel will
+shut down (but see below).
+
+# Caveats
+
+There is currently no way to shut down mysqld cleanly. While `mysqladmin
+shutdown` can be used to attempt a shutdown, due to issues with rumprun
+`_exit()` in MT processes the unikernel will not shut down.
+
+As a workaround, this package currently disables threads with
+`thread-handling=no-threads` in `my.cnf`; this allows the mysqld process to
+exit and the unikernel to shut down, although the `mysqladmin shutdown` command
+still hangs.
