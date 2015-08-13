@@ -106,21 +106,8 @@ build/mysql_cross_build_stamp: build/mysql_cross_cmake_stamp
 #
 DATA_DIR=$(abspath images/data)
 images/data: build/mysql_native_stamp
-	mkdir -p $(DATA_DIR) $(DATA_DIR)/share
-	cp -f my.cnf $(DATA_DIR)
-	cp -rf $(NATIVE_DIR)/sql/share/english $(DATA_DIR)/share
-	perl $(NATIVE_DIR)/scripts/mysql_install_db \
-	    --defaults-file=$(DATA_DIR)/my.cnf \
-	    --builddir=$(NATIVE_DIR) \
-	    --srcdir=$(BUILD_DIR) \
-	    --datadir=$(DATA_DIR)/mysql \
-	    --lc-messages-dir=$(DATA_DIR)/share \
-	    --cross-bootstrap
-	cat mysql_rump_bootstrap.sql | \
-	    bin/mysqld-bootstrap \
-	    --defaults-file=$(DATA_DIR)/my.cnf \
-	    --basedir=$(DATA_DIR) \
-	    --bootstrap
+	mkdir -p $(DATA_DIR)
+	scripts/mysql-bootstrap.sh $(DATA_DIR)
 	touch $@
 
 #
@@ -129,10 +116,10 @@ images/data: build/mysql_native_stamp
 images: images/stubetc.iso images/data.ffs
 
 images/stubetc.iso: ../stubetc/etc
-	./rumprun-makefs -t cd9660 images/stubetc.iso ../stubetc/etc
+	scripts/rumprun-makefs.sh -t cd9660 images/stubetc.iso ../stubetc/etc
 
 images/data.ffs: images/data
-	./rumprun-makefs -u 1 -g 1 images/data.ffs images/data
+	scripts/rumprun-makefs.sh -u 1 -g 1 images/data.ffs images/data
 
 #
 # Re-link mysqld, used during development
