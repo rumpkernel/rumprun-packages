@@ -5,80 +5,82 @@ Using the following instructions, you will cross-compile python 3.4.3
 for rumprun, compile a python program to C using `cython` and launch
 the result as a rumprun guest.
 
-We assume you are building for the "hw" platform.  If you are building
-for Xen, substitute `bmk` for `xen` in the instructions.
-
-Download
-========
-
-Fetch python 3.4.3 from
-https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
-
-Strictly speaking, 3.4.3 is not required, but if you choose to use another
-version, applying the cross-compile patch is left as an exercise _pour toi_.
-
 
 Patches
 =======
 
-`patch-crosscompile`: crosscompilation patch for the configure script.
-This patch should be upstreamed once our toolchain has stabilized.
+The build process will apply the patches required for cross-compilation support
+and a static Python build. Patches are found in the `patches/` directory.
+
+The patch for a static Python build will support many modules out of the box,
+but not everything. If you have an ImportError while trying to import a module
+you feel should exist, please examine the `build/Modules/Setup` file to make
+sure it is compiled into Python.
 
 
 Instructions
 ============
 
-Untar, apply the patch, and run `autoreconf -iv`.
+Run this `make` from a user account, *not the root account*. At the end of the
+Python installation, the build will attempt to install packages in `/usr/lib/python3.4/site-packages/`
+even though the install prefix doesn't point there.
 
-Copy `config.site` from this directory to your python source directory.
+The build script requires `genisoimage` to create the `stubetc.iso` and `python.iso` images.
+The example program requires `cython` to compile the python script, and autotools to update the configure script.
 
-Run the configure script:
-
-```
-export CONFIG_SITE=$(pwd)/config.site
-./configure --disable-shared --host=x86_64-rumprun-netbsd --build $(x86_64-rumprun-netbsd-gcc -dumpmachine) --disable-ipv6 --prefix $(pwd)/pythondist
-```
-
-Notably, --disable-ipv6 is required because python complains about
-a broken `getaddrinfo`.  We'll fix that later.
-
-Build & install python:
+Run `make` from the python package directory:
 
 ```
+cd rumprun-packages/python
 make
-make install
 ```
 
-Some modules will fail to build, ignore that for now (unless they are
-important to your use case, in which case fix them ;).  It will also
-try to install something to /usr/lib, so make sure you run "make install"
-as non-root.
+You will notice several errors and warnings fly by during the static module compilation. These
+won't be a problem for the example application (and many others). If they are important for your
+application, you'll find out soon enough.
 
-To run python, you currently need the python runtime modules in the
-rumprun guest, along with a stubetc (see the `stubetc` package).
-To generate a .iso containing the python runtime modules, go to the
-pythondist/lib directory and run:
-
-```
-genisoimage -r -o python.iso python3.4
-```
 
 Examples
 ========
 
-To use the simple `hw.py` test program, first install `cython` on
-your development host.  Then run:
+In order to run a Python program, you will need to use `cython` to compile one module. Cython
+will provide a `main` function that will embed the python interpreter. This module can then import
+and run pure python code.
 
 ```
-cython --embed hw.py
-x86_64-rumprun-netbsd-gcc hw.c -I[...]/pythondist/include/python3.4m -L[...]/pythondist/lib -lpython3.4m -lutil -lm
-rumpbake hw_generic a.bin a.out
+cython --embed -v -3 -Werror -o examples/hw.c examples/hw.py
 ```
 
-To launch, `rumprun` it:
+Next you need to compile the cython generated C file using the rumprun cross compiler. Be sure
+to link any libraries required for the static modules you have built. When using crypto, you
+may see some link errors related to rc5. This doesn't affect the example.
 
 ```
-rumprun kvm -i -b python.iso,/python/lib/python3.4 -b stubetc.iso,/etc -e PYTHONHOME=/python a.bin
+x86_64-rumprun-netbsd-gcc examples/hw.c \
+	-o examples/hw \
+	-Ibuild/pythondist/include/python3.4m \
+	-Lbuild/pythondist/lib \
+	-lpython3.4m -lutil -lm -lz -lssl -lcrypto
 ```
 
-You should see the helloworld text printed.
+Now you've got a unikernel image. You just need to bake it. We'll use the hw_generic since
+we don't have any additional needs.
+
+```
+rumpbake hw_generic examples/hw.bin examples/hw
+```
+
+You are now ready to run your first Python unikernel. To run the rumpkernel using KVM, the following will work:
+
+```
+rumprun kvm -i \
+   -b images/python.iso,/python/lib/python3.4 \
+   -b images/stubetc.iso,/etc \
+   -e PYTHONHOME=/python \
+   examples/hw.bin
+```
+
+You will have to replace `kvm` with `xen` to run under Xen.
+
+You should see the `Welcome to rumprun` text printed to your screen. A few other modules
+are imported in the test script simply to verify that they exist.
