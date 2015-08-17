@@ -3,22 +3,8 @@ include ../Makefile.inc
 UPSTREAM=https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
-CYTHON=$(shell which cython)
-AUTORECONF=$(shell which autoreconf)
 
-ifeq (, $(CYTHON))
-$(error "Cython not found in PATH, but needed to build python example")
-endif
-
-ifeq (, $(AUTORECONF))
-$(error "autoreconf not found in PATH, but needed to build configure script (install GNU autotools)")
-endif
-
-ifeq (, $(shell which $(RUMPRUN_CC)))
-$(error "cross compiler not found in PATH, is app-tools/ in your path?")
-endif
-
-all: build/python images examples
+all: build/python images
 
 build/python: build/Makefile
 	$(MAKE) -C build
@@ -42,7 +28,6 @@ build/Makefile: build/stamp_patch
 
 build/stamp_patch: build/configure patches/*
 	(cd build && ../../scripts/apply-patches.sh ./ ../patches/*)
-	(cd build && autoreconf -iv)
 	touch $@
 
 dl/$(TARBALL):
@@ -53,12 +38,6 @@ build/configure: | dl/$(TARBALL)
 	mkdir -p build
 	(cd build && tar -x --strip-components 1 -f ../dl/$(TARBALL))
 	cp config.site build/
-
-.PHONY: examples
-examples:
-	$(CYTHON) --embed -v -3 -Werror -o examples/hw.c examples/hw.py
-	$(RUMPRUN_CC) examples/hw.c -Ibuild/pythondist/include/python3.4m -Lbuild/pythondist/lib -lpython3.4m -lutil -lm -lz -lssl -lcrypto -o examples/hw
-	$(RUMPRUN_APPTOOLS_DIR)rumpbake hw_generic examples/hw.bin examples/hw
 
 .PHONY: images
 images: images/stubetc.iso images/python.iso
