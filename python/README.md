@@ -25,7 +25,7 @@ Run this `make` from a user account, *not the root account*. At the end of the
 Python installation, the build will attempt to install packages in `/usr/lib/python3.4/site-packages/`
 even though the install prefix doesn't point there.
 
-The build script requires `genisoimage` to create the `scrubetc.iso` and `python.iso` images.
+The build script requires `genisoimage` to create the `stubetc.iso` and `python.iso` images.
 The example program requires `cython` to compile the python script, and autotools to update the configure script.
 
 Run `make` from the python package directory:
