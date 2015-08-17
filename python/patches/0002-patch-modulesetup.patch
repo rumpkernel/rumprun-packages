@@ -1,0 +1,128 @@
+--- a/Modules/Setup.dist	2015-02-25 06:27:45.000000000 -0500
++++ b/Modules/Setup.dist	2015-08-13 15:55:59.463164556 -0400
+@@ -153,6 +153,7 @@
+ # detail; also note that *static* reverses this effect):
+ 
+ #*shared*
++*static*
+ 
+ # GNU readline.  Unlike previous Python incarnations, GNU readline is
+ # now incorporated in an optional module, configured in the Setup file
+@@ -167,31 +168,31 @@
+ 
+ # Modules that should always be present (non UNIX dependent):
+ 
+-#array arraymodule.c	# array objects
+-#cmath cmathmodule.c _math.c # -lm # complex math library functions
+-#math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
+-#_struct _struct.c	# binary structure packing/unpacking
+-#time timemodule.c # -lm # time operations and variables
+-#_weakref _weakref.c	# basic weak reference support
++array arraymodule.c	# array objects
++cmath cmathmodule.c _math.c # -lm # complex math library functions
++math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
++_struct _struct.c	# binary structure packing/unpacking
++time timemodule.c # -lm # time operations and variables
++_weakref _weakref.c	# basic weak reference support
+ #_testcapi _testcapimodule.c    # Python C API test module
+-#_random _randommodule.c	# Random number generator
+-#_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
++_random _randommodule.c	# Random number generator
++_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
+ #_pickle _pickle.c	# pickle accelerator
+-#_datetime _datetimemodule.c	# datetime accelerator
++_datetime _datetimemodule.c	# datetime accelerator
+ #_bisect _bisectmodule.c	# Bisection algorithms
+ #_heapq _heapqmodule.c	# Heap queue algorithm
+ 
+-#unicodedata unicodedata.c    # static Unicode character database
++unicodedata unicodedata.c    # static Unicode character database
+ 
+ 
+ # Modules with some UNIX dependencies -- on by default:
+ # (If you have a really backward UNIX, select and socket may not be
+ # supported...)
+ 
+-#fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
++fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
+ #spwd spwdmodule.c		# spwd(3)
+ #grp grpmodule.c		# grp(3)
+-#select selectmodule.c	# select(2); not on ancient System V
++select selectmodule.c	# select(2); not on ancient System V
+ 
+ # Memory-mapped files (also works on Win32).
+ #mmap mmapmodule.c
+@@ -200,14 +201,14 @@
+ #_csv _csv.c
+ 
+ # Socket module helper for socket(2)
+-#_socket socketmodule.c
++_socket socketmodule.c
+ 
+ # Socket module helper for SSL support; you must comment out the other
+ # socket line above, and possibly edit the SSL variable:
+ #SSL=/usr/local/ssl
+-#_ssl _ssl.c \
+-#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+-#	-L$(SSL)/lib -lssl -lcrypto
++_ssl _ssl.c \
++	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
++	-L$(SSL)/lib -lssl -lcrypto
+ 
+ # The crypt module is now disabled by default because it breaks builds
+ # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
+@@ -221,10 +222,10 @@
+ # are not supported by all UNIX systems:
+ 
+ #nis nismodule.c -lnsl	# Sun yellow pages -- not everywhere
+-#termios termios.c	# Steen Lumholt's termios module
++termios termios.c	# Steen Lumholt's termios module
+ #resource resource.c	# Jeremy Hylton's rlimit interface
+ 
+-#_posixsubprocess _posixsubprocess.c  # POSIX subprocess module helper
++_posixsubprocess _posixsubprocess.c  # POSIX subprocess module helper
+ 
+ # Multimedia modules -- off by default.
+ # These don't work for 64-bit platforms!!!
+@@ -240,14 +241,14 @@
+ # The _md5 module implements the RSA Data Security, Inc. MD5
+ # Message-Digest Algorithm, described in RFC 1321.
+ 
+-#_md5 md5module.c
++_md5 md5module.c
+ 
+ 
+ # The _sha module implements the SHA checksum algorithms.
+ # (NIST's Secure Hash Algorithms.)
+-#_sha1 sha1module.c
+-#_sha256 sha256module.c
+-#_sha512 sha512module.c
++_sha1 sha1module.c
++_sha256 sha256module.c
++_sha512 sha512module.c
+ 
+ 
+ # The _tkinter module.
+@@ -332,10 +333,10 @@
+ 
+ 
+ # Helper module for various ascii-encoders
+-#binascii binascii.c
++binascii binascii.c
+ 
+ # Fred Drake's interface to the Python parser
+-#parser parsermodule.c
++parser parsermodule.c
+ 
+ 
+ # Lee Busby's SIGFPE modules.
+@@ -358,7 +359,7 @@
+ # Andrew Kuchling's zlib module.
+ # This require zlib 1.1.3 (or later).
+ # See http://www.gzip.org/zlib/
+-#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
++zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
+ 
+ # Interface to the Expat XML parser
+ #
+
