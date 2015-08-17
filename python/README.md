@@ -43,10 +43,34 @@ application, you'll find out soon enough.
 Examples
 ========
 
-The make process will get you as far as an hw_generic baked binary `examples/hw.bin`.
-After that, you have to decide how you want to run the rumpkernel.
+In order to run a Python program, you will need to use `cython` to compile one module. Cython
+will provide a `main` function that will embed the python interpreter. This module can then import
+and run pure python code.
 
-To run the rumpkernel using KVM, the following will work:
+```
+cython --embed -v -3 -Werror -o examples/hw.c examples/hw.py
+```
+
+Next you need to compile the cython generated C file using the rumprun cross compiler. Be sure
+to link any libraries required for the static modules you have built. When using crypto, you
+may see some link errors related to rc5. This doesn't affect the example.
+
+```
+x86_64-rumprun-netbsd-gcc examples/hw.c \
+	-o examples/hw \
+	-Ibuild/pythondist/include/python3.4m \
+	-Lbuild/pythondist/lib \
+	-lpython3.4m -lutil -lm -lz -lssl -lcrypto
+```
+
+Now you've got a unikernel image. You just need to bake it. We'll use the hw_generic since
+we don't have any additional needs.
+
+```
+rumpbake hw_generic examples/hw.bin examples/hw
+```
+
+You are now ready to run your first Python unikernel. To run the rumpkernel using KVM, the following will work:
 
 ```
 rumprun kvm -i \
