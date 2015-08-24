@@ -24,7 +24,7 @@ dl/$(TARBALL):
 
 build/configure: | dl/$(TARBALL)
 	mkdir -p build
-	(cd build && tar -zxv --strip-components 1 -f ../dl/$(TARBALL))
+	(cd build && tar -zx --strip-components 1 -f ../dl/$(TARBALL))
 
 .PHONY: clean
 clean:
