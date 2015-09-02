@@ -39,7 +39,7 @@ build/Makefile: build/bootstrap_complete
 	(cd build; ./configure $(ERLANG_CONF_OPTS))
 
 build/bootstrap_complete: build/stamp_patch build/configure
-	(cd build; unset CPPFLAGS LDFLAGS; ./configure --enable-bootstrap-only)
+	(cd build; ./configure --enable-bootstrap-only)
 	(cd build; make)
 	touch $@
 
