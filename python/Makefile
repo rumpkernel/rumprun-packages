@@ -53,7 +53,6 @@ clean:
 	-$(MAKE) -C build clean
 	rm -f bin/*
 	rm -f images/stubetc.iso images/python.iso
-	rm -rf dl/
 	rm -f examples/hw.c examples/hw.bin examples/hw
 
 .PHONY: distclean

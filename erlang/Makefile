@@ -80,7 +80,6 @@ clean:
 	-$(MAKE) -C build clean
 	rm -f bin/*
 	rm -f images/erlang.iso
-	rm -rf dl/
 	-$(MAKE) -C examples clean
 
 .PHONY: distclean
