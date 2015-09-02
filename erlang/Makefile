@@ -19,6 +19,8 @@ all: build/erlang examples images
 build/erlang: build/Makefile
 	$(MAKE) -C build V=$(V)
 	$(MAKE) -C build V=$(V) DESTDIR=$(LOCAL_INSTALL_DESTINATION) install
+	mkdir -p bin
+	cp build/bin/$(RUMPRUN_TOOLCHAIN_TUPLE)/beam bin/
 
 ERLANG_CONF_OPTS += \
 	--prefix=$(RUMP_INSTALL_LOCATION) \
@@ -35,8 +37,6 @@ ERLANG_CONF_OPTS += \
 
 build/Makefile: build/bootstrap_complete
 	(cd build; ./configure $(ERLANG_CONF_OPTS))
-	mkdir -p bin
-	cp build/bin/$(RUMPRUN_TOOLCHAIN_TUPLE)/beam bin/
 
 build/bootstrap_complete: build/stamp_patch build/configure
 	(cd build; ./configure --enable-bootstrap-only)
