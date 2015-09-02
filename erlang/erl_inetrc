@@ -1,0 +1,9 @@
+%% -- ERLANG INET CONFIGURATION FILE --
+%% the hosts file
+{file, hosts, "/opt/erlang/hosts"}.
+%% enable EDNS, either comment it or set of false to disable it
+{edns,0}.
+%% cache_size default value is 100
+{cache_size, 50}.
+%% lookup method is both file and dns
+{lookup, [file, dns]}.
