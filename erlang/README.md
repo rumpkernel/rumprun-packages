@@ -129,7 +129,7 @@ ERLHOME=/tmp
 ERLPATH=/opt/erlang
 NAME=sample
 IP=10.0.120.101
-COOKIE=something_secret
+COOKIE=mycookie
 
 rumprun qemu \
    -I if,vioif,'-net tap,script=no,ifname=tap0' \
