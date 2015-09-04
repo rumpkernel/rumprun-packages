@@ -1,0 +1,1825 @@
+From 727f150f4d5b1507ab8fe8811806ac308118a838 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Tue, 25 Aug 2015 17:51:49 +0300
+Subject: [PATCH 1/8] Add new erts version (written in Erlang)
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/Makefile                     |   2 +-
+ lib/epmd/Makefile                |  36 +++++++
+ lib/epmd/README.md               |  47 +++++++++
+ lib/epmd/bin/erlpmd.sh           |   2 +
+ lib/epmd/ebin/.gitignore         |   0
+ lib/epmd/info                    |   2 +
+ lib/epmd/priv/erlpmd.service     |  25 +++++
+ lib/epmd/priv/erlpmd.socket      |   9 ++
+ lib/epmd/priv/erlpmd@.service    |  25 +++++
+ lib/epmd/priv/erlpmd@.socket     |   9 ++
+ lib/epmd/src/Makefile            | 105 ++++++++++++++++++++
+ lib/epmd/src/erlpmd.app.src      |  12 +++
+ lib/epmd/src/erlpmd.erl          | 174 +++++++++++++++++++++++++++++++++
+ lib/epmd/src/erlpmd_app.erl      |  36 +++++++
+ lib/epmd/src/erlpmd_ctl.erl      | 205 +++++++++++++++++++++++++++++++++++++++
+ lib/epmd/src/erlpmd_internal.hrl |  28 ++++++
+ lib/epmd/src/erlpmd_sup.erl      |  49 ++++++++++
+ lib/epmd/src/tcp_listener.erl    | 158 ++++++++++++++++++++++++++++++
+ lib/epmd/vsn.mk                  |   1 +
+ 19 files changed, 924 insertions(+), 1 deletion(-)
+ create mode 100644 lib/epmd/Makefile
+ create mode 100644 lib/epmd/README.md
+ create mode 100644 lib/epmd/bin/erlpmd.sh
+ create mode 100644 lib/epmd/ebin/.gitignore
+ create mode 100644 lib/epmd/info
+ create mode 100644 lib/epmd/priv/erlpmd.service
+ create mode 100644 lib/epmd/priv/erlpmd.socket
+ create mode 100644 lib/epmd/priv/erlpmd@.service
+ create mode 100644 lib/epmd/priv/erlpmd@.socket
+ create mode 100644 lib/epmd/src/Makefile
+ create mode 100644 lib/epmd/src/erlpmd.app.src
+ create mode 100644 lib/epmd/src/erlpmd.erl
+ create mode 100644 lib/epmd/src/erlpmd_app.erl
+ create mode 100644 lib/epmd/src/erlpmd_ctl.erl
+ create mode 100644 lib/epmd/src/erlpmd_internal.hrl
+ create mode 100644 lib/epmd/src/erlpmd_sup.erl
+ create mode 100644 lib/epmd/src/tcp_listener.erl
+ create mode 100644 lib/epmd/vsn.mk
+
+diff --git a/lib/Makefile b/lib/Makefile
+index 34c2fe9..bc3d935 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -36,7 +36,7 @@ ALL_ERLANG_APPLICATIONS = xmerl edoc erl_docgen snmp otp_mibs erl_interface \
+ 	          public_key ssl observer odbc diameter \
+ 	          cosTransactions cosEvent cosTime cosNotification \
+ 	          cosProperty cosFileTransfer cosEventDomain et megaco webtool \
+-		  eunit ssh typer percept eldap dialyzer hipe ose
++		  eunit ssh typer percept eldap dialyzer hipe ose epmd
+ 
+ ifdef BUILD_ALL
+   ERLANG_APPLICATIONS += $(ALL_ERLANG_APPLICATIONS)
+diff --git a/lib/epmd/Makefile b/lib/epmd/Makefile
+new file mode 100644
+index 0000000..2093658
+--- /dev/null
++++ b/lib/epmd/Makefile
+@@ -0,0 +1,36 @@
++#
++# %CopyrightBegin%
++# 
++# Copyright Ericsson AB 1997-2009. All Rights Reserved.
++# 
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++# 
++# %CopyrightEnd%
++#
++
++#
++include $(ERL_TOP)/make/target.mk
++include $(ERL_TOP)/make/$(TARGET)/otp.mk
++
++# ----------------------------------------------------
++# Common Macros
++# ----------------------------------------------------
++
++SUB_DIRECTORIES = src
++
++SPECIAL_TARGETS = 
++
++# ----------------------------------------------------
++# Default Subdir Targets
++# ----------------------------------------------------
++include $(ERL_TOP)/make/otp_subdir.mk
+diff --git a/lib/epmd/README.md b/lib/epmd/README.md
+new file mode 100644
+index 0000000..596c442
+--- /dev/null
++++ b/lib/epmd/README.md
+@@ -0,0 +1,47 @@
++<h1>ErlPMD</h1>
++
++A drop-in replacement for epmd written in Erlang
++
++<pre>
++Copyright (c) 2012 Peter Lemenkov.
++
++The MIT License
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in
++all copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++THE SOFTWARE.
++</pre>
++
++<h1>Introduction</h1>
++
++This is a drop-in replacement for the server-side part of the epmd (Erlang Port
++Mapping Daemon). If you need a client-side part I advise you to use nc or epmd
++itself.
++
++It stores nodes' data in the ETS storage.
++
++<h1>Installation</h1>
++tbd
++
++<h1>Usage</h1>
++
++See [sample script](https://raw.github.com/lemenkov/erlpmd/master/priv/erlpmd.sh) sample script or run erl and type
++application:start(erlpmd).
++
++<h1>Official EPMD protocol description</h1>
++
++See [this link](http://www.erlang.org/doc/apps/erts/erl_dist_protocol.html) for further details.
+diff --git a/lib/epmd/bin/erlpmd.sh b/lib/epmd/bin/erlpmd.sh
+new file mode 100644
+index 0000000..94d19b2
+--- /dev/null
++++ b/lib/epmd/bin/erlpmd.sh
+@@ -0,0 +1,2 @@
++#!/bin/bash
++exec erl -s erlpmd_ctl -noinput $@
+diff --git a/lib/epmd/ebin/.gitignore b/lib/epmd/ebin/.gitignore
+new file mode 100644
+index 0000000..e69de29
+diff --git a/lib/epmd/info b/lib/epmd/info
+new file mode 100644
+index 0000000..e8f9076
+--- /dev/null
++++ b/lib/epmd/info
+@@ -0,0 +1,2 @@
++group: basic
++short: Erlang Port Mapping Daemon
+diff --git a/lib/epmd/priv/erlpmd.service b/lib/epmd/priv/erlpmd.service
+new file mode 100644
+index 0000000..bdb100b
+--- /dev/null
++++ b/lib/epmd/priv/erlpmd.service
+@@ -0,0 +1,25 @@
++[Unit]
++Description=Erlang Port Mapper Daemon
++After=network.target
++Requires=erlpmd.socket
++
++[Service]
++User=erlpmd
++Group=erlpmd
++Type=notify
++StandardOutput=journal
++StandardError=journal
++WorkingDirectory=/var/empty
++DeviceAllow=/dev/null rw
++PrivateTmp=true
++NoNewPrivileges=true
++Restart=always
++LimitNPROC=4
++LimitFSIZE=0
++ExecStart=/usr/bin/erl -s erlpmd_ctl -smp disable -noshell -noinput -relaxed_command_check
++# FIXME add generic erlpmd helpers foir that instead of using epmd as a cli
++ExecStop=/usr/bin/epmd -kill
++
++[Install]
++Also=erlpmd.socket
++Alias=epmd.service
+diff --git a/lib/epmd/priv/erlpmd.socket b/lib/epmd/priv/erlpmd.socket
+new file mode 100644
+index 0000000..e8a5fa7
+--- /dev/null
++++ b/lib/epmd/priv/erlpmd.socket
+@@ -0,0 +1,9 @@
++[Unit]
++Description=ErlPmd Server Activation Socket
++
++[Socket]
++ListenStream=127.0.0.1:4369
++Accept=false
++
++[Install]
++WantedBy=sockets.target
+diff --git a/lib/epmd/priv/erlpmd@.service b/lib/epmd/priv/erlpmd@.service
+new file mode 100644
+index 0000000..2d979b7
+--- /dev/null
++++ b/lib/epmd/priv/erlpmd@.service
+@@ -0,0 +1,25 @@
++[Unit]
++Description=Erlang Port Mapper Daemon
++After=network.target
++Requires=erlpmd@.socket
++
++[Service]
++User=erlpmd
++Group=erlpmd
++Type=notify
++StandardOutput=journal
++StandardError=journal
++WorkingDirectory=/var/empty
++DeviceAllow=/dev/null rw
++PrivateTmp=true
++NoNewPrivileges=true
++Restart=always
++LimitNPROC=4
++LimitFSIZE=0
++ExecStart=/usr/bin/erl -s erlpmd_ctl -smp disable -noshell -noinput -relaxed_command_check
++# FIXME add generic erlpmd helpers foir that instead of using epmd as a cli
++ExecStop=/usr/bin/epmd -kill
++
++[Install]
++Also=erlpmd@.socket
++Alias=epmd.service
+diff --git a/lib/epmd/priv/erlpmd@.socket b/lib/epmd/priv/erlpmd@.socket
+new file mode 100644
+index 0000000..44e655b
+--- /dev/null
++++ b/lib/epmd/priv/erlpmd@.socket
+@@ -0,0 +1,9 @@
++[Unit]
++Description=ErlPmd Server Activation Socket
++
++[Socket]
++ListenStream=%i:4369
++Accept=false
++
++[Install]
++WantedBy=sockets.target
+diff --git a/lib/epmd/src/Makefile b/lib/epmd/src/Makefile
+new file mode 100644
+index 0000000..fe9f3c8
+--- /dev/null
++++ b/lib/epmd/src/Makefile
+@@ -0,0 +1,105 @@
++#
++# %CopyrightBegin%
++#
++# Copyright Ericsson AB 1996-2013. All Rights Reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++# %CopyrightEnd%
++#
++
++include $(ERL_TOP)/make/target.mk
++include $(ERL_TOP)/make/$(TARGET)/otp.mk
++
++# ----------------------------------------------------
++# Application version
++# ----------------------------------------------------
++include ../vsn.mk
++VSN=$(EPMD_VSN)
++
++# ----------------------------------------------------
++# Release directory specification
++# ----------------------------------------------------
++RELSYSDIR = $(RELEASE_PATH)/lib/epmd-$(VSN)
++
++# ----------------------------------------------------
++# Target Specs
++# ----------------------------------------------------
++MODULES= \
++	 erlpmd \
++	 erlpmd_app \
++	 erlpmd_ctl \
++	 erlpmd_sup \
++	 tcp_listener
++
++HRL_FILES=
++
++INTERNAL_HRL_FILES=
++
++ERL_FILES= $(MODULES:%=%.erl)
++
++TARGET_FILES= $(MODULES:%=$(EBIN)/%.$(EMULATOR)) $(APP_TARGET)
++
++APP_FILE= erlpmd.app
++
++APP_SRC= $(APP_FILE).src
++APP_TARGET= $(EBIN)/$(APP_FILE)
++
++# ----------------------------------------------------
++# FLAGS
++# ----------------------------------------------------
++
++ifeq ($(NATIVE_LIBS_ENABLED),yes)
++ERL_COMPILE_FLAGS += +native
++endif
++ERL_COMPILE_FLAGS += -I../include -I../../kernel/include -Werror
++
++# ----------------------------------------------------
++# Targets
++# ----------------------------------------------------
++
++debug opt: $(TARGET_FILES)
++
++clean:
++	rm -f $(TARGET_FILES)
++	rm -f core
++	rm -f erl_parse.erl
++
++docs:
++
++# ----------------------------------------------------
++# Special Build Targets
++# ----------------------------------------------------
++
++$(APP_TARGET): $(APP_SRC) ../vsn.mk
++	$(vsn_verbose)sed -e 's;%VSN%;$(VSN);' $< > $@
++
++#$(APPUP_TARGET): $(APPUP_SRC) ../vsn.mk
++#	$(vsn_verbose)sed -e 's;%VSN%;$(VSN);' $< > $@
++
++# ----------------------------------------------------
++# Release Target
++# ----------------------------------------------------
++include $(ERL_TOP)/make/otp_release_targets.mk
++
++release_spec: opt
++	$(INSTALL_DIR) "$(RELSYSDIR)/src"
++	$(INSTALL_DATA) $(ERL_FILES) "$(RELSYSDIR)/src"
++	$(INSTALL_DIR) "$(RELSYSDIR)/ebin"
++	$(INSTALL_DATA) $(TARGET_FILES) "$(RELSYSDIR)/ebin"
++
++release_docs_spec:
++
++# ----------------------------------------------------
++# Dependencies -- alphabetically, please
++# ----------------------------------------------------
+diff --git a/lib/epmd/src/erlpmd.app.src b/lib/epmd/src/erlpmd.app.src
+new file mode 100644
+index 0000000..2d8145b
+--- /dev/null
++++ b/lib/epmd/src/erlpmd.app.src
+@@ -0,0 +1,12 @@
++{application, erlpmd,
++ [
++  {description, ""},
++  {vsn, "2.0.1"},
++  {registered, []},
++  {applications, [
++                  kernel,
++                  stdlib
++                 ]},
++  {mod, { erlpmd_app, []}},
++  {env, []}
++ ]}.
+diff --git a/lib/epmd/src/erlpmd.erl b/lib/epmd/src/erlpmd.erl
+new file mode 100644
+index 0000000..82ff47e
+--- /dev/null
++++ b/lib/epmd/src/erlpmd.erl
+@@ -0,0 +1,174 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-module(erlpmd).
++-behaviour(gen_server).
++
++-include("erlpmd_internal.hrl").
++-include("../../kernel/src/erl_epmd.hrl").
++
++%% ------------------------------------------------------------------
++%% API Function Exports
++%% ------------------------------------------------------------------
++
++-export([start_link/1]).
++
++%% ------------------------------------------------------------------
++%% gen_server Function Exports
++%% ------------------------------------------------------------------
++
++-export([init/1, handle_call/3, handle_cast/2, handle_info/2,
++         terminate/2, code_change/3]).
++
++%% ------------------------------------------------------------------
++%% API Function Definitions
++%% ------------------------------------------------------------------
++
++start_link(Args) ->
++	gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
++
++%% ------------------------------------------------------------------
++%% gen_server Function Definitions
++%% ------------------------------------------------------------------
++
++init(Argv) ->
++	erlpmd = ets:new(erlpmd, [public, named_table]),
++	error_logger:info_msg("ErlPMD: started.~n"),
++	self() ! notify_init,
++	{ok, Argv}.
++
++handle_call(Request, From, State) ->
++	error_logger:warning_msg("ErlPMD: strange call: ~p from: ~p.~n", [Request, From]),
++	{reply, ok, State}.
++
++handle_cast({{msg,From},<<?EPMD_ALIVE2_REQ, PortNo:16, NodeType:8, Proto:8, HiVer:16, LoVer:16, NLen:16, Rest/binary>>, Fd, Ip, Port}, State) ->
++	<<NodeName:NLen/binary, _ELen:16, Extra/binary>> = Rest,
++	Creation = random:uniform(3),
++	error_logger:info_msg(
++		"ErlPMD: alive request from ~s:~b PortNo: ~b, NodeType: ~b, Proto: ~b, HiVer: ~b, LoVer: ~b, NodeName: '~s', Extra: ~p, Creation: ~b.~n",
++		[inet_parse:ntoa(Ip), Port, PortNo, NodeType, Proto, HiVer, LoVer, NodeName, Extra, Creation]),
++	case ets:lookup(erlpmd, NodeName) of
++		[] ->
++			ets:insert_new(erlpmd, {NodeName, {PortNo, NodeType, Proto, HiVer, LoVer, Extra, Creation, Fd}}),
++			gen_server:cast(From, {msg, <<?EPMD_ALIVE2_RESP, 0:8, Creation:16>>, Ip, Port});
++		_ ->
++			% Already registered - reply with error
++			error_logger:error_msg("ErlPMD: ~s 'name' is already registered.~n", [NodeName]),
++			gen_server:cast(From, {msg, <<?EPMD_ALIVE2_RESP, 1:8, 99:16>>, Ip, Port})
++	end,
++	{noreply, State};
++
++
++handle_cast({{msg, From},<<?EPMD_PORT_PLEASE2_REQ, NodeName/binary>>, _Fd, Ip, Port}, State) ->
++	error_logger:info_msg("ErlPMD: port ~s request from ~s:~p.~n", [NodeName, inet_parse:ntoa(Ip), Port]),
++	case ets:lookup(erlpmd, NodeName) of
++		[] ->
++			gen_server:cast(From, {msg, <<$w, 1:8>>, Ip, Port});
++		[{NodeName, {PortNo, NodeType, Proto, HiVer, LoVer, Extra, _, _}}] ->
++			NLen = size(NodeName),
++			ELen = size(Extra),
++			gen_server:cast(From, {msg, <<?EPMD_PORT2_RESP, 0:8, PortNo:16, NodeType:8, Proto:8, HiVer:16, LoVer:16, NLen:16, NodeName:NLen/binary, ELen:16, Extra:ELen/binary>>, Ip, Port})
++	end,
++	gen_server:cast(From, {close, Ip, Port}),
++	{noreply, State};
++
++handle_cast({{msg, From},<<?EPMD_NAMES>>, _Fd, Ip, Port}, State = #argv{port = ServerPort}) ->
++	error_logger:info_msg("ErlPMD: name(s) request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
++	Nodes = list_to_binary(lists:flatten([ io_lib:format("name ~s at port ~p~n", [X, Y]) || [X, Y] <- ets:match(erlpmd, {'$1', {'$2', 77, '_', '_', '_', '_', '_', '_'}})])),
++	gen_server:cast(From, {msg, <<ServerPort:32, Nodes/binary>>, Ip, Port}),
++	gen_server:cast(From, {close, Ip, Port}),
++	error_logger:info_msg("~s", [Nodes]),
++	{noreply, State};
++
++handle_cast({{msg, From},<<?EPMD_DUMP>>, _Fd, Ip, Port}, State = #argv{port = ServerPort}) ->
++	error_logger:info_msg("ErlPMD: dump request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
++	Nodes = list_to_binary(lists:flatten([ io_lib:format("active name     ~s at port ~p, fd = ~p ~n", [X, Y, F]) || [X, Y, F] <- ets:match(erlpmd, {'$1', {'$2', 77, '_', '_', '_', '_', '_', '$3'}})])),
++	gen_server:cast(From, {msg, <<ServerPort:32, Nodes/binary>>, Ip, Port}),
++	gen_server:cast(From, {close, Ip, Port}),
++	{noreply, State};
++
++handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, #argv{relaxed_command_check = true}) ->
++	% Allow stop command in case we're running with -relaxed_command_check
++	% w/o checking for actually available nodes
++	error_logger:info_msg("ErlPMD: kill request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
++	gen_server:cast(From, {msg, <<"OK">>, Ip, Port}),
++	gen_server:cast(From, stop),
++	{stop, normal, true};
++handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = false}) ->
++	error_logger:info_msg("ErlPMD: kill request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
++	gen_server:cast(From, {msg, <<"OK">>, Ip, Port}),
++	case ets:match(erlpmd, {'_', {'_', '_', '_', '_', '_', '_', '_', '_'}}) of
++		[] ->
++			% No live nodes - we may exit now
++			gen_server:cast(From, stop),
++			{stop, normal, false};
++		_ ->
++			% Disallow killing while some nodes are alive
++			{noreply, State}
++	end;
++
++handle_cast({{msg, From},<<?EPMD_STOP, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = false}) ->
++	% Ignore stop command in case we're running w/o -relaxed_command_check
++	error_logger:info_msg("ErlPMD: '~s' stop request from ~s:~p. (IGNORED)~n", [NodeName, inet_parse:ntoa(Ip), Port]),
++	gen_server:cast(From, {msg, <<"STOPPED">>, Ip, Port}),
++	{noreply, State};
++handle_cast({{msg, From},<<?EPMD_STOP, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = true}) ->
++	error_logger:info_msg("ErlPMD: '~s' stop request from ~s:~p.~n", [NodeName, inet_parse:ntoa(Ip), Port]),
++	case ets:match(erlpmd, {NodeName, {'_', '_', '_', '_', '_', '_', '_', '_'}}) of
++		[] ->
++			gen_server:cast(From, {msg, <<"NOEXIST">>, Ip, Port});
++		_ ->
++			ets:delete(erlpmd, NodeName),
++			gen_server:cast(From, {msg, <<"STOPPED">>, Ip, Port})
++	end,
++	gen_server:cast(From, {close, Ip, Port}),
++	{noreply, State};
++
++handle_cast({{close, _From}, Fd}, State) ->
++	error_logger:info_msg("ErlPMD: closed connection: ~p.~n", [Fd]),
++	case ets:match(erlpmd, {'$1', {'_', '_', '_', '_', '_', '_', '_', Fd}}) of
++		[[NodeName]] -> ets:delete(erlpmd, NodeName);
++		_ -> ok
++	end,
++	{noreply, State};
++
++handle_cast(Msg, State) ->
++	error_logger:warning_msg("ErlPMD: strange cast: ~p.~n", [Msg]),
++	{noreply, State}.
++
++handle_info(notify_init, State) ->
++	error_logger:warning_msg("ErlPMD: info: ~p while ~p.~n", [notify_init, State]),
++	{module, sd_notify} == code:load_file(sd_notify) andalso sd_notify:sd_notifyf(0, "READY=1~nSTATUS=~s", ["Hello from ErlPMD"]),
++	{noreply, State};
++
++handle_info(Info, State) ->
++	error_logger:warning_msg("ErlPMD: strange info: ~p.~n", [Info]),
++	{noreply, State}.
++
++terminate(_Reason, _State) ->
++	error_logger:info_msg("ErlPMD: stopped.~n"),
++	init:stop().
++
++code_change(_OldVsn, State, _Extra) ->
++	{ok, State}.
++
++%% ------------------------------------------------------------------
++%% Internal Function Definitions
++%% ------------------------------------------------------------------
+diff --git a/lib/epmd/src/erlpmd_app.erl b/lib/epmd/src/erlpmd_app.erl
+new file mode 100644
+index 0000000..3cbab0a
+--- /dev/null
++++ b/lib/epmd/src/erlpmd_app.erl
+@@ -0,0 +1,36 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-module(erlpmd_app).
++
++-behaviour(application).
++
++%% Application callbacks
++-export([start/2, stop/1]).
++
++%% ===================================================================
++%% Application callbacks
++%% ===================================================================
++
++start(_StartType, _StartArgs) ->
++	erlpmd_sup:start_link().
++
++stop(_State) ->
++	ok.
+diff --git a/lib/epmd/src/erlpmd_ctl.erl b/lib/epmd/src/erlpmd_ctl.erl
+new file mode 100644
+index 0000000..4860216
+--- /dev/null
++++ b/lib/epmd/src/erlpmd_ctl.erl
+@@ -0,0 +1,205 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-module(erlpmd_ctl).
++
++-export([start/0]).
++
++-include("erlpmd_internal.hrl").
++-include("../../kernel/src/erl_epmd.hrl").
++
++start() ->
++	%%
++	%% Check environment variables first
++	%%
++
++	EnvAddr = os:getenv("ERL_EPMD_ADDRESS", "0.0.0.0"),
++	EnvPort = os:getenv("ERL_EPMD_PORT", "4369"),
++
++	%%
++	%% Now check for command-line switches
++	%%
++
++	Addrs  = addrstr_to_ip(get_arg(address, EnvAddr)),
++	Port = list_to_integer(get_arg(port, EnvPort)),
++
++	Names = check_arg(names),
++	Kill = check_arg(kill),
++	Stop = check_arg(stop),
++	Help = check_arg(h),
++
++	if
++		Names -> names(Addrs, Port);
++		Kill -> kill(Addrs, Port);
++		Stop -> stop(Addrs, Port);
++		Help -> help();
++		true -> daemon(Addrs, Port)
++	end.
++
++%%
++%% Private functions
++%%
++
++names([Addr | _], Port) ->
++	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
++	ok = gen_tcp:send(Fd, <<?EPMD_NAMES>>),
++	% We have to switch to raw here
++	inet:setopts(Fd, [{packet, raw}]),
++	{ok, <<Port:32, Data/binary>>} = gen_tcp:recv(Fd, 0, 1000),
++	io:format("epmd: up and running on port ~p with data:~n", [Port]),
++	io:format("~s", [Data]),
++	ok = gen_tcp:close(Fd),
++	init:stop().
++
++kill([Addr | _], Port) ->
++	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
++	ok = gen_tcp:send(Fd, <<?EPMD_KILL>>),
++	% We have to switch to raw here
++	inet:setopts(Fd, [{packet, raw}]),
++	{ok, <<"OK">>} = gen_tcp:recv(Fd, 0, 1000),
++	io:format("Killed~n"),
++	ok = gen_tcp:close(Fd),
++	init:stop().
++
++stop([Addr | _] , Port) ->
++	{ok, [[N]]} = init:get_argument(stop),
++	Name = list_to_binary(N),
++	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
++	ok = gen_tcp:send(Fd, <<?EPMD_STOP, Name/binary>>),
++	% We have to switch to raw here
++	inet:setopts(Fd, [{packet, raw}]),
++	{ok, Ret} = gen_tcp:recv(Fd, 0, 1000),
++	io:format("~s~n", [Ret]),
++	ok = gen_tcp:close(Fd),
++	init:stop().
++
++help() ->
++    io:format(
++"usage: epmd [-d|-debug] [DbgExtra...] [-address List]~n"
++"            [-port No] [-daemon] [-relaxed_command_check]~n"
++"       epmd [-d|-debug] [-port No] [-names|-kill|-stop name]~n"
++"~n"
++"See the Erlang epmd manual page for info about the usage.~n"
++"~n"
++"Regular options~n"
++"    -address List~n"
++"        Let epmd listen only on the comma-separated list of IP~n"
++"        addresses (and on the loopback interface).~n"
++"    -port No~n"
++"        Let epmd listen to another port than default 4369~n"
++"    -d~n"
++"    -debug~n"
++"        Enable debugging. This will give a log to~n"
++"        the standard error stream. It will shorten~n"
++"        the number of saved used node names to 5.~n"
++"~n"
++"        If you give more than one debug flag you may~n"
++"        get more debugging information.~n"
++"    -daemon~n"
++"        Start epmd detached (as a daemon)~n"
++"    -relaxed_command_check~n"
++"        Allow this instance of epmd to be killed with~n"
++"        epmd -kill even if there are registered nodes.~n"
++"        Also allows forced unregister (epmd -stop).~n"
++"~n"
++"DbgExtra options~n"
++"    -packet_timeout Seconds~n"
++"       Set the number of seconds a connection can be~n"
++"       inactive before epmd times out and closes the~n"
++"       connection (default 60).~n"
++"~n"
++"    -delay_accept Seconds~n"
++"       To simulate a busy server you can insert a~n"
++"       delay between epmd gets notified about that~n"
++"       a new connection is requested and when the~n"
++"       connections gets accepted.~n"
++"~n"
++"    -delay_write Seconds~n"
++"       Also a simulation of a busy server. Inserts~n"
++"       a delay before a reply is sent.~n"
++"~n"
++"Interactive options~n"
++"    -names~n"
++"       List names registered with the currently running epmd~n"
++"    -kill~n"
++"       Kill the currently running epmd~n"
++"       (only allowed if -names show empty database or~n"
++"       -relaxed_command_check was given when epmd was started).~n"
++"    -stop Name~n"
++"       Forcibly unregisters a name with epmd~n"
++"       (only allowed if -relaxed_command_check was given when~n"
++"       epmd was started).~n"
++	),
++	init:stop().
++
++daemon(Addr, Port) ->
++	%%
++	%% Check environment variables first
++	%%
++	EnvRelaxedCommandCheck = os:getenv("ERL_EPMD_RELAXED_COMMAND_CHECK", "false"),
++
++	%% Run daemonised - ignored for now FIXME
++	_Daemonize = check_arg(daemon),
++
++	%% ignored - autodetection of systemd
++	check_arg(systemd) andalso error_logger:warning_msg("-systemd option is ignored (autodetected)~n"),
++
++	%% Allow this instance of epmd to be killed with
++	%% epmd -kill even if there are registered nodes.
++	%% Also allows forced unregister (epmd -stop)
++	RelaxedCommandCheck = check_arg(relaxed_command_check) orelse EnvRelaxedCommandCheck == "true",
++
++	%% Set debug level
++	Debug = check_arg(d) orelse check_arg(debug),
++
++	%% DbgExtra options
++	PacketTimeout = list_to_integer(get_arg(packet_timeout, "0")),
++	DelayAccept = list_to_integer(get_arg(delay_accept, "0")),
++	DelayWrite = list_to_integer(get_arg(delay_write, "0")),
++
++	application:set_env(erlpmd, argv, #argv{address = Addr,
++						port = Port,
++						relaxed_command_check = RelaxedCommandCheck,
++						debug = Debug,
++						packet_timeout = PacketTimeout,
++						delay_accept = DelayAccept,
++						delay_write = DelayWrite
++					       }),
++
++	application:start(erlpmd).
++
++%%
++%% Various helpers
++%%
++
++get_arg(Arg, Default) ->
++	case init:get_argument(Arg)of
++		error -> Default;
++		{ok,[[V]]} -> V
++	end.
++
++check_arg(Arg) ->
++	case init:get_argument(Arg)of
++		error -> false;
++		{ok, _} -> true
++	end.
++
++addrstr_to_ip(AddrStr) ->
++	[begin {ok, Y} = inet_parse:address(X), Y end || X <- string:tokens(AddrStr,",")].
+diff --git a/lib/epmd/src/erlpmd_internal.hrl b/lib/epmd/src/erlpmd_internal.hrl
+new file mode 100644
+index 0000000..7212d79
+--- /dev/null
++++ b/lib/epmd/src/erlpmd_internal.hrl
+@@ -0,0 +1,28 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-record(argv, {address = {0,0,0,0},
++	       port = 4369,
++               relaxed_command_check = false,
++	       debug = false,
++	       packet_timeout = 0,
++	       delay_accept = 0,
++	       delay_write = 0}).
++
+diff --git a/lib/epmd/src/erlpmd_sup.erl b/lib/epmd/src/erlpmd_sup.erl
+new file mode 100644
+index 0000000..a7971c1
+--- /dev/null
++++ b/lib/epmd/src/erlpmd_sup.erl
+@@ -0,0 +1,49 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-module(erlpmd_sup).
++
++-behaviour(supervisor).
++
++-include("erlpmd_internal.hrl").
++
++%% API
++-export([start_link/0]).
++
++%% Supervisor callbacks
++-export([init/1]).
++
++%% ===================================================================
++%% API functions
++%% ===================================================================
++
++start_link() ->
++	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
++
++%% ===================================================================
++%% Supervisor callbacks
++%% ===================================================================
++
++init(_) ->
++	{ok, Argv} = application:get_env(erlpmd,argv),
++	ErlPMD = {erlpmd, {erlpmd, start_link, [Argv]}, transient, 5000, worker, [erlpmd]},
++	Listeners = [{{ip, Ip}, {tcp_listener, start_link, [[Ip,Argv#argv.port]]}, transient, 5000, worker, [tcp_listener]} || Ip <- Argv#argv.address],
++	{ok, {{one_for_one, 5, 10}, [ErlPMD | Listeners]}}.
++
+diff --git a/lib/epmd/src/tcp_listener.erl b/lib/epmd/src/tcp_listener.erl
+new file mode 100644
+index 0000000..fc30d94
+--- /dev/null
++++ b/lib/epmd/src/tcp_listener.erl
+@@ -0,0 +1,158 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-module(tcp_listener).
++
++-behaviour(gen_server).
++
++-export([start_link/1]).
++-export([init/1]).
++-export([handle_call/3]).
++-export([handle_cast/2]).
++-export([handle_info/2]).
++-export([terminate/2]).
++-export([code_change/3]).
++
++-record(state, {
++	listener,
++	acceptor,
++	clients = []
++}).
++
++start_link(Args) ->
++	gen_server:start_link(?MODULE, Args, []).
++
++init ([Ip, Port]) ->
++	SysPid = os:getpid(),
++	{ok, Socket} = case {os:getenv("LISTEN_PID"), os:getenv("LISTEN_FDS")} of
++			       {SysPid, "1"} ->
++				       Opts = [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true}, {active, false}],
++				       %% LISTEN_FDS starts with 3
++				       {ok, S} = gen_tcp:fdopen(3, Opts),
++				       ok = prim_inet:listen(S),
++				       {ok, S};
++			       _ ->
++				       Opts = [{ip, Ip}, binary, {packet, 2}, {reuseaddr, true}, {keepalive, true}, {backlog, 30}, {active, false}],
++				       gen_tcp:listen(Port, Opts)
++		       end,
++	{ok, Ref} = prim_inet:async_accept(Socket, -1),
++	error_logger:info_msg("ErlPMD listener: started at Ip: ~s:~b~n", [inet_parse:ntoa(Ip), Port]),
++	{ok, #state{listener = Socket, acceptor = Ref}}.
++
++handle_call(Other, From, State) ->
++	error_logger:warning_msg("ErlPMD listener: strange call: ~p from ~p.~n", [Other, From]),
++	{noreply, State}.
++
++handle_cast({msg, Msg, Ip, Port}, State = #state{clients=Clients}) ->
++	% Select proper client
++	case get_socket(Clients, Ip, Port) of
++		error -> ok;
++		Fd ->
++			inet:setopts(Fd, [{packet, raw}]),
++			gen_tcp:send(Fd, Msg),
++			inet:setopts(Fd, [{packet, 2}])
++	end,
++	{noreply, State};
++
++handle_cast({close, Ip, Port}, #state{clients = Clients} = State) ->
++	error_logger:info_msg("ErlPMD listener: closing connection: ~s:~b.~n", [inet_parse:ntoa(Ip), Port]),
++	case get_socket(Clients, Ip, Port) of
++		error ->
++			ok;
++		Fd ->
++			gen_server:cast(erlpmd, {{close, self()}, Fd}),
++			gen_tcp:close(Fd)
++	end,
++	{noreply, State};
++
++handle_cast(stop, State) ->
++	{stop, normal, State};
++
++handle_cast(Other, State) ->
++	error_logger:warning_msg("ErlPMD listener: strange cast: ~p.~n", [Other]),
++	{noreply, State}.
++
++handle_info({tcp, Fd, Msg}, State) ->
++	inet:setopts(Fd, [{active, once}, {packet, 2}, binary]),
++	{ok, {Ip, Port}} = inet:peername(Fd),
++	gen_server:cast(erlpmd, {{msg, self()}, Msg, Fd, Ip, Port}),
++	{noreply, State};
++
++handle_info({tcp_closed, Client}, #state{clients = Clients} = State) ->
++	gen_tcp:close(Client),
++	gen_server:cast(erlpmd, {{close, self()}, Client}),
++	error_logger:info_msg("ErlPMD listener: client ~p closed connection.~n", [Client]),
++	{noreply, State#state{clients = lists:delete(Client, Clients)}};
++
++handle_info({inet_async, ListSock, Ref, {ok, CliSocket}}, #state{listener = ListSock, acceptor = Ref, clients = Clients} = State) ->
++	case set_sockopt(ListSock, CliSocket) of
++		ok -> ok;
++		{error, Reason} -> exit({set_sockopt, Reason})
++	end,
++
++	inet:setopts(CliSocket, [{active, once}, {packet, 2}, binary]),
++
++	case prim_inet:async_accept(ListSock, -1) of
++		{ok, NewRef} -> ok;
++		{error, NewRef} -> exit({async_accept, inet:format_error(NewRef)})
++        end,
++
++	{noreply, State#state{acceptor=NewRef, clients = Clients ++ [CliSocket]}};
++
++handle_info({inet_async, ListSock, Ref, Error}, #state{listener = ListSock, acceptor = Ref} = State) ->
++	error_logger:error_msg("ErlPMD listener: error in socket acceptor: ~p.~n", [Error]),
++	{stop, Error, State};
++
++handle_info(Info, State) ->
++	error_logger:warning_msg("ErlPMD listener: strange info: ~p.~n", [Info]),
++	{noreply, State}.
++
++terminate(Reason, #state{listener = Listener, clients = Clients}) ->
++	gen_tcp:close(Listener),
++	lists:map(fun gen_tcp:close/1, Clients),
++	error_logger:error_msg("ErlPMD listener: closed: ~p.~n", [Reason]),
++	ok.
++
++code_change(_OldVsn, State, _Extra) ->
++	{ok, State}.
++
++set_sockopt(ListSock, CliSocket) ->
++	true = inet_db:register_socket(CliSocket, inet_tcp),
++	case prim_inet:getopts(ListSock, [active, nodelay, keepalive, delay_send, priority, tos]) of
++		{ok, Opts} ->
++			case prim_inet:setopts(CliSocket, Opts) of
++				ok ->
++					ok;
++				Error ->
++					gen_tcp:close(CliSocket),
++					Error
++			end;
++		Error ->
++			gen_tcp:close(CliSocket),
++			Error
++	end.
++
++get_socket([], _, _) ->
++	error;
++get_socket([S | Rest], Ip, Port) ->
++	case inet:peername(S) of
++		{ok, {Ip, Port}} -> S;
++		_ -> get_socket(Rest, Ip, Port)
++	end.
+diff --git a/lib/epmd/vsn.mk b/lib/epmd/vsn.mk
+new file mode 100644
+index 0000000..7fee235
+--- /dev/null
++++ b/lib/epmd/vsn.mk
+@@ -0,0 +1 @@
++EPMD_VSN = 2.0.1
+
+From f9d2474ecbf2c643c622c7c30858622643049165 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Wed, 26 Aug 2015 18:09:05 +0300
+Subject: [PATCH 2/8] Fix license in README
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/README.md | 34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
+
+diff --git a/lib/epmd/README.md b/lib/epmd/README.md
+index 596c442..94c544f 100644
+--- a/lib/epmd/README.md
++++ b/lib/epmd/README.md
+@@ -3,27 +3,19 @@
+ A drop-in replacement for epmd written in Erlang
+ 
+ <pre>
+-Copyright (c) 2012 Peter Lemenkov.
+-
+-The MIT License
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy
+-of this software and associated documentation files (the "Software"), to deal
+-in the Software without restriction, including without limitation the rights
+-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-copies of the Software, and to permit persons to whom the Software is
+-furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in
+-all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+-THE SOFTWARE.
++Copyright (c) 2012 - 2015 Peter Lemenkov.
++
++Licensed under the Apache License, Version 2.0 (the "License");
++you may not use this file except in compliance with the License.
++You may obtain a copy of the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++Unless required by applicable law or agreed to in writing, software
++distributed under the License is distributed on an "AS IS" BASIS,
++WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++See the License for the specific language governing permissions and
++limitations under the License.
+ </pre>
+ 
+ <h1>Introduction</h1>
+
+From bcfabf8a12a822a96d4310c7a6e4361e5b2bb65a Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Wed, 26 Aug 2015 18:23:32 +0300
+Subject: [PATCH 3/8] Rename tcp_listener to avoid name clash
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/src/Makefile                |   2 +-
+ lib/epmd/src/erlpmd_sup.erl          |   2 +-
+ lib/epmd/src/erlpmd_tcp_listener.erl | 158 +++++++++++++++++++++++++++++++++++
+ lib/epmd/src/tcp_listener.erl        | 158 -----------------------------------
+ 4 files changed, 160 insertions(+), 160 deletions(-)
+ create mode 100644 lib/epmd/src/erlpmd_tcp_listener.erl
+ delete mode 100644 lib/epmd/src/tcp_listener.erl
+
+diff --git a/lib/epmd/src/Makefile b/lib/epmd/src/Makefile
+index fe9f3c8..0e625c9 100644
+--- a/lib/epmd/src/Makefile
++++ b/lib/epmd/src/Makefile
+@@ -40,7 +40,7 @@ MODULES= \
+ 	 erlpmd_app \
+ 	 erlpmd_ctl \
+ 	 erlpmd_sup \
+-	 tcp_listener
++	 erlpmd_tcp_listener
+ 
+ HRL_FILES=
+ 
+diff --git a/lib/epmd/src/erlpmd_sup.erl b/lib/epmd/src/erlpmd_sup.erl
+index a7971c1..05025b3 100644
+--- a/lib/epmd/src/erlpmd_sup.erl
++++ b/lib/epmd/src/erlpmd_sup.erl
+@@ -44,6 +44,6 @@ start_link() ->
+ init(_) ->
+ 	{ok, Argv} = application:get_env(erlpmd,argv),
+ 	ErlPMD = {erlpmd, {erlpmd, start_link, [Argv]}, transient, 5000, worker, [erlpmd]},
+-	Listeners = [{{ip, Ip}, {tcp_listener, start_link, [[Ip,Argv#argv.port]]}, transient, 5000, worker, [tcp_listener]} || Ip <- Argv#argv.address],
++	Listeners = [{{ip, Ip}, {erlpmd_tcp_listener, start_link, [[Ip,Argv#argv.port]]}, transient, 5000, worker, [erlpmd_tcp_listener]} || Ip <- Argv#argv.address],
+ 	{ok, {{one_for_one, 5, 10}, [ErlPMD | Listeners]}}.
+ 
+diff --git a/lib/epmd/src/erlpmd_tcp_listener.erl b/lib/epmd/src/erlpmd_tcp_listener.erl
+new file mode 100644
+index 0000000..7ecd89b
+--- /dev/null
++++ b/lib/epmd/src/erlpmd_tcp_listener.erl
+@@ -0,0 +1,158 @@
++%%
++%% %CopyrightBegin%
++%%
++%% Copyright Ericsson AB 2015. All Rights Reserved.
++%%
++%% Licensed under the Apache License, Version 2.0 (the "License");
++%% you may not use this file except in compliance with the License.
++%% You may obtain a copy of the License at
++%%
++%%     http://www.apache.org/licenses/LICENSE-2.0
++%%
++%% Unless required by applicable law or agreed to in writing, software
++%% distributed under the License is distributed on an "AS IS" BASIS,
++%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++%% See the License for the specific language governing permissions and
++%% limitations under the License.
++%%
++%% %CopyrightEnd%
++%%
++
++-module(erlpmd_tcp_listener).
++
++-behaviour(gen_server).
++
++-export([start_link/1]).
++-export([init/1]).
++-export([handle_call/3]).
++-export([handle_cast/2]).
++-export([handle_info/2]).
++-export([terminate/2]).
++-export([code_change/3]).
++
++-record(state, {
++	listener,
++	acceptor,
++	clients = []
++}).
++
++start_link(Args) ->
++	gen_server:start_link(?MODULE, Args, []).
++
++init ([Ip, Port]) ->
++	SysPid = os:getpid(),
++	{ok, Socket} = case {os:getenv("LISTEN_PID"), os:getenv("LISTEN_FDS")} of
++			       {SysPid, "1"} ->
++				       Opts = [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true}, {active, false}],
++				       %% LISTEN_FDS starts with 3
++				       {ok, S} = gen_tcp:fdopen(3, Opts),
++				       ok = prim_inet:listen(S),
++				       {ok, S};
++			       _ ->
++				       Opts = [{ip, Ip}, binary, {packet, 2}, {reuseaddr, true}, {keepalive, true}, {backlog, 30}, {active, false}],
++				       gen_tcp:listen(Port, Opts)
++		       end,
++	{ok, Ref} = prim_inet:async_accept(Socket, -1),
++	error_logger:info_msg("ErlPMD listener: started at Ip: ~s:~b~n", [inet_parse:ntoa(Ip), Port]),
++	{ok, #state{listener = Socket, acceptor = Ref}}.
++
++handle_call(Other, From, State) ->
++	error_logger:warning_msg("ErlPMD listener: strange call: ~p from ~p.~n", [Other, From]),
++	{noreply, State}.
++
++handle_cast({msg, Msg, Ip, Port}, State = #state{clients=Clients}) ->
++	% Select proper client
++	case get_socket(Clients, Ip, Port) of
++		error -> ok;
++		Fd ->
++			inet:setopts(Fd, [{packet, raw}]),
++			gen_tcp:send(Fd, Msg),
++			inet:setopts(Fd, [{packet, 2}])
++	end,
++	{noreply, State};
++
++handle_cast({close, Ip, Port}, #state{clients = Clients} = State) ->
++	error_logger:info_msg("ErlPMD listener: closing connection: ~s:~b.~n", [inet_parse:ntoa(Ip), Port]),
++	case get_socket(Clients, Ip, Port) of
++		error ->
++			ok;
++		Fd ->
++			gen_server:cast(erlpmd, {{close, self()}, Fd}),
++			gen_tcp:close(Fd)
++	end,
++	{noreply, State};
++
++handle_cast(stop, State) ->
++	{stop, normal, State};
++
++handle_cast(Other, State) ->
++	error_logger:warning_msg("ErlPMD listener: strange cast: ~p.~n", [Other]),
++	{noreply, State}.
++
++handle_info({tcp, Fd, Msg}, State) ->
++	inet:setopts(Fd, [{active, once}, {packet, 2}, binary]),
++	{ok, {Ip, Port}} = inet:peername(Fd),
++	gen_server:cast(erlpmd, {{msg, self()}, Msg, Fd, Ip, Port}),
++	{noreply, State};
++
++handle_info({tcp_closed, Client}, #state{clients = Clients} = State) ->
++	gen_tcp:close(Client),
++	gen_server:cast(erlpmd, {{close, self()}, Client}),
++	error_logger:info_msg("ErlPMD listener: client ~p closed connection.~n", [Client]),
++	{noreply, State#state{clients = lists:delete(Client, Clients)}};
++
++handle_info({inet_async, ListSock, Ref, {ok, CliSocket}}, #state{listener = ListSock, acceptor = Ref, clients = Clients} = State) ->
++	case set_sockopt(ListSock, CliSocket) of
++		ok -> ok;
++		{error, Reason} -> exit({set_sockopt, Reason})
++	end,
++
++	inet:setopts(CliSocket, [{active, once}, {packet, 2}, binary]),
++
++	case prim_inet:async_accept(ListSock, -1) of
++		{ok, NewRef} -> ok;
++		{error, NewRef} -> exit({async_accept, inet:format_error(NewRef)})
++        end,
++
++	{noreply, State#state{acceptor=NewRef, clients = Clients ++ [CliSocket]}};
++
++handle_info({inet_async, ListSock, Ref, Error}, #state{listener = ListSock, acceptor = Ref} = State) ->
++	error_logger:error_msg("ErlPMD listener: error in socket acceptor: ~p.~n", [Error]),
++	{stop, Error, State};
++
++handle_info(Info, State) ->
++	error_logger:warning_msg("ErlPMD listener: strange info: ~p.~n", [Info]),
++	{noreply, State}.
++
++terminate(Reason, #state{listener = Listener, clients = Clients}) ->
++	gen_tcp:close(Listener),
++	lists:map(fun gen_tcp:close/1, Clients),
++	error_logger:error_msg("ErlPMD listener: closed: ~p.~n", [Reason]),
++	ok.
++
++code_change(_OldVsn, State, _Extra) ->
++	{ok, State}.
++
++set_sockopt(ListSock, CliSocket) ->
++	true = inet_db:register_socket(CliSocket, inet_tcp),
++	case prim_inet:getopts(ListSock, [active, nodelay, keepalive, delay_send, priority, tos]) of
++		{ok, Opts} ->
++			case prim_inet:setopts(CliSocket, Opts) of
++				ok ->
++					ok;
++				Error ->
++					gen_tcp:close(CliSocket),
++					Error
++			end;
++		Error ->
++			gen_tcp:close(CliSocket),
++			Error
++	end.
++
++get_socket([], _, _) ->
++	error;
++get_socket([S | Rest], Ip, Port) ->
++	case inet:peername(S) of
++		{ok, {Ip, Port}} -> S;
++		_ -> get_socket(Rest, Ip, Port)
++	end.
+diff --git a/lib/epmd/src/tcp_listener.erl b/lib/epmd/src/tcp_listener.erl
+deleted file mode 100644
+index fc30d94..0000000
+--- a/lib/epmd/src/tcp_listener.erl
++++ /dev/null
+@@ -1,158 +0,0 @@
+-%%
+-%% %CopyrightBegin%
+-%%
+-%% Copyright Ericsson AB 2015. All Rights Reserved.
+-%%
+-%% Licensed under the Apache License, Version 2.0 (the "License");
+-%% you may not use this file except in compliance with the License.
+-%% You may obtain a copy of the License at
+-%%
+-%%     http://www.apache.org/licenses/LICENSE-2.0
+-%%
+-%% Unless required by applicable law or agreed to in writing, software
+-%% distributed under the License is distributed on an "AS IS" BASIS,
+-%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-%% See the License for the specific language governing permissions and
+-%% limitations under the License.
+-%%
+-%% %CopyrightEnd%
+-%%
+-
+--module(tcp_listener).
+-
+--behaviour(gen_server).
+-
+--export([start_link/1]).
+--export([init/1]).
+--export([handle_call/3]).
+--export([handle_cast/2]).
+--export([handle_info/2]).
+--export([terminate/2]).
+--export([code_change/3]).
+-
+--record(state, {
+-	listener,
+-	acceptor,
+-	clients = []
+-}).
+-
+-start_link(Args) ->
+-	gen_server:start_link(?MODULE, Args, []).
+-
+-init ([Ip, Port]) ->
+-	SysPid = os:getpid(),
+-	{ok, Socket} = case {os:getenv("LISTEN_PID"), os:getenv("LISTEN_FDS")} of
+-			       {SysPid, "1"} ->
+-				       Opts = [binary, {packet, 2}, {reuseaddr, true}, {keepalive, true}, {active, false}],
+-				       %% LISTEN_FDS starts with 3
+-				       {ok, S} = gen_tcp:fdopen(3, Opts),
+-				       ok = prim_inet:listen(S),
+-				       {ok, S};
+-			       _ ->
+-				       Opts = [{ip, Ip}, binary, {packet, 2}, {reuseaddr, true}, {keepalive, true}, {backlog, 30}, {active, false}],
+-				       gen_tcp:listen(Port, Opts)
+-		       end,
+-	{ok, Ref} = prim_inet:async_accept(Socket, -1),
+-	error_logger:info_msg("ErlPMD listener: started at Ip: ~s:~b~n", [inet_parse:ntoa(Ip), Port]),
+-	{ok, #state{listener = Socket, acceptor = Ref}}.
+-
+-handle_call(Other, From, State) ->
+-	error_logger:warning_msg("ErlPMD listener: strange call: ~p from ~p.~n", [Other, From]),
+-	{noreply, State}.
+-
+-handle_cast({msg, Msg, Ip, Port}, State = #state{clients=Clients}) ->
+-	% Select proper client
+-	case get_socket(Clients, Ip, Port) of
+-		error -> ok;
+-		Fd ->
+-			inet:setopts(Fd, [{packet, raw}]),
+-			gen_tcp:send(Fd, Msg),
+-			inet:setopts(Fd, [{packet, 2}])
+-	end,
+-	{noreply, State};
+-
+-handle_cast({close, Ip, Port}, #state{clients = Clients} = State) ->
+-	error_logger:info_msg("ErlPMD listener: closing connection: ~s:~b.~n", [inet_parse:ntoa(Ip), Port]),
+-	case get_socket(Clients, Ip, Port) of
+-		error ->
+-			ok;
+-		Fd ->
+-			gen_server:cast(erlpmd, {{close, self()}, Fd}),
+-			gen_tcp:close(Fd)
+-	end,
+-	{noreply, State};
+-
+-handle_cast(stop, State) ->
+-	{stop, normal, State};
+-
+-handle_cast(Other, State) ->
+-	error_logger:warning_msg("ErlPMD listener: strange cast: ~p.~n", [Other]),
+-	{noreply, State}.
+-
+-handle_info({tcp, Fd, Msg}, State) ->
+-	inet:setopts(Fd, [{active, once}, {packet, 2}, binary]),
+-	{ok, {Ip, Port}} = inet:peername(Fd),
+-	gen_server:cast(erlpmd, {{msg, self()}, Msg, Fd, Ip, Port}),
+-	{noreply, State};
+-
+-handle_info({tcp_closed, Client}, #state{clients = Clients} = State) ->
+-	gen_tcp:close(Client),
+-	gen_server:cast(erlpmd, {{close, self()}, Client}),
+-	error_logger:info_msg("ErlPMD listener: client ~p closed connection.~n", [Client]),
+-	{noreply, State#state{clients = lists:delete(Client, Clients)}};
+-
+-handle_info({inet_async, ListSock, Ref, {ok, CliSocket}}, #state{listener = ListSock, acceptor = Ref, clients = Clients} = State) ->
+-	case set_sockopt(ListSock, CliSocket) of
+-		ok -> ok;
+-		{error, Reason} -> exit({set_sockopt, Reason})
+-	end,
+-
+-	inet:setopts(CliSocket, [{active, once}, {packet, 2}, binary]),
+-
+-	case prim_inet:async_accept(ListSock, -1) of
+-		{ok, NewRef} -> ok;
+-		{error, NewRef} -> exit({async_accept, inet:format_error(NewRef)})
+-        end,
+-
+-	{noreply, State#state{acceptor=NewRef, clients = Clients ++ [CliSocket]}};
+-
+-handle_info({inet_async, ListSock, Ref, Error}, #state{listener = ListSock, acceptor = Ref} = State) ->
+-	error_logger:error_msg("ErlPMD listener: error in socket acceptor: ~p.~n", [Error]),
+-	{stop, Error, State};
+-
+-handle_info(Info, State) ->
+-	error_logger:warning_msg("ErlPMD listener: strange info: ~p.~n", [Info]),
+-	{noreply, State}.
+-
+-terminate(Reason, #state{listener = Listener, clients = Clients}) ->
+-	gen_tcp:close(Listener),
+-	lists:map(fun gen_tcp:close/1, Clients),
+-	error_logger:error_msg("ErlPMD listener: closed: ~p.~n", [Reason]),
+-	ok.
+-
+-code_change(_OldVsn, State, _Extra) ->
+-	{ok, State}.
+-
+-set_sockopt(ListSock, CliSocket) ->
+-	true = inet_db:register_socket(CliSocket, inet_tcp),
+-	case prim_inet:getopts(ListSock, [active, nodelay, keepalive, delay_send, priority, tos]) of
+-		{ok, Opts} ->
+-			case prim_inet:setopts(CliSocket, Opts) of
+-				ok ->
+-					ok;
+-				Error ->
+-					gen_tcp:close(CliSocket),
+-					Error
+-			end;
+-		Error ->
+-			gen_tcp:close(CliSocket),
+-			Error
+-	end.
+-
+-get_socket([], _, _) ->
+-	error;
+-get_socket([S | Rest], Ip, Port) ->
+-	case inet:peername(S) of
+-		{ok, {Ip, Port}} -> S;
+-		_ -> get_socket(Rest, Ip, Port)
+-	end.
+
+From b04e2a284f9b3f3507b97c83ed7da82ddc35c6c9 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Thu, 27 Aug 2015 13:05:14 +0300
+Subject: [PATCH 4/8] Let systemd notify output something useful
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/src/erlpmd.erl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/epmd/src/erlpmd.erl b/lib/epmd/src/erlpmd.erl
+index 82ff47e..565a5dc 100644
+--- a/lib/epmd/src/erlpmd.erl
++++ b/lib/epmd/src/erlpmd.erl
+@@ -155,7 +155,7 @@ handle_cast(Msg, State) ->
+ 
+ handle_info(notify_init, State) ->
+ 	error_logger:warning_msg("ErlPMD: info: ~p while ~p.~n", [notify_init, State]),
+-	{module, sd_notify} == code:load_file(sd_notify) andalso sd_notify:sd_notifyf(0, "READY=1~nSTATUS=~s", ["Hello from ErlPMD"]),
++	{module, sd_notify} == code:load_file(sd_notify) andalso sd_notify:sd_notifyf(0, "READY=1~nSTATUS=~s~nMAINPID=~s", ["Processing port mapping requests...", os:getpid()]),
+ 	{noreply, State};
+ 
+ handle_info(Info, State) ->
+
+From bdb006c09ec2f2d5f7d465ac08ae52da70f30167 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Thu, 27 Aug 2015 13:51:45 +0300
+Subject: [PATCH 5/8] Implement delay_write
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/src/erlpmd.erl | 46 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
+
+diff --git a/lib/epmd/src/erlpmd.erl b/lib/epmd/src/erlpmd.erl
+index 565a5dc..de283fa 100644
+--- a/lib/epmd/src/erlpmd.erl
++++ b/lib/epmd/src/erlpmd.erl
+@@ -58,7 +58,7 @@ handle_call(Request, From, State) ->
+ 	error_logger:warning_msg("ErlPMD: strange call: ~p from: ~p.~n", [Request, From]),
+ 	{reply, ok, State}.
+ 
+-handle_cast({{msg,From},<<?EPMD_ALIVE2_REQ, PortNo:16, NodeType:8, Proto:8, HiVer:16, LoVer:16, NLen:16, Rest/binary>>, Fd, Ip, Port}, State) ->
++handle_cast({{msg,From},<<?EPMD_ALIVE2_REQ, PortNo:16, NodeType:8, Proto:8, HiVer:16, LoVer:16, NLen:16, Rest/binary>>, Fd, Ip, Port}, State = #argv{delay_write = DelayWrite}) ->
+ 	<<NodeName:NLen/binary, _ELen:16, Extra/binary>> = Rest,
+ 	Creation = random:uniform(3),
+ 	error_logger:info_msg(
+@@ -67,53 +67,55 @@ handle_cast({{msg,From},<<?EPMD_ALIVE2_REQ, PortNo:16, NodeType:8, Proto:8, HiVe
+ 	case ets:lookup(erlpmd, NodeName) of
+ 		[] ->
+ 			ets:insert_new(erlpmd, {NodeName, {PortNo, NodeType, Proto, HiVer, LoVer, Extra, Creation, Fd}}),
+-			gen_server:cast(From, {msg, <<?EPMD_ALIVE2_RESP, 0:8, Creation:16>>, Ip, Port});
++			reply(From, {msg, <<?EPMD_ALIVE2_RESP, 0:8, Creation:16>>, Ip, Port}, DelayWrite);
+ 		_ ->
+ 			% Already registered - reply with error
+ 			error_logger:error_msg("ErlPMD: ~s 'name' is already registered.~n", [NodeName]),
+-			gen_server:cast(From, {msg, <<?EPMD_ALIVE2_RESP, 1:8, 99:16>>, Ip, Port})
++			reply(From, {msg, <<?EPMD_ALIVE2_RESP, 1:8, 99:16>>, Ip, Port}, DelayWrite)
+ 	end,
+ 	{noreply, State};
+ 
+ 
+-handle_cast({{msg, From},<<?EPMD_PORT_PLEASE2_REQ, NodeName/binary>>, _Fd, Ip, Port}, State) ->
++handle_cast({{msg, From},<<?EPMD_PORT_PLEASE2_REQ, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{delay_write = DelayWrite}) ->
+ 	error_logger:info_msg("ErlPMD: port ~s request from ~s:~p.~n", [NodeName, inet_parse:ntoa(Ip), Port]),
+ 	case ets:lookup(erlpmd, NodeName) of
+ 		[] ->
+-			gen_server:cast(From, {msg, <<$w, 1:8>>, Ip, Port});
++			reply(From, {msg, <<$w, 1:8>>, Ip, Port}, DelayWrite);
+ 		[{NodeName, {PortNo, NodeType, Proto, HiVer, LoVer, Extra, _, _}}] ->
+ 			NLen = size(NodeName),
+ 			ELen = size(Extra),
+-			gen_server:cast(From, {msg, <<?EPMD_PORT2_RESP, 0:8, PortNo:16, NodeType:8, Proto:8, HiVer:16, LoVer:16, NLen:16, NodeName:NLen/binary, ELen:16, Extra:ELen/binary>>, Ip, Port})
++			reply(From,
++			      {msg, <<?EPMD_PORT2_RESP, 0:8, PortNo:16, NodeType:8, Proto:8, HiVer:16, LoVer:16, NLen:16, NodeName:NLen/binary, ELen:16, Extra:ELen/binary>>, Ip, Port},
++			      DelayWrite)
+ 	end,
+ 	gen_server:cast(From, {close, Ip, Port}),
+ 	{noreply, State};
+ 
+-handle_cast({{msg, From},<<?EPMD_NAMES>>, _Fd, Ip, Port}, State = #argv{port = ServerPort}) ->
++handle_cast({{msg, From},<<?EPMD_NAMES>>, _Fd, Ip, Port}, State = #argv{port = ServerPort, delay_write = DelayWrite}) ->
+ 	error_logger:info_msg("ErlPMD: name(s) request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
+ 	Nodes = list_to_binary(lists:flatten([ io_lib:format("name ~s at port ~p~n", [X, Y]) || [X, Y] <- ets:match(erlpmd, {'$1', {'$2', 77, '_', '_', '_', '_', '_', '_'}})])),
+-	gen_server:cast(From, {msg, <<ServerPort:32, Nodes/binary>>, Ip, Port}),
++	reply(From, {msg, <<ServerPort:32, Nodes/binary>>, Ip, Port}, DelayWrite),
+ 	gen_server:cast(From, {close, Ip, Port}),
+ 	error_logger:info_msg("~s", [Nodes]),
+ 	{noreply, State};
+ 
+-handle_cast({{msg, From},<<?EPMD_DUMP>>, _Fd, Ip, Port}, State = #argv{port = ServerPort}) ->
++handle_cast({{msg, From},<<?EPMD_DUMP>>, _Fd, Ip, Port}, State = #argv{port = ServerPort, delay_write = DelayWrite}) ->
+ 	error_logger:info_msg("ErlPMD: dump request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
+ 	Nodes = list_to_binary(lists:flatten([ io_lib:format("active name     ~s at port ~p, fd = ~p ~n", [X, Y, F]) || [X, Y, F] <- ets:match(erlpmd, {'$1', {'$2', 77, '_', '_', '_', '_', '_', '$3'}})])),
+-	gen_server:cast(From, {msg, <<ServerPort:32, Nodes/binary>>, Ip, Port}),
++	reply(From, {msg, <<ServerPort:32, Nodes/binary>>, Ip, Port}, DelayWrite),
+ 	gen_server:cast(From, {close, Ip, Port}),
+ 	{noreply, State};
+ 
+-handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, #argv{relaxed_command_check = true}) ->
++handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, #argv{relaxed_command_check = true, delay_write = DelayWrite}) ->
+ 	% Allow stop command in case we're running with -relaxed_command_check
+ 	% w/o checking for actually available nodes
+ 	error_logger:info_msg("ErlPMD: kill request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
+-	gen_server:cast(From, {msg, <<"OK">>, Ip, Port}),
++	reply(From, {msg, <<"OK">>, Ip, Port}, DelayWrite),
+ 	gen_server:cast(From, stop),
+ 	{stop, normal, true};
+-handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = false}) ->
++handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = false, delay_write = DelayWrite}) ->
+ 	error_logger:info_msg("ErlPMD: kill request from ~s:~p.~n", [inet_parse:ntoa(Ip), Port]),
+-	gen_server:cast(From, {msg, <<"OK">>, Ip, Port}),
++	reply(From, {msg, <<"OK">>, Ip, Port}, DelayWrite),
+ 	case ets:match(erlpmd, {'_', {'_', '_', '_', '_', '_', '_', '_', '_'}}) of
+ 		[] ->
+ 			% No live nodes - we may exit now
+@@ -124,19 +126,19 @@ handle_cast({{msg, From},<<?EPMD_KILL>>, _Fd, Ip, Port}, State = #argv{relaxed_c
+ 			{noreply, State}
+ 	end;
+ 
+-handle_cast({{msg, From},<<?EPMD_STOP, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = false}) ->
++handle_cast({{msg, From},<<?EPMD_STOP, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = false, delay_write = DelayWrite}) ->
+ 	% Ignore stop command in case we're running w/o -relaxed_command_check
+ 	error_logger:info_msg("ErlPMD: '~s' stop request from ~s:~p. (IGNORED)~n", [NodeName, inet_parse:ntoa(Ip), Port]),
+-	gen_server:cast(From, {msg, <<"STOPPED">>, Ip, Port}),
++	reply(From, {msg, <<"STOPPED">>, Ip, Port}, DelayWrite),
+ 	{noreply, State};
+-handle_cast({{msg, From},<<?EPMD_STOP, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = true}) ->
++handle_cast({{msg, From},<<?EPMD_STOP, NodeName/binary>>, _Fd, Ip, Port}, State = #argv{relaxed_command_check = true, delay_write = DelayWrite}) ->
+ 	error_logger:info_msg("ErlPMD: '~s' stop request from ~s:~p.~n", [NodeName, inet_parse:ntoa(Ip), Port]),
+ 	case ets:match(erlpmd, {NodeName, {'_', '_', '_', '_', '_', '_', '_', '_'}}) of
+ 		[] ->
+-			gen_server:cast(From, {msg, <<"NOEXIST">>, Ip, Port});
++			reply(From, {msg, <<"NOEXIST">>, Ip, Port}, DelayWrite);
+ 		_ ->
+ 			ets:delete(erlpmd, NodeName),
+-			gen_server:cast(From, {msg, <<"STOPPED">>, Ip, Port})
++			reply(From, {msg, <<"STOPPED">>, Ip, Port}, DelayWrite)
+ 	end,
+ 	gen_server:cast(From, {close, Ip, Port}),
+ 	{noreply, State};
+@@ -172,3 +174,9 @@ code_change(_OldVsn, State, _Extra) ->
+ %% ------------------------------------------------------------------
+ %% Internal Function Definitions
+ %% ------------------------------------------------------------------
++
++reply(From, Msg, 0) ->
++	gen_server:cast(From, Msg);
++reply(From, Msg, Timeout) ->
++	timer:sleep(Timeout * 1000),
++	reply(From, Msg, 0).
+
+From e03fa18263b0f3069188257e32c8fd5a3227a944 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Thu, 27 Aug 2015 14:01:34 +0300
+Subject: [PATCH 6/8] Implement delay_accept
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/src/erlpmd_sup.erl          |  2 +-
+ lib/epmd/src/erlpmd_tcp_listener.erl | 10 +++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/lib/epmd/src/erlpmd_sup.erl b/lib/epmd/src/erlpmd_sup.erl
+index 05025b3..1941044 100644
+--- a/lib/epmd/src/erlpmd_sup.erl
++++ b/lib/epmd/src/erlpmd_sup.erl
+@@ -44,6 +44,6 @@ start_link() ->
+ init(_) ->
+ 	{ok, Argv} = application:get_env(erlpmd,argv),
+ 	ErlPMD = {erlpmd, {erlpmd, start_link, [Argv]}, transient, 5000, worker, [erlpmd]},
+-	Listeners = [{{ip, Ip}, {erlpmd_tcp_listener, start_link, [[Ip,Argv#argv.port]]}, transient, 5000, worker, [erlpmd_tcp_listener]} || Ip <- Argv#argv.address],
++	Listeners = [{{ip, Ip}, {erlpmd_tcp_listener, start_link, [[Ip,Argv#argv.port,Argv#argv.delay_accept]]}, transient, 5000, worker, [erlpmd_tcp_listener]} || Ip <- Argv#argv.address],
+ 	{ok, {{one_for_one, 5, 10}, [ErlPMD | Listeners]}}.
+ 
+diff --git a/lib/epmd/src/erlpmd_tcp_listener.erl b/lib/epmd/src/erlpmd_tcp_listener.erl
+index 7ecd89b..e9a666d 100644
+--- a/lib/epmd/src/erlpmd_tcp_listener.erl
++++ b/lib/epmd/src/erlpmd_tcp_listener.erl
+@@ -33,13 +33,14 @@
+ -record(state, {
+ 	listener,
+ 	acceptor,
++	delay_accept,
+ 	clients = []
+ }).
+ 
+ start_link(Args) ->
+ 	gen_server:start_link(?MODULE, Args, []).
+ 
+-init ([Ip, Port]) ->
++init ([Ip, Port, DelayAccept]) ->
+ 	SysPid = os:getpid(),
+ 	{ok, Socket} = case {os:getenv("LISTEN_PID"), os:getenv("LISTEN_FDS")} of
+ 			       {SysPid, "1"} ->
+@@ -54,7 +55,7 @@ init ([Ip, Port]) ->
+ 		       end,
+ 	{ok, Ref} = prim_inet:async_accept(Socket, -1),
+ 	error_logger:info_msg("ErlPMD listener: started at Ip: ~s:~b~n", [inet_parse:ntoa(Ip), Port]),
+-	{ok, #state{listener = Socket, acceptor = Ref}}.
++	{ok, #state{listener = Socket, acceptor = Ref, delay_accept = DelayAccept}}.
+ 
+ handle_call(Other, From, State) ->
+ 	error_logger:warning_msg("ErlPMD listener: strange call: ~p from ~p.~n", [Other, From]),
+@@ -101,7 +102,10 @@ handle_info({tcp_closed, Client}, #state{clients = Clients} = State) ->
+ 	error_logger:info_msg("ErlPMD listener: client ~p closed connection.~n", [Client]),
+ 	{noreply, State#state{clients = lists:delete(Client, Clients)}};
+ 
+-handle_info({inet_async, ListSock, Ref, {ok, CliSocket}}, #state{listener = ListSock, acceptor = Ref, clients = Clients} = State) ->
++handle_info({inet_async, ListSock, Ref, {ok, CliSocket}}, #state{listener = ListSock, acceptor = Ref, delay_accept = DelayAccept, clients = Clients} = State) ->
++	% Usually DelayAccept == 0 so there won't be any timeout here
++	timer:sleep(DelayAccept * 1000),
++
+ 	case set_sockopt(ListSock, CliSocket) of
+ 		ok -> ok;
+ 		{error, Reason} -> exit({set_sockopt, Reason})
+
+From e34a8e19703b2469ea30a46434d8c28c1b891540 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Thu, 27 Aug 2015 16:07:15 +0300
+Subject: [PATCH 7/8] Remove duplicated CLI code
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/src/erlpmd_ctl.erl | 27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
+
+diff --git a/lib/epmd/src/erlpmd_ctl.erl b/lib/epmd/src/erlpmd_ctl.erl
+index 4860216..1427bb9 100644
+--- a/lib/epmd/src/erlpmd_ctl.erl
++++ b/lib/epmd/src/erlpmd_ctl.erl
+@@ -58,37 +58,34 @@ start() ->
+ %%
+ 
+ names([Addr | _], Port) ->
+-	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
+-	ok = gen_tcp:send(Fd, <<?EPMD_NAMES>>),
+-	% We have to switch to raw here
+-	inet:setopts(Fd, [{packet, raw}]),
+-	{ok, <<Port:32, Data/binary>>} = gen_tcp:recv(Fd, 0, 1000),
++	{ok, <<Port:32, Data/binary>>} = sendrecv(Addr, Port, <<?EPMD_NAMES>>),
+ 	io:format("epmd: up and running on port ~p with data:~n", [Port]),
+ 	io:format("~s", [Data]),
+-	ok = gen_tcp:close(Fd),
+ 	init:stop().
+ 
+ kill([Addr | _], Port) ->
+-	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
+-	ok = gen_tcp:send(Fd, <<?EPMD_KILL>>),
+-	% We have to switch to raw here
+-	inet:setopts(Fd, [{packet, raw}]),
+-	{ok, <<"OK">>} = gen_tcp:recv(Fd, 0, 1000),
++	{ok, <<"OK">>} = sendrecv(Addr, Port, <<?EPMD_KILL>>),
+ 	io:format("Killed~n"),
+-	ok = gen_tcp:close(Fd),
+ 	init:stop().
+ 
+ stop([Addr | _] , Port) ->
+ 	{ok, [[N]]} = init:get_argument(stop),
+ 	Name = list_to_binary(N),
++
++	{ok, Ret} = sendrecv(Addr, Port, <<?EPMD_STOP, Name/binary>>),
++
++	io:format("~s~n", [Ret]),
++	init:stop().
++
++sendrecv(Addr, Port, Data) ->
+ 	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
+-	ok = gen_tcp:send(Fd, <<?EPMD_STOP, Name/binary>>),
++	ok = gen_tcp:send(Fd, Data),
+ 	% We have to switch to raw here
+ 	inet:setopts(Fd, [{packet, raw}]),
++	% FIXME should we use packet_timeout here (or default value)?
+ 	{ok, Ret} = gen_tcp:recv(Fd, 0, 1000),
+-	io:format("~s~n", [Ret]),
+ 	ok = gen_tcp:close(Fd),
+-	init:stop().
++	{ok, Ret}.
+ 
+ help() ->
+     io:format(
+
+From 44a6f14d16ee37c5b9d896e864261340d18b2d84 Mon Sep 17 00:00:00 2001
+From: Peter Lemenkov <lemenkov@gmail.com>
+Date: Thu, 27 Aug 2015 16:40:40 +0300
+Subject: [PATCH 8/8] Increase timeouts in CLI
+
+Signed-off-by: Peter Lemenkov <lemenkov@gmail.com>
+---
+ lib/epmd/src/erlpmd_ctl.erl | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/epmd/src/erlpmd_ctl.erl b/lib/epmd/src/erlpmd_ctl.erl
+index 1427bb9..3b7f7d0 100644
+--- a/lib/epmd/src/erlpmd_ctl.erl
++++ b/lib/epmd/src/erlpmd_ctl.erl
+@@ -78,12 +78,13 @@ stop([Addr | _] , Port) ->
+ 	init:stop().
+ 
+ sendrecv(Addr, Port, Data) ->
+-	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}]),
++	% FIXME should we use accept_timeout/packet_timeout here (or default value)?
++	{ok, Fd} = gen_tcp:connect(Addr, Port, [binary, {packet, 2}, {active, false}], 60000),
+ 	ok = gen_tcp:send(Fd, Data),
+ 	% We have to switch to raw here
+ 	inet:setopts(Fd, [{packet, raw}]),
+ 	% FIXME should we use packet_timeout here (or default value)?
+-	{ok, Ret} = gen_tcp:recv(Fd, 0, 1000),
++	{ok, Ret} = gen_tcp:recv(Fd, 0, 60000),
+ 	ok = gen_tcp:close(Fd),
+ 	{ok, Ret}.
+ 
