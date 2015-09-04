@@ -290,6 +290,12 @@ to use file and DNS as a source of resolving ip/host, though untested.
 Shortcomings
 ============
 
+Huge Erlang Support ISO Size
+----------------------------
+
+The generated erlang iso is huge (~152MB), which can easily be cut down and
+is planned as well in the spirit of rumprun unikernel.
+
 Unoptimized Memory Allocation
 -----------------------------
 
