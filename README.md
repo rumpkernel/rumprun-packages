@@ -1,8 +1,8 @@
-rumprun-packages
+Rumprun-packages
 ================
 
-rumprun-packages is a work-in-progress repository for software running on the
-rumprun unikernel.
+Rumprun-packages is a work-in-progress repository for software running on the
+[Rumprun unikernel](http://repo.rumpkernel.org/rumprun).
 
 __NOTE__ to users: check the license of each individual package to make
 sure it suits your deployment needs.  Unlike everything else provided
@@ -12,14 +12,14 @@ license for every piece of 3rd party software linked from here.
 We are working towards choosing a real packaging system, with support for
 versions and dependencies.  Until we reach that point, this repo is meant to
 assemble the build scripts and patches for running various applications on
-rumprun unikernels.
+Rumprun unikernels.
 
 Building packages
 -----------------
 
 To get started:
 
-1. Build a rumprun toolchain.
+1. Build a Rumprun toolchain.
 2. Add the `app-tools` directory to your `$PATH`.
 3. Copy the `config.mk.dist` file to `config.mk` and set
    `RUMPRUN_TOOLCHAIN_TUPLE` to specify the compiler toolchain to use for
