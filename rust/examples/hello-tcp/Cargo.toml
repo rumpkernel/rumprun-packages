@@ -1,0 +1,4 @@
+[package]
+name = "hello-tcp"
+version = "0.1.0"
+authors = ["Sebastian Wicki <gandro@gmx.net>"]
