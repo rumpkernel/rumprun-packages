@@ -23,16 +23,18 @@ Make sure the `app-tools` folder of your Rumprun build is in `$PATH`.
     cd rumprun-packages/rust
     make -j4
 
-Rust has the following host dependencies:
+Rust and cargo have the following host dependencies:
 
    * `g++` 4.7 or `clang++` 3.x
    * `python` 2.6 or later (but not 3.x)
    * GNU `make` 3.81 or later
    * `curl`
    * `git`
+   * `cmake` (for cargo only)
+   * OpenSSL headers (`libssl-dev` on Ubuntu, for cargo only)
 
 You will also need a decent Internet connection, at least 1.5 GB of RAM and
-around five GB of disk space. Be aware, compiling Rust can easily take two
+at least 6 GB of disk space. Be aware, compiling Rust can easily take two
 hours or more.
 
 The toolchain will be installed in `build/destdir`. In order to use it, you
