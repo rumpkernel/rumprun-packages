@@ -66,12 +66,13 @@ CARGO_CONF_OPTS += \
 	--local-rust-root=$(RUST_DESTDIR) \
 	--prefix=$(RUST_DESTDIR)
 
-build/cargo/config.stamp: build/cargo/configure
+build/cargo/config.stamp: build/cargo/configure $(RUST_DESTDIR)/bin/rustc
 	(cd build/cargo; \
 		git submodule update --init && \
 		./configure $(CARGO_CONF_OPTS))
 
-build/cargo/configure: $(RUST_DESTDIR)/bin/rustc
+build/cargo/configure:
+	mkdir -p build
 	(cd build && git clone --branch $(CARGO_VER) $(CARGO_GIT))
 
 ######################################################################
@@ -81,12 +82,12 @@ build/cargo/configure: $(RUST_DESTDIR)/bin/rustc
 .PHONY: cargo-rumpbake
 cargo-rumpbake: $(RUST_DESTDIR)/bin/cargo-rumpbake
 
-$(RUST_DESTDIR)/bin/cargo-rumpbake: build/cargo-rumpbake/Cargo.toml
+$(RUST_DESTDIR)/bin/cargo-rumpbake: build/cargo-rumpbake/Cargo.toml  $(RUST_DESTDIR)/bin/cargo
 	(cd build/cargo-rumpbake && \
 		sh -c '. ../../rustenv.sh ; cargo build --release' && \
 		cp target/release/cargo-rumpbake "$@")
 
-build/cargo-rumpbake/Cargo.toml: $(RUST_DESTDIR)/bin/cargo
+build/cargo-rumpbake/Cargo.toml:
 	mkdir -p build
 	(cd build && \
 		git clone --branch $(CARGO_RUMPBAKE_VER) $(CARGO_RUMPBAKE_GIT))
