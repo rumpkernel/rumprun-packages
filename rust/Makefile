@@ -22,11 +22,12 @@ all: rust cargo cargo-rumpbake
 ######################################################################
 
 .PHONY: rust
-rust: $(RUST_DESTDIR)/bin/rustc rustenv.sh
+rust: build/rust.stamp rustenv.sh
 
-$(RUST_DESTDIR)/bin/rustc: build/rust/config.stamp
+build/rust.stamp: build/rust/config.stamp
 	mkdir -p $(RUST_DESTDIR)
 	(cd build/rust; $(MAKE) && $(MAKE) install)
+	touch $@
 
 RUST_CONF_OPTS += \
 	--target=$(RUMPRUN_TOOLCHAIN_TUPLE) \
@@ -42,31 +43,31 @@ build/rust/configure:
 		git clone $(RUST_GIT) && \
 		cd rust && git checkout $(RUST_VER))
 
-rustenv.sh: $(RUST_DESTDIR)/bin/rustc
+rustenv.sh: build/rust.stamp
 	echo 'export PATH=$(RUST_DESTDIR)/bin:$${PATH}' > rustenv.sh
 	echo 'export LD_LIBRARY_PATH="$(RUST_DESTDIR)/lib:$${LD_LIBRARY_PATH}"' >> rustenv.sh
 	echo 'export DYLD_LIBRARY_PATH="$(RUST_DESTDIR)/lib:$${DYLD_LIBRARY_PATH}"' >> rustenv.sh
+	echo 'export CARGO_HOME=$(CARGO_HOME)' >> rustenv.sh
 
 ######################################################################
 # cargo - The Rust package manager and build tool
 ######################################################################
 
 .PHONY: cargo
-cargo: $(RUST_DESTDIR)/bin/cargo
+cargo: build/cargo.stamp
 
-$(RUST_DESTDIR)/bin/cargo: build/cargo/config.stamp
+build/cargo.stamp: build/cargo/config.stamp
 	mkdir -p $(RUST_DESTDIR)
 	(cd build/cargo; \
 		export CARGO_HOME=$(CARGO_HOME) && \
-		$(MAKE) && \
-		$(MAKE) install && \
-		echo 'export CARGO_HOME=$(CARGO_HOME)' >> rustenv.sh)
+		$(MAKE) && $(MAKE) install)
+	touch $@
 
 CARGO_CONF_OPTS += \
 	--local-rust-root=$(RUST_DESTDIR) \
 	--prefix=$(RUST_DESTDIR)
 
-build/cargo/config.stamp: build/cargo/configure $(RUST_DESTDIR)/bin/rustc
+build/cargo/config.stamp: build/cargo/configure build/rust.stamp
 	(cd build/cargo; \
 		git submodule update --init && \
 		./configure $(CARGO_CONF_OPTS))
@@ -80,12 +81,14 @@ build/cargo/configure:
 ######################################################################
 
 .PHONY: cargo-rumpbake
-cargo-rumpbake: $(RUST_DESTDIR)/bin/cargo-rumpbake
+cargo-rumpbake: build/cargo-rumpbake.stamp
 
-$(RUST_DESTDIR)/bin/cargo-rumpbake: build/cargo-rumpbake/Cargo.toml  $(RUST_DESTDIR)/bin/cargo
+build/cargo-rumpbake.stamp: build/cargo-rumpbake/Cargo.toml build/cargo.stamp rustenv.sh
 	(cd build/cargo-rumpbake && \
-		sh -c '. ../../rustenv.sh ; cargo build --release' && \
-		cp target/release/cargo-rumpbake "$@")
+		sh -c '. ../../rustenv.sh && cargo build')
+	cp build/cargo-rumpbake/target/debug/cargo-rumpbake \
+		$(RUST_DESTDIR)/bin/cargo-rumpbake
+	touch $@
 
 build/cargo-rumpbake/Cargo.toml:
 	mkdir -p build
@@ -96,6 +99,8 @@ build/cargo-rumpbake/Cargo.toml:
 clean:
 	-$(MAKE) -C build/rust clean
 	-$(MAKE) -C build/cargo clean
+	rm -rf build/cargo-rumpbake/target
+	rm -f build/rust.stamp build/cargo.stamp build/cargo-rumpbake.stamp
 	rm -f rustenv.sh
 
 .PHONY: cleandir
