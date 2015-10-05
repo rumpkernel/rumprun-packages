@@ -8,6 +8,19 @@ die()
 	exit 1
 }
 
+PATCHLEVEL=1
+while getopts 'p:' opt; do
+	case "${opt}" in
+	'p')
+		PATCHLEVEL=${OPTARG}
+		;;
+	*)
+		echo Unknown option 1>&2
+		exit 1
+		;;
+	esac
+done
+
 if [ $# -lt 2 ]; then
 	echo "usage: apply-patches.sh TARGET [PATCH ...]" 1>&2
 	echo "Applies all PATCHes listed on command line to the source tree at TARGET." 1>&2
@@ -27,5 +40,5 @@ for patch in "$@"; do
 		exit 1
 	fi
 	echo Applying ${patch}...
-	patch -d ${TARGET} -p1 -s < ${patch} || die
+	patch -d ${TARGET} -p${PATCHLEVEL} -s < ${patch} || die
 done
