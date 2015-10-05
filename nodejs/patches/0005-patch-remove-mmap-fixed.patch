@@ -1,0 +1,30 @@
+--- deps/v8/src/base/platform/platform-openbsd.cc.orig	2015-09-30 22:07:22.927437075 +0100
++++ deps/v8/src/base/platform/platform-openbsd.cc	2015-10-05 20:16:28.184017982 +0100
+@@ -254,26 +254,12 @@
+ 
+ 
+ bool VirtualMemory::CommitRegion(void* base, size_t size, bool is_executable) {
+-  int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
+-  if (MAP_FAILED == mmap(base,
+-                         size,
+-                         prot,
+-                         MAP_PRIVATE | MAP_ANON | MAP_FIXED,
+-                         kMmapFd,
+-                         kMmapFdOffset)) {
+-    return false;
+-  }
+   return true;
+ }
+ 
+ 
+ bool VirtualMemory::UncommitRegion(void* base, size_t size) {
+-  return mmap(base,
+-              size,
+-              PROT_NONE,
+-              MAP_PRIVATE | MAP_ANON | MAP_NORESERVE | MAP_FIXED,
+-              kMmapFd,
+-              kMmapFdOffset) != MAP_FAILED;
++  return true;
+ }
+ 
+ 
