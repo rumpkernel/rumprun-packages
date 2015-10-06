@@ -7,7 +7,8 @@ Patches
 =======
 
 The build process first applies the NetBSD pkgsrc patches for Node.js and then
-applies patches from the `patches` directory.
+applies patches from the `patches` directory. You'll to have the `cvs` command
+installed for getting the pkgsrc files.
 
 There are a couple of changes worth noting:
 
