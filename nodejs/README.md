@@ -6,9 +6,8 @@ This is Node.js 4.1.1 for Rumprun. Use any of the thousands of npm packages or r
 Patches
 =======
 
-The build process first fetches and applies the NetBSD pkgsrc patches for
-Node.js and then applies patches from the `patches` directory. You'll need the
-`cvs` command installed for fetching the pkgsrc files.
+The build process first applies the NetBSD pkgsrc patches for Node.js and then
+applies patches from the `patches` directory.
 
 There are a couple of changes worth noting:
 
