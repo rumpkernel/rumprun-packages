@@ -1,0 +1,27 @@
+--- src/node.cc.orig	2015-09-30 22:07:23.043436976 +0100
++++ src/node.cc	2015-10-05 20:25:18.107090265 +0100
+@@ -115,6 +115,7 @@
+ using v8::V8;
+ using v8::Value;
+ 
++static size_t code_range_size = 0;
+ static bool print_eval = false;
+ static bool force_repl = false;
+ static bool trace_deprecation = false;
+@@ -3163,6 +3164,8 @@
+     } else if (strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0) {
+       PrintHelp();
+       exit(0);
++    } else if (strncmp(arg, "--code-range-size=", 18) == 0) {
++      code_range_size = strtol(&arg[18], NULL, 10);
+     } else if (strcmp(arg, "--eval") == 0 ||
+                strcmp(arg, "-e") == 0 ||
+                strcmp(arg, "--print") == 0 ||
+@@ -3897,6 +3900,7 @@
+ static void StartNodeInstance(void* arg) {
+   NodeInstanceData* instance_data = static_cast<NodeInstanceData*>(arg);
+   Isolate::CreateParams params;
++  params.constraints.set_code_range_size(code_range_size);
+   ArrayBufferAllocator* array_buffer_allocator = new ArrayBufferAllocator();
+   params.array_buffer_allocator = array_buffer_allocator;
+   Isolate* isolate = Isolate::New(params);
