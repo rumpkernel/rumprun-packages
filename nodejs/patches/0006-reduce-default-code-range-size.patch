@@ -1,0 +1,23 @@
+--- deps/v8/src/globals.h.orig	2015-09-30 22:07:22.935437068 +0100
++++ deps/v8/src/globals.h	2015-10-05 20:21:05.415291250 +0100
+@@ -162,9 +162,9 @@
+ // To use pseudo-relative jumps such as j/jal instructions which have 28-bit
+ // encoded immediate, the addresses have to be in range of 256MB aligned
+ // region. Used only for large object space.
+-const size_t kMaximalCodeRangeSize = 256 * MB;
++const size_t kMaximalCodeRangeSize = 16 * MB;
+ #else
+-const size_t kMaximalCodeRangeSize = 512 * MB;
++const size_t kMaximalCodeRangeSize = 16 * MB;
+ #endif
+ #if V8_OS_WIN
+ const size_t kMinimumCodeRangeSize = 4 * MB;
+@@ -180,7 +180,7 @@
+ #if V8_TARGET_ARCH_X64 && V8_TARGET_ARCH_32_BIT
+ // x32 port also requires code range.
+ const bool kRequiresCodeRange = true;
+-const size_t kMaximalCodeRangeSize = 256 * MB;
++const size_t kMaximalCodeRangeSize = 16 * MB;
+ const size_t kMinimumCodeRangeSize = 3 * MB;
+ const size_t kReservedCodeRangePages = 0;
+ #else
