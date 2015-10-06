@@ -1,0 +1,28 @@
+--- deps/v8/src/base/logging.cc.orig	2015-09-30 22:07:22.927437075 +0100
++++ deps/v8/src/base/logging.cc	2015-10-06 07:06:40.588208600 +0100
+@@ -7,7 +7,9 @@
+ #if V8_LIBC_GLIBC || V8_OS_BSD
+ #include <cxxabi.h>
+ #include <dlfcn.h>
++#ifndef __RUMPRUN__
+ #include <execinfo.h>
++#endif
+ #elif V8_OS_QNX
+ #include <backtrace.h>
+ #endif  // V8_LIBC_GLIBC || V8_OS_BSD
+@@ -52,6 +54,7 @@
+ 
+ // Attempts to dump a backtrace (if supported).
+ void DumpBacktrace() {
++#ifndef __RUMPRUN__
+ #if V8_LIBC_GLIBC || V8_OS_BSD
+   void* trace[100];
+   int size = backtrace(trace, arraysize(trace));
+@@ -94,6 +97,7 @@
+   bt_unload_memmap(&memmap);
+   bt_release_accessor(&acc);
+ #endif  // V8_LIBC_GLIBC || V8_OS_BSD
++#endif  // __RUMPRUN__
+ }
+ 
+ }  // namespace base

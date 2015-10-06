@@ -1,0 +1,14 @@
+--- deps/openssl/config/opensslconf.h.orig	2015-09-30 22:07:22.851437141 +0100
++++ deps/openssl/config/opensslconf.h	2015-10-05 09:33:23.119687676 +0100
+@@ -108,9 +108,9 @@
+ # include "./archs/VC-WIN32/opensslconf.h"
+ #elif defined(_WIN32) && defined(_M_X64)
+ # include "./archs/VC-WIN64A/opensslconf.h"
+-#elif (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__i386__)
++#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)) && defined(__i386__)
+ # include "./archs/BSD-x86/opensslconf.h"
+-#elif (defined(__FreeBSD__) || defined(__OpenBSD__)) && defined(__x86_64__)
++#elif (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)) && defined(__x86_64__)
+ # include "./archs/BSD-x86_64/opensslconf.h"
+ #elif defined(__sun) && defined(__i386__)
+ # include "./archs/solaris-x86-gcc/opensslconf.h"
