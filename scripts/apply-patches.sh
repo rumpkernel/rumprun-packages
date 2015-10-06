@@ -20,6 +20,7 @@ while getopts 'p:' opt; do
 		;;
 	esac
 done
+shift $((OPTIND-1))
 
 if [ $# -lt 2 ]; then
 	echo "usage: apply-patches.sh TARGET [PATCH ...]" 1>&2
