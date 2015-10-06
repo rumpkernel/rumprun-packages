@@ -1,0 +1,13 @@
+--- deps/v8/tools/gyp/v8.gyp.orig	2015-09-30 22:07:23.031436986 +0100
++++ deps/v8/tools/gyp/v8.gyp	2015-10-06 07:09:38.217797688 +0100
+@@ -1564,10 +1564,6 @@
+           }
+         ],
+         ['OS=="netbsd"', {
+-            'link_settings': {
+-              'libraries': [
+-                '-L/usr/pkg/lib -Wl,-R/usr/pkg/lib -lexecinfo',
+-            ]},
+             'sources': [
+               '../../src/base/platform/platform-openbsd.cc',
+               '../../src/base/platform/platform-posix.cc'

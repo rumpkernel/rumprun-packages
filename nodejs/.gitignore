@@ -1,0 +1,4 @@
+/build
+/dl/*
+/dl/**/CVS
+!/dl/pkgsrc
