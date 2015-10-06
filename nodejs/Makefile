@@ -29,7 +29,7 @@ build/config.mk: build/stamp_patch
 	(cd build; ./configure --dest-cpu=$(CPU) --link-module=../_third_party_main.js)
 
 build/stamp_patch: build/configure patches/* | dl/$(PKGSRC_DIR)
-	(cd build && ../../scripts/apply-patches.sh '' ../dl/$(PKGSRC_DIR)/patch-* ../patches/*)
+	(cd build && ../../scripts/apply-patches.sh -p 0 ./ ../dl/$(PKGSRC_DIR)/patch-* ../patches/*)
 	touch $@
 
 build/configure: | dl/$(TARBALL)
