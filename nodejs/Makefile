@@ -6,7 +6,7 @@ NODE_BIN=build/out/Release/node
 UPSTREAM=https://github.com/nodejs/node/archive/v$(NODE_VERSION).tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-PKGSRC_DIR=ftp.netbsd.org/pub/pkgsrc/current/pkgsrc/lang/nodejs/patches
+PKGSRC_DIR=pkgsrc/lang/nodejs/patches
 
 CPU=$(shell echo $(RUMPRUN_TOOLCHAIN_TUPLE) | cut -d - -f 1)
 ifeq ($(CPU),x86_64)
@@ -43,7 +43,7 @@ dl/$(TARBALL):
 dl/$(PKGSRC_DIR):
 	mkdir -p dl
 	rm -rf dl/$(PKGSRC_DIR)
-	(cd dl && wget -r --no-parent http://$(PKGSRC_DIR)/)
+	(cd dl && cvs -q -z2 -d anoncvs@anoncvs.NetBSD.org:/cvsroot checkout -r pkgsrc-2015Q3 -P $(PKGSRC_DIR))
 	perl -pi -e 's/\@PYTHONBIN@/python/g' dl/$(PKGSRC_DIR)/patch-*
 
 .PHONY: bake_hw_generic
