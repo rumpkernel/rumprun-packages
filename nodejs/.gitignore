@@ -1,3 +1,5 @@
 /build
 /dl
 /patches/**/CVS
+/examples/*
+!/examples/Makefile
