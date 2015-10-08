@@ -39,8 +39,51 @@ Examples
 The file `_third_party_main.js` in this directory is bundled into
 `build/out/Release/node` and runs when you launch Node.
 
-At the moment this file is just a one-liner, and you can of course change it
-and run `make` again.
+If you give an argument to `node.bin` when running `rumprun`, then
+`_third_party_main.js` treats it as a pathname and runs the script in that file.
+If you don't give an argument, it just displays a message and exits. You can 
+of course change this to do anything you like.
 
-I hope to supply a utility soon which can bundle a whole application into
-`_third_party_main.js` and give some examples.
+Most applications require code in separate modules, and you have two
+options for running these.
+
+The first option is to put your application's files into a filesystem (e.g.
+using `genisoimage`) and attach it to `rumprun` using the `-b` option. You can
+then give the path to the main file of your application as an argument to
+`rumprun`, after `node.bin`.
+
+For instance, assuming Express is checked out into the 'express' directory,
+then to run the "Hello World" example:
+
+```shell
+(cd express; npm install --production)
+genisoimage -l -r -o express.iso express/
+rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i -b express.iso,/express build/out/Release/node.bin /express/examples/hello-world/index.js
+```
+
+The second option is to bundle your entire application into a single file,
+and overwrite `_third_party_main.js`. You can do this using
+[webpack](http://webpack.github.io/).
+
+For instance, to run the same Express "Hello World" example:
+
+```
+npm install webpack json-loader
+(cd express; npm install --production)
+./node_modules/.bin/webpack --target node --module-bind json ./express/examples/hello-world/index.js _third_party_main.js
+make
+make bake_hw_generic
+rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i build/out/Release/node.bin
+```
+
+You can find a sample `Makefile` for both options in the `examples` directory.
+
+Known Issues
+============
+
+1. I haven't tried Node modules with native addons yet. This will require
+   getting `npm` to use rumprun's toolchain.
+
+2. Although the Express "Hello World" example displays a message straight away
+   that it's listening on port 3000, it seems to take 5 seconds from VM start
+   before it's ready to respond.
