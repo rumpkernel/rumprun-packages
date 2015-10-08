@@ -45,9 +45,7 @@ patches/$(PKGSRC_DIR):
 	perl -pi -e 's/\@PYTHONBIN@/python/g' patches/$(PKGSRC_DIR)/patch-*
 
 .PHONY: bake_hw_generic
-bake_hw_generic: $(NODE_BIN).bin
-
-$(NODE_BIN).bin: $(NODE_BIN)
+bake_hw_generic:
 	rumpbake hw_generic $(NODE_BIN).bin $(NODE_BIN)
 
 .PHONY: clean
