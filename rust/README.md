@@ -26,6 +26,7 @@ Make sure the `app-tools` folder of your Rumprun build is in `$PATH`.
 Rust and cargo have the following host dependencies:
 
    * `g++` 4.7 or `clang++` 3.x
+   * `ld` 2.25
    * `python` 2.6 or later (but not 3.x)
    * GNU `make` 3.81 or later
    * `curl`
