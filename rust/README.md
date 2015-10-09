@@ -26,6 +26,7 @@ Make sure the `app-tools` folder of your Rumprun build is in `$PATH`.
 Rust and cargo have the following host dependencies:
 
    * `g++` 4.7 or `clang++` 3.x
+   * `ld` 2.25
    * `python` 2.6 or later (but not 3.x)
    * GNU `make` 3.81 or later
    * `curl`
@@ -60,6 +61,12 @@ for the Rumprun target with `--target=x86_64-rumprun-netbsd`. For example:
     rustc --target=x86_64-rumprun-netbsd hello.rs
     rumpbake hw_virtio hello.img hello
     rumprun qemu -i hello.img
+
+If you don't have a display attached, you can run:
+
+    rumprun qemu -g "-curses" -i hello.img
+
+to have `qemu` display output on your terminal instead.
 
 ### cargo rumpbake
 
