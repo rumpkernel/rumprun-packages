@@ -62,6 +62,12 @@ for the Rumprun target with `--target=x86_64-rumprun-netbsd`. For example:
     rumpbake hw_virtio hello.img hello
     rumprun qemu -i hello.img
 
+If you don't have a display attached, you can run:
+
+    rumprun qemu -g "-curses" -i hello.img
+
+to have `qemu` display output on your terminal instead.
+
 ### cargo rumpbake
 
 When building with cargo, you can use `cargo rumpbake`, a tool which invokes
