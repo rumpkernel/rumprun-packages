@@ -22,7 +22,7 @@ export GYP_DEFINES="OS=netbsd"
 
 all: $(NODE_BIN)
 
-$(NODE_BIN): build/config.mk _third_party_main.js
+$(NODE_BIN): build/node.gyp build/config.mk _third_party_main.js
 	$(MAKE) -C build
 
 build/config.mk: build/stamp_patch

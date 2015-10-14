@@ -78,12 +78,74 @@ rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,
 
 You can find a sample `Makefile` for both options in the `examples` directory.
 
+Please note it's best to use a version of `npm` in the 4.1.x series when
+installing your application's dependencies on your build system.
+
+Native Addons
+=============
+
+Some Node modules use Node.js native
+[Addons](https://nodejs.org/api/addons.html). These are compiled from C++ into
+shared libraries, which Node loads at runtime.
+
+Rumprun doesn't support dynamic loading of shared libraries so you'll see a
+stacktrace like this if one of your modules tries to load an Addon:
+
+```
+Error: Service unavailable
+    at Error (native)
+    at Module.load (module.js:355:32)
+    at Function.Module._load (module.js:310:12)
+    at Module.require (module.js:365:17)
+    at require (module.js:384:17)
+```
+
+The solution is to compile the Addon into the Node binary itself. Whilst this
+isn't something you usually do, it's quite simple:
+
+1. Add the Addon's source file(s) to `build/node.gyp`, under
+   `targets`&rarr;`sources`.
+2. If the Addon includes header files, add the location of the header files to
+   `build/node.gyp`, under `targets`&rarr;`include_dirs`.
+3. Run `make`.
+
+The Addon is now compiled into the Node binary (`build/out/Release/node`),
+which you can bake and run as normal.
+
+The only difference is the way the Addon is loaded by Javascript code.
+Normally Addons are loaded using the `require` function
+(or the [`bindings`](https://github.com/TooTallNate/node-bindings) helper
+module, which ends up calling `require`).
+
+Addons linked into the Node binary aren't available to `require`. Instead they
+can be retrieved by calling `process._linkedBinding` with the name of the Addon.
+So you'll have to modify the module which loads the Addon, replacing `require`,
+or `require("bindings")`, with `process._linkedBinding`.
+
+I've added an example of using an Addon in `examples/ursa/test.js`:
+
+1. In the `examples` directory, run `make ursa.iso`. This installs the
+   [`ursa`](https://github.com/quartzjer/ursa) module and modifies it to load
+   its Addon using `process._linkedBinding`.
+2. Next, you have to add `ursa`'s Addon to `build/node.gyp` by hand:
+  1. In `sources` (under `targets`), add `'../examples/ursa/node_modules/ursa/src/ursaNative.cc'`.
+  2. In `include_dirs` (under `targets`), add `'../examples/ursa/node_modules/ursa/node_modules/nan'`.
+3. Run `make`. 
+4. Bake the Node binary (`make bake_hw_generic`)
+5. In the `examples` directory, run `make run_ursa`. You should see a
+   PEM-formatted public key displayed.
+
+If you don't want to modify `build/node.gyp` by hand, it should be pretty easy
+to script. Alternatively, look at
+[`nad`](https://github.com/thlorenz/nad), which is "a tool to inject your addon
+code into a copy of the node codebase".
+
 Known Issues
 ============
 
-1. I haven't tried Node modules with native addons yet. This will require
-   getting `npm` to use rumprun's toolchain.
-
-2. Although the Express "Hello World" example displays a message straight away
-   that it's listening on port 3000, it seems to take 5 seconds from VM start
-   before it's ready to respond.
+- Although the Express "Hello World" example displays a message straight away
+  that it's listening on port 3000, it seems to take 5 seconds from VM start
+  before it's ready to respond. This occurs for DHCP only and is probably due
+  to Rumprun performing duplication address detection. Please see the
+  [Rumprun issue](https://github.com/rumpkernel/rumprun/issues/56) for more
+  information.
