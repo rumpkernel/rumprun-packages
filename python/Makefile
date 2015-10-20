@@ -43,9 +43,11 @@ build/configure: | dl/$(TARBALL)
 images: images/stubetc.iso images/python.iso
 
 images/stubetc.iso: ../stubetc/etc/*
+	mkdir -p images
 	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
 
 images/python.iso: build/Makefile
+	mkdir -p images
 	genisoimage -l -r -o images/python.iso build/pythondist/lib/python3.4
 
 .PHONY: clean
