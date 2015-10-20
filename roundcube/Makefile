@@ -2,7 +2,12 @@ include ../Makefile.inc
 UPSTREAM=https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/1.1.2/roundcubemail-1.1.2-complete.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-all: build/index.php data-php.iso data-nginx.iso etc-common.iso data-mysql.ffs
+all: ../mysql/bin/mysqld-bootstrap build/index.php data-php.iso data-nginx.iso etc-common.iso data-mysql.ffs
+
+# XXX Express a "dependency" on mysqld-bootstrap which is needed to build.
+.NOTPARALLEL: ../mysql/bin/mysqld-bootstrap
+../mysql/bin/mysqld-bootstrap:
+	$(MAKE) -C ../mysql
 
 data-mysql.ffs: config/bootstrap.sql
 	mkdir -p data-mysql
