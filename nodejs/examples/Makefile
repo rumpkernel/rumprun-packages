@@ -33,3 +33,7 @@ express-$(EXPRESS_VERSION):
 ursa/node_modules/ursa:
 	(cd ursa && npm install --production)
 	perl -pi -e 's/require\("bindings"\)/process._linkedBinding/' $@/lib/ursa.js
+
+.PHONY: clean
+clean:
+	rm -rf *.iso node_modules ursa/node_modules express-*
