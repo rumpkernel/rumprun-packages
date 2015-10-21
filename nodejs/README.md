@@ -77,6 +77,9 @@ rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,
 ```
 
 You can find a sample `Makefile` for both options in the `examples` directory.
+In the `examples` directory, type `make run_express_hello_world` to run the
+filesystem (ISO) option. Type `make bundle_express_hello_world;
+make -C .. bake_hw_generic; make run_kvm` to run the bundled version.
 
 Please note it's best to use a version of `npm` in the 4.1.x series when
 installing your application's dependencies on your build system.
@@ -130,7 +133,7 @@ I've added an example of using an Addon in `examples/ursa/test.js`:
 2. Next, you have to add `ursa`'s Addon to `build/node.gyp` by hand:
   1. In `sources` (under `targets`), add `'../examples/ursa/node_modules/ursa/src/ursaNative.cc'`.
   2. In `include_dirs` (under `targets`), add `'../examples/ursa/node_modules/ursa/node_modules/nan'`.
-3. Run `make`. 
+3. Run `git checkout _third_party_main.js; make`.
 4. Bake the Node binary (`make bake_hw_generic`)
 5. In the `examples` directory, run `make run_ursa`. You should see a
    PEM-formatted public key displayed.
