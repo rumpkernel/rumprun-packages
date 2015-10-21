@@ -32,7 +32,7 @@ build/stamp_patch: build/configure patches/*.patch | patches/$(PKGSRC_DIR)
 	(cd build && ../../scripts/apply-patches.sh -p 0 ./ ../patches/$(PKGSRC_DIR)/patch-* ../patches/*.patch)
 	touch $@
 
-build/configure: | dl/$(TARBALL)
+build/node.gyp build/configure: | dl/$(TARBALL)
 	mkdir -p build
 	(cd build && tar -x --strip-components 1 -f ../dl/$(TARBALL))
 
