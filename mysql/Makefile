@@ -6,6 +6,7 @@ include ../Makefile.inc
 
 UPSTREAM=http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.26.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
+PACKAGE_DIR=$(abspath .)
 
 all: mysql images
 
@@ -76,7 +77,7 @@ CROSS_DIR=$(abspath $(BUILD_DIR)/build-cross)
 build/mysql_cross_cmake_stamp: build/mysql_native_stamp
 	mkdir -p $(CROSS_DIR)
 	cd $(CROSS_DIR) && cmake \
-	    -C $(PWD)/CachePreseed.cmake \
+	    -C $(PACKAGE_DIR)/CachePreseed.cmake \
 	    -DCMAKE_TOOLCHAIN_FILE=$(RUMPRUN_CMAKE_TOOLCHAIN_FILE) \
 	    -DSTACK_DIRECTION=-1 \
 	    -DDISABLE_SHARED=ON \
