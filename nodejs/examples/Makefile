@@ -12,7 +12,7 @@ bundle_express_hello_world: | node_modules express-$(EXPRESS_VERSION)
 	./node_modules/.bin/webpack --target node --module-bind json ./express-$(EXPRESS_VERSION)/examples/hello-world/index.js ../_third_party_main.js
 	make -C ..
 
-.PHONY: run_bundled_kvm
+.PHONY: run_kvm
 run_kvm:
 	rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i ../build/out/Release/node.bin
 
