@@ -36,13 +36,15 @@ rumprun kvm -M 160 -i build/out/Release/node.bin
 Examples
 ========
 
-The file `_third_party_main.js` in this directory is bundled into
-`build/out/Release/node` and runs when you launch Node.
+The files `_third_party_main.js` and `rumpmain.js` in this directory are bundled
+ into `build/out/Release/node`. `_third_party_main.js` runs when you launch
+Node using `rumprun`.
 
 If you give an argument to `node.bin` when running `rumprun`, then
 `_third_party_main.js` treats it as a pathname and runs the script in that file.
-If you don't give an argument, it just displays a message and exits. You can 
-of course change this to do anything you like.
+If you don't give an argument, it runs `rumpmain.js`, which just displays a
+message and exits. You can of course change `rumpmain.js` to do anything you
+like.
 
 Most applications require code in separate modules, and you have two
 options for running these.
@@ -62,7 +64,7 @@ rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,
 ```
 
 The second option is to bundle your entire application into a single file,
-and overwrite `_third_party_main.js`. You can do this using
+and overwrite `rumpmain.js`. You can do this using
 [webpack](http://webpack.github.io/).
 
 For instance, to run the same Express "Hello World" example:
@@ -70,7 +72,7 @@ For instance, to run the same Express "Hello World" example:
 ```
 npm install webpack json-loader
 (cd express; npm install --production)
-./node_modules/.bin/webpack --target node --module-bind json ./express/examples/hello-world/index.js _third_party_main.js
+./node_modules/.bin/webpack --target node --module-bind json ./express/examples/hello-world/index.js rumpmain.js
 make
 make bake_hw_generic
 rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i build/out/Release/node.bin
@@ -78,7 +80,7 @@ rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,
 
 You can find a sample `Makefile` for both options in the `examples` directory.
 In the `examples` directory, type `make run_express_hello_world` to run the
-filesystem (ISO) option. Type `make bundle_express_hello_world;
+filesystem (`.iso`) option. Type `make bundle_express_hello_world;
 make -C .. bake_hw_generic; make run_kvm` to run the bundled version.
 
 Please note it's best to use a version of `npm` in the 4.1.x series when
@@ -115,25 +117,15 @@ isn't something you usually do, it's quite simple:
 The Addon is now compiled into the Node binary (`build/out/Release/node`),
 which you can bake and run as normal.
 
-The only difference is the way the Addon is loaded by Javascript code.
-Normally Addons are loaded using the `require` function
-(or the [`bindings`](https://github.com/TooTallNate/node-bindings) helper
-module, which ends up calling `require`).
-
-Addons linked into the Node binary aren't available to `require`. Instead they
-can be retrieved by calling `process._linkedBinding` with the name of the Addon.
-So you'll have to modify the module which loads the Addon, replacing `require`,
-or `require("bindings")`, with `process._linkedBinding`.
-
 I've added an example of using an Addon in `examples/ursa/test.js`:
 
 1. In the `examples` directory, run `make ursa.iso`. This installs the
-   [`ursa`](https://github.com/quartzjer/ursa) module and modifies it to load
-   its Addon using `process._linkedBinding`.
+   [`ursa`](https://github.com/quartzjer/ursa) module and adds it to a `.iso`
+   file.
 2. Next, you have to add `ursa`'s Addon to `build/node.gyp` by hand:
   1. In `sources` (under `targets`), add `'../examples/ursa/node_modules/ursa/src/ursaNative.cc'`.
   2. In `include_dirs` (under `targets`), add `'../examples/ursa/node_modules/ursa/node_modules/nan'`.
-3. Run `git checkout _third_party_main.js; make`.
+3. Run `make`.
 4. Bake the Node binary (`make bake_hw_generic`)
 5. In the `examples` directory, run `make run_ursa`. You should see a
    PEM-formatted public key displayed.

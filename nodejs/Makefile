@@ -22,11 +22,11 @@ export GYP_DEFINES="OS=netbsd"
 
 all: $(NODE_BIN)
 
-$(NODE_BIN): build/node.gyp build/config.mk _third_party_main.js
+$(NODE_BIN): build/node.gyp build/config.mk _third_party_main.js rumpmain.js
 	$(MAKE) -C build
 
 build/config.mk: build/stamp_patch
-	(cd build; ./configure --dest-cpu=$(CPU) --link-module=../_third_party_main.js)
+	(cd build; ./configure --dest-cpu=$(CPU) --link-module=../_third_party_main.js --link-module=../rumpmain.js)
 
 build/stamp_patch: build/configure patches/*.patch | patches/$(PKGSRC_DIR)
 	(cd build && ../../scripts/apply-patches.sh -p 0 ./ ../patches/$(PKGSRC_DIR)/patch-* ../patches/*.patch)
