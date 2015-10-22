@@ -9,7 +9,7 @@ run_express_hello_world: express-$(EXPRESS_VERSION).iso
 
 .PHONY: bundle_express_hello_world
 bundle_express_hello_world: | node_modules express-$(EXPRESS_VERSION)
-	./node_modules/.bin/webpack --target node --module-bind json ./express-$(EXPRESS_VERSION)/examples/hello-world/index.js ../_third_party_main.js
+	./node_modules/.bin/webpack --target node --module-bind json ./express-$(EXPRESS_VERSION)/examples/hello-world/index.js ../rumpmain.js
 	make -C ..
 
 .PHONY: run_kvm
@@ -32,7 +32,6 @@ express-$(EXPRESS_VERSION):
 
 ursa/node_modules/ursa:
 	(cd ursa && npm install --production)
-	perl -pi -e 's/require\("bindings"\)/process._linkedBinding/' $@/lib/ursa.js
 
 .PHONY: clean
 clean:
