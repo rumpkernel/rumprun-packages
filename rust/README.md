@@ -18,7 +18,7 @@ Running `make` will build a Rust cross-compiler for Rumprun, including the
 standard library. The cargo package manager and the cargo-rumpbake subcommand
 are also included by default. To build Rust without cargo, run `make rust`.
 
-Make sure the `app-tools` folder of your Rumprun build is in `$PATH`.
+Make sure the `bin` folder of your Rumprun destdir is in `$PATH`.
 
     cd rumprun-packages/rust
     make -j4
@@ -51,8 +51,9 @@ environment variables to invoke `rustc` and `cargo` directly:
 Examples
 ========
 
-To cross-compile for Rumprun, always make sure you have `app-tools` in your
-path, because `rustc` will invoke `x86_64-rumprun-netbsd-{gcc,ar}`.
+To cross-compile for Rumprun, always make sure you have the
+tools (destdir/bin) in your path, because `rustc` will invoke
+`x86_64-rumprun-netbsd-{gcc,ar}`.
 
 When compiling manually with `rustc` or `cargo build`, make sure to compile
 for the Rumprun target with `--target=x86_64-rumprun-netbsd`. For example:

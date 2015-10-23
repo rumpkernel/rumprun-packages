@@ -19,8 +19,9 @@ Building packages
 
 To get started:
 
-1. Build a Rumprun toolchain.
-2. Add the `app-tools` directory to your `$PATH`.
+1. Build a Rumprun toolchain (with `build-rr.sh` in the rumprun repo).
+2. Add destdir/bin from Step 1 to your `$PATH` (the default destdir
+   _relative to rumprun repo working directory_ is `$(pwd)/rumprun/bin`).
 3. Copy the `config.mk.dist` file to `config.mk` and set
    `RUMPRUN_TOOLCHAIN_TUPLE` to specify the compiler toolchain to use for
    building, for example, `x86_64-rumprun-netbsd` or `i486-rumprun-netbsdelf`.
