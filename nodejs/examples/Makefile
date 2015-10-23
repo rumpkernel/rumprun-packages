@@ -16,15 +16,21 @@ bundle_express_hello_world: | node_modules express-$(EXPRESS_VERSION)
 run_kvm:
 	rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i ../build/out/Release/node.bin
 
-ursa.iso: ursa/test.js | ursa/node_modules/ursa
+ursa.iso: ursa/test.js | node_modules ursa/node_modules/ursa
 	genisoimage -l -r -o $@ ursa
+
+NAD=../../../node_modules/.bin/nad
+.PHONY: inject_ursa
+inject_ursa: | node_modules ursa/node_modules/ursa
+	(cd ursa/node_modules/ursa; $(NAD) configure --nodedir ../../../../build; $(NAD) inject)
+	NODE_PATH=../examples/ursa/node_modules/ursa/node_modules make -C ..
 
 .PHONY: run_ursa
 run_ursa: ursa.iso
 	rumprun kvm -M 160 -i -b ursa.iso,/ursa ../build/out/Release/node.bin /ursa/test.js
 
 node_modules:
-	npm install webpack json-loader
+	npm install webpack json-loader nad
 
 express-$(EXPRESS_VERSION):
 	curl -L https://github.com/strongloop/express/archive/$(EXPRESS_VERSION).tar.gz | tar -zx

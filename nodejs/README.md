@@ -108,11 +108,16 @@ Error: Service unavailable
 The solution is to compile the Addon into the Node binary itself. Whilst this
 isn't something you usually do, it's quite simple:
 
-1. Add the Addon's source file(s) to `build/node.gyp`, under
-   `targets`&rarr;`sources`.
-2. If the Addon includes header files, add the location of the header files to
-   `build/node.gyp`, under `targets`&rarr;`include_dirs`.
-3. Run `make`.
+1. Add the full pathnames of the Addon's source and header files to `build/node.gyp`.
+  - Either do this by hand:
+    1. Add the source files to `targets`&rarr;`sources` 
+    2. Add the header files to `targets`&rarr;`include_dirs`
+  - Or use [`nad`](https://github.com/thlorenz/nad):
+    1. `npm install -g nad`
+    2. `cd /path/to/addon`
+    2. `nad configure --nodedir /path/to/rumprun-packages/nodejs/build`
+    3. `nad inject`
+2. Run `NODE_PATH=/path/to/addon/node_modules make`
 
 The Addon is now compiled into the Node binary (`build/out/Release/node`),
 which you can bake and run as normal.
@@ -122,18 +127,16 @@ I've added an example of using an Addon in `examples/ursa/test.js`:
 1. In the `examples` directory, run `make ursa.iso`. This installs the
    [`ursa`](https://github.com/quartzjer/ursa) module and adds it to a `.iso`
    file.
-2. Next, you have to add `ursa`'s Addon to `build/node.gyp` by hand:
-  1. In `sources` (under `targets`), add `'../examples/ursa/node_modules/ursa/src/ursaNative.cc'`.
-  2. In `include_dirs` (under `targets`), add `'../examples/ursa/node_modules/ursa/node_modules/nan'`.
-3. Run `make`.
-4. Bake the Node binary (`make bake_hw_generic`)
-5. In the `examples` directory, run `make run_ursa`. You should see a
+2. Next, you have to add `ursa`'s Addon to `build/node.gyp`.
+  - Either modify `build/node.gyp` by hand:
+    1. In `sources` (under `targets`), add `'../examples/ursa/node_modules/ursa/src/ursaNative.cc'`
+    2. In `include_dirs` (under `targets`), add `'../examples/ursa/node_modules/ursa/node_modules/nan'`
+    3. Run `make`
+  - Or run `make inject_ursa` in the `examples` directory. This uses `nad` to
+    modify `build/node.gyp` and then runs `make` with `NODE_PATH` set.
+3. Bake the Node binary (`make bake_hw_generic`)
+4. In the `examples` directory, run `make run_ursa`. You should see a
    PEM-formatted public key displayed.
-
-If you don't want to modify `build/node.gyp` by hand, it should be pretty easy
-to script. Alternatively, look at
-[`nad`](https://github.com/thlorenz/nad), which is "a tool to inject your addon
-code into a copy of the node codebase".
 
 Known Issues
 ============
@@ -144,3 +147,8 @@ Known Issues
   to Rumprun performing duplication address detection. Please see the
   [Rumprun issue](https://github.com/rumpkernel/rumprun/issues/56) for more
   information.
+
+- If you use `nad` to inject more than one Addon into `build/node.gyp`, you
+  might run into problems. You'll end up conflicting definitions for
+  `module_root_dir`, so if both the Addons rely on its value then one will
+  fail to compile.
