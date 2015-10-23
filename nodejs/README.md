@@ -149,6 +149,6 @@ Known Issues
   information.
 
 - If you use `nad` to inject more than one Addon into `build/node.gyp`, you
-  might run into problems. You'll end up conflicting definitions for
+  might run into problems. You'll end up with conflicting definitions for
   `module_root_dir`, so if both the Addons rely on its value then one will
   fail to compile.
