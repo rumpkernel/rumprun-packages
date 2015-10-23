@@ -50,8 +50,8 @@ bake_hw_generic:
 
 .PHONY: clean
 clean:
-	$(MAKE) -C build clean
-	rm -f $(NODE_BIN).bin
+	if [ -d build ]; then $(MAKE) -C build clean; rm -f $(NODE_BIN).bin; fi
+	$(MAKE) -C examples clean
 
 .PHONY: distclean
 distclean:
