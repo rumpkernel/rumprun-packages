@@ -62,30 +62,21 @@ rumpbake xen_pv bin/beam.xen_pv.bin bin/beam
 
 Now you've got a baked unikernel image.
 
-Setup the networking as follows (if not done already).
+Setup the networking as follows (if not done already). You can also use our
+`network.sh` script:
 
-```
-sudo ip tuntap add tap0 mode tap
-sudo ip addr add 10.0.120.100/24 dev tap0
-sudo ip link set dev tap0 up
+```shell
+$ sudo ./network.sh
 ```
 
-You are now ready to run your first erlang unikernel. To run the rumpkernel using qemu, the following will work:
+You are now ready to run your first erlang unikernel. To run the rumpkernel
+using qemu, `erlrun.sh`:
 
+```shell
+$ ./erlrun.sh --virt=kvm
 ```
-ERLAPP_PATH=/apps/erlang
-ERLHOME=/tmp
-ERLPATH=/opt/erlang
 
-rumprun qemu \
-   -I if,vioif,'-net tap,script=no,ifname=tap0' \
-   -W if,inet,static,10.0.120.101/24 \
-   -e ERL_INETRC=$ERLPATH/erl_inetrc \
-   -b images/erlang.iso,$ERLPATH \
-   -b examples/app.iso,$ERLAPP_PATH \
-   -i beam.hw.bin \
-     "-- -no_epmd -root $ERLPATH/lib/erlang -progname erl -- -home $ERLHOME -noshell -pa $ERLAPP_PATH -s echoserver start"
-```
+Please peruse the top part of the shell-script for further options.
 
 You should see `Echo server started` text printed to your screen.
 
@@ -113,33 +104,27 @@ equivalent variation and additionally use xen baked unikernel as well.
 EPMD (clustering)
 -----------------
 
-You can do clustering simply by using an alternative form of the
-rumprun command (notice that "-no_epmd" is removed and few more
-arguments are added ("-s erlpmd_ctl start -s setnodename ${NAME}@${IP}").
+You can do clustering by using an alternative form of the rumprun command.
+Notice that when passing `--epmd`, "-no_epmd" is removed and few more arguments
+are added ("-s erlpmd_ctl start -s setnodename start ${name}@${ip} ${cookie}".
 
-It is important to note the name ($NAME) given along with the ip address ($IP).
-The ip address must be the same as given to the guest vm otherwise things will
-not work. Additionally, the COOKIE and NAME are important as well, as you can
-see the workflow to connect to this new node (running in rumprun unikernel).
+***n.b.:*** Because erlang is operating in rumprun, a restricted environment,
+we cannot simply pass `-name ${name}@${ip} -setcookie ${cookie}` in our
+`erlrun.sh` script, and have to resort to using the simple wrapper module
+`example/setnodename`.  
+
+It is important to note the name (`--name`) given along with the ip address
+(`--ip`).  The ip address must be the same as given to the guest vm otherwise
+things will not work. Additionally, the `--cookie` and `--name` are important
+as well, as you can see the workflow to connect to this new node (running in
+rumprun unikernel).
 
 
+```shell
+$ ./erlrun.sh --cookie=mycookie
 ```
-ERLAPP_PATH=/apps/erlang
-ERLHOME=/tmp
-ERLPATH=/opt/erlang
-NAME=sample
-IP=10.0.120.101
-COOKIE=mycookie
 
-rumprun qemu \
-   -I if,vioif,'-net tap,script=no,ifname=tap0' \
-   -W if,inet,static,$IP/24 \
-   -e ERL_INETRC=$ERLPATH/erl_inetrc \
-   -b images/erlang.iso,$ERLPATH \
-   -b examples/app.iso,$ERLAPP_PATH \
-   -i beam.hw.bin \
-     "-- -root $ERLPATH/lib/erlang -progname erl -- -home $ERLHOME -noshell -pa $ERLAPP_PATH -s erlpmd_ctl start -s setnodename ${NAME}@${IP} $COOKIE -s echoserver start"
-```
+Please peruse the top part of the shell-script for further options.
 
 The node "sample@10.0.120.101" is now ready, which also runs the echo server.
 The following sequence of steps demonstrate it's workability.
@@ -161,7 +146,7 @@ Eshell V7.0  (abort with ^G)
 
 ```
 
-Start local empd, so that you can talk to the remote (rumprun) node.
+And start a local empd, so that you can talk to the remote (rumprun) node.
 
 ```
 erlpmd_ctl:start().
@@ -180,6 +165,7 @@ ErlPMD: info: notify_init while {argv,[{0,0,0,0}],4369,false,false,0,0,0}.
 =INFO REPORT==== 4-Sep-2015::09:21:10 ===
 ErlPMD listener: started at Ip: 0.0.0.0:4369
 ```
+
 
 Now connect to the local instance of empd while setting name and
 cookie, which is required for authentication with the remote
@@ -203,6 +189,18 @@ You will see some more traces.
 =INFO REPORT==== 4-Sep-2015::09:21:21 ===
 ErlPMD: alive request from 127.0.0.1:18262 PortNo: 9156, NodeType: 77, Proto: 0, HiVer: 5, LoVer: 5, NodeName: 'linux', Extra: <<>>, Creation: 2.
 {ok,<0.40.0>}
+```
+
+Or, alternatively, use your own erlang installation and its convenient `erl`
+options:
+
+```
+$ erl -setcookie mycookie -name linux@10.0.120.100
+
+Starlng/OTP 18 [erts-7.1] [source] [64-bit] [smp:4:4] [async-threads:10] [kernel-poll:false]
+
+Eshell V7.1  (abort with ^G)
+(linux@10.0.120.100)1>
 ```
 
 The node is now ready to talk to the remote rumprun erlang node.
