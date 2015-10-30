@@ -2,6 +2,15 @@
 # Makefile.inc should be included first thing by each package-specific Makefile.
 #
 
+# Clean up rogue environment variables
+unexport CC
+unexport CXX
+unexport CPP
+unexport CFLAGS
+unexport CPPFLAGS
+unexport CXXFLAGS
+unexport LDFLAGS
+
 -include ../config.mk
 
 # If the user has not setup config.mk, complain.
