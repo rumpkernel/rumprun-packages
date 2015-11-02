@@ -24,6 +24,12 @@ RUMPRUN_CXX=$(RUMPRUN_TOOLCHAIN_TUPLE)-g++
 RUMPRUN_SYSROOT:=$(shell ${RUMPRUN_CC} -print-sysroot)
 RUMPRUN_CMAKE_TOOLCHAIN_FILE:=${RUMPRUN_SYSROOT}/share/${RUMPRUN_TOOLCHAIN_TUPLE}-toolchain.cmake
 
+ifeq ($(shell uname),Darwin)
+RUMPRUN_GENISOIMAGE=hdiutil makehybrid -iso
+else
+RUMPRUN_GENISOIMAGE=genisoimage -l -r
+endif
+
 RUMPRUN_PKGS_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/pkgs
 
 CPPFLAGS+=-I$(RUMPRUN_PKGS_DIR)/include
