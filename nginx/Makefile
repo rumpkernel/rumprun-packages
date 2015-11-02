@@ -69,10 +69,10 @@ build/configure: | dl/$(TARBALL)
 images: images/stubetc.iso images/data.iso
 
 images/stubetc.iso: ../stubetc/etc/*
-	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
+	$(RUMPRUN_GENISOIMAGE) -o images/stubetc.iso ../stubetc/etc
 
 images/data.iso: images/data/conf/* images/data/www/*
-	genisoimage -l -r -o images/data.iso images/data
+	$(RUMPRUN_GENISOIMAGE) -o images/data.iso images/data
 
 .PHONY: clean
 clean:
