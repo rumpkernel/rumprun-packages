@@ -1,5 +1,5 @@
 include ../Makefile.inc
-UPSTREAM=http://downloads.sourceforge.net/project/mpg123/mpg123/1.22.2/mpg123-1.22.2.tar.bz2
+UPSTREAM=http://downloads.sourceforge.net/project/mpg123/mpg123/1.22.4/mpg123-1.22.4.tar.bz2
 
 all: bin/mpg123
 

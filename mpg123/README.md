@@ -1,7 +1,7 @@
 Overview
 ========
 
-Following the instructions will build and run mpg123 1.22.2 for the rumprun
+Following the instructions will build and run mpg123 1.22.4 for the rumprun
 _hw_ platform.  You could theoretically do the same for Xen platform
 via PCI passthrough, but doing so is left as an exercise for the reader.
 
