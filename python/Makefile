@@ -12,7 +12,8 @@ build/python: build/Makefile
 
 PYTHON_CONF_ENV += \
 	LDFLAGS="-static -static-libgcc" \
-	CPPFLAGS="-static" \
+	CPPFLAGS="$(CPPFLAGS) -static" \
+	CFLAGS="$(CFLAGS) -static" \
 	CC=$(RUMPRUN_CC) \
 	CONFIG_SITE=config.site
 
@@ -21,7 +22,8 @@ PYTHON_CONF_OPTS += \
 	--disable-shared \
 	--host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	--build $(ARCH) \
-	--disable-ipv6
+	--disable-ipv6 \
+        --without-ensurepip
 
 build/Makefile: build/stamp_patch
 	(cd build; $(PYTHON_CONF_ENV) ./configure $(PYTHON_CONF_OPTS))
