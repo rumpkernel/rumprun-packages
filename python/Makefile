@@ -4,7 +4,7 @@ UPSTREAM=https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
 
-all: build/python images
+all: images
 
 build/python: build/Makefile
 	$(MAKE) -C build
@@ -42,13 +42,13 @@ build/configure: | dl/$(TARBALL)
 	cp config.site build/
 
 .PHONY: images
-images: images/stubetc.iso images/python.iso
+images: images/stubetc.iso
 
-images/stubetc.iso: ../stubetc/etc/*
+images/stubetc.iso: images/python.iso ../stubetc/etc/*
 	mkdir -p images
 	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
 
-images/python.iso: build/Makefile
+images/python.iso: build/python
 	mkdir -p images
 	genisoimage -l -r -o images/python.iso build/pythondist/lib/python3.4
 

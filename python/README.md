@@ -38,22 +38,7 @@ make
 Errors
 ======
 
-This build process will return clean ($?==0). However there are some errors that you will notice. One of
-those errors is:
-
-```
-/usr/include/x86_64-linux-gnu/sys/cdefs.h:23:23: fatal error: features.h: No such file or directory
-```
-
-This means you are running on Debian and the build system added /usr/include/<platform tuple> to your
-include path. cdefs.h is searching the netbsd target include dir for features.h, and it simply won't
-find it. If we fix this problem, you will only run into linking errors because extensions just don't
-seem to play well with cross compilation. Not to worry, these extensions will be statically linked
-in your Unikernel anyway. The example will show this.
-
-So this error remains because it is faster to fail at compile time than at linking time.
-
-Another error happens while linking the Unikernel:
+An error happens while linking the Unikernel:
 
 ```
 warning: RC5 is a patented algorithm; link against libcrypto_rc5
