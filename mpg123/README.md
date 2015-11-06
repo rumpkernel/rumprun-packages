@@ -1,26 +1,19 @@
 Overview
 ========
 
-Following the instructions will build and run mpg123 1.22.4 for the rumprun
-_hw_ platform.  You could theoretically do the same for Xen platform
-via PCI passthrough, but doing so is left as an exercise for the reader.
+mpg123 is an mp3 decoder/player.  If you want to use it for playering,
+you need a guest environment with audio capability.  Currently, audio
+capability is most easily provided by an emulator such as QEMU.
+
+Maintainer: @anttikantee
 
 
 Instructions
 ============
 
-Run `make`:
+Run `make`.
 
-```
-make
-```
-
-Bake the final unikernel image:
-```
-rumpbake hw_generic bin/mpg123.bin bin/mpg123
-```
-
-Use `rumprun` as normal.
+The bakeable binary will be available in `bin/mpg123`.
 
 
 Examples
