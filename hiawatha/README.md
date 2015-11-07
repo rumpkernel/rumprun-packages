@@ -1,7 +1,7 @@
 Overview
 ========
 
-Packaging of [Hiawatha webserver](https:/www.hiawatha-webserver.org/)
+Packaging of [Hiawatha webserver](https://www.hiawatha-webserver.org/)
 version 9.13 for rumprun.
 
 Hiawatha is a lightweight, threaded webserver which is well-suited to running
