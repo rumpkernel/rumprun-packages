@@ -8,9 +8,15 @@ TARBALL=$(notdir $(UPSTREAM))
 
 PKGSRC_DIR=pkgsrc/lang/nodejs/patches
 
-CPU=$(shell echo $(RUMPRUN_TOOLCHAIN_TUPLE) | cut -d - -f 1)
-ifeq ($(CPU),x86_64)
+RUMPRUN_TOOLCHAIN_ARCH=$(shell echo $(RUMPRUN_TOOLCHAIN_TUPLE) | cut -d - -f 1)
+ifeq ($(RUMPRUN_TOOLCHAIN_ARCH),x86_64)
 	CPU=x64
+endif
+ifeq ($(RUMPRUN_TOOLCHAIN_ARCH),i486)
+	CPU=x86
+endif
+ifndef CPU
+	$(error Unsupported CPU architecture)
 endif
 
 export CC=$(RUMPRUN_TOOLCHAIN_TUPLE)-gcc
