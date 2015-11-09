@@ -9,6 +9,12 @@ and store. It is often referred to as a data structure server
 since keys can contain strings, hashes, lists, sets, sorted sets,
 bitmaps and hyperloglogs.
 
+###Maintainer
+
+* Krishna, v.krishnakumar@gmail.com
+* Github: @kaveman-
+* #rumpkernel: kaveman
+
 Known Issues
 ------------
 
