@@ -22,7 +22,7 @@ PYTHON_CONF_OPTS += \
 	--disable-shared \
 	--host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	--build $(ARCH) \
-	--disable-ipv6 \
+	--enable-ipv6 \
         --without-ensurepip
 
 build/Makefile: build/stamp_patch
