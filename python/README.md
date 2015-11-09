@@ -5,6 +5,12 @@ Using the following instructions, you will cross-compile python 3.4.3
 for rumprun, compile a python program to C using `cython` and launch
 the result as a rumprun guest.
 
+Maintainer
+----------
+
+* Ryan Day, ryan@ryanday.net
+* Github: @rday
+
 
 Patches
 =======
