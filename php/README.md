@@ -3,6 +3,11 @@ Overview
 
 Packaging of unmodified [PHP](http://php.net/) 5.6.12 for rumprun.
 
+Maintainer
+----------
+
+* Martin Lucina, mato@rumpkernel.org
+* Github: @mato
 
 Patches
 =======

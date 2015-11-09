@@ -3,6 +3,11 @@ Overview
 
 Packaging of the [Nginx](http://nginx.org/) 1.8.0 web server for rumprun.
 
+Maintainer
+----------
+
+* Martin Lucina, mato@rumpkernel.org
+* Github: @mato
 
 Patches
 =======

@@ -7,6 +7,12 @@ Mathopd is a simple, non-forking HTTP/1.1 compliant webserver, and serves as an
 example of how a simple POSIX application can be cross-compiled, unmodified,
 for rumprun.
 
+Maintainer
+----------
+
+* Martin Lucina, mato@rumpkernel.org
+* Github: @mato
+
 Patches
 =======
 

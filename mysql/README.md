@@ -7,6 +7,11 @@ Packaging of [MySQL](http://www.mysql.com/) 5.6.26 for rumprun.
 Please report success, failure or anything else to the Rump Kernel mailing list
 or IRC: http://wiki.rumpkernel.org/Info:-Community
 
+## Maintainer
+
+* Martin Lucina, mato@rumpkernel.org
+* Github: @mato
+
 # Patches
 
 Patches required for cross-compilation are in the `patches/` directory, and
