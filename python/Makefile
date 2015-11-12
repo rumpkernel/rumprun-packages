@@ -4,7 +4,11 @@ UPSTREAM=https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
 
-all: images
+all: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a images
+
+.NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a
+$(RUMPRUN_PKGS_DIR)/lib/libsqlite.a:
+	$(MAKE) -C ../sqlite
 
 build/python: build/Makefile
 	$(MAKE) -C build
