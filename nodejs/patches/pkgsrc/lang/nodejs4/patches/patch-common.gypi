@@ -1,4 +1,4 @@
-$NetBSD: patch-common.gypi,v 1.4 2015/09/17 10:42:34 fhajny Exp $
+$NetBSD: patch-common.gypi,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Add support for NetBSD.
 

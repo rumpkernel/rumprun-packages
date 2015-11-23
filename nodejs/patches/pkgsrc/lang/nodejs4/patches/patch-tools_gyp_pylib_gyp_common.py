@@ -1,4 +1,4 @@
-$NetBSD: patch-tools_gyp_pylib_gyp_common.py,v 1.1 2013/05/22 15:17:07 mspo Exp $
+$NetBSD: patch-tools_gyp_pylib_gyp_common.py,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Add support for NetBSD and DragonFly.
 --- tools/gyp/pylib/gyp/common.py.orig	2013-03-28 19:07:52.000000000 +0000

@@ -1,4 +1,4 @@
-$NetBSD: patch-deps_v8_tools_run-llprof.sh,v 1.1 2015/04/30 15:04:56 ryoon Exp $
+$NetBSD: patch-deps_v8_tools_run-llprof.sh,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 POSIX shell portability.
 

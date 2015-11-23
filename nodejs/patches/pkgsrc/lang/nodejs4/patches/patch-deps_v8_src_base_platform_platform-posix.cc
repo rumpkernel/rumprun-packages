@@ -1,4 +1,4 @@
-$NetBSD: patch-deps_v8_src_base_platform_platform-posix.cc,v 1.3 2015/09/09 00:04:54 ryoon Exp $
+$NetBSD: patch-deps_v8_src_base_platform_platform-posix.cc,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Use sysconf(_SC_THREAD_STACK_MIN) instead of PTHREAD_STACK_MIN.
 Cast explicitly.
