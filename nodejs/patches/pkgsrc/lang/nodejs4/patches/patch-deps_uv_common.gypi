@@ -1,4 +1,4 @@
-$NetBSD: patch-deps_uv_common.gypi,v 1.3 2015/09/17 10:42:34 fhajny Exp $
+$NetBSD: patch-deps_uv_common.gypi,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Add support for NetBSD.
 

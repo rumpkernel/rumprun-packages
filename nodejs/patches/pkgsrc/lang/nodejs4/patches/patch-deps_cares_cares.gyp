@@ -1,4 +1,4 @@
-$NetBSD: patch-deps_cares_cares.gyp,v 1.1 2013/05/22 15:17:07 mspo Exp $
+$NetBSD: patch-deps_cares_cares.gyp,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Add support for NetBSD.
 --- deps/cares/cares.gyp.orig	2013-03-14 10:55:24.000000000 +0900

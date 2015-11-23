@@ -1,12 +1,12 @@
 include ../Makefile.inc
 
-NODE_VERSION=4.1.1
+NODE_VERSION=4.2.2
 NODE_BIN=build/out/Release/node
  
 UPSTREAM=https://github.com/nodejs/node/archive/v$(NODE_VERSION).tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-PKGSRC_DIR=pkgsrc/lang/nodejs/patches
+PKGSRC_DIR=pkgsrc/lang/nodejs4/patches
 
 RUMPRUN_TOOLCHAIN_ARCH=$(shell echo $(RUMPRUN_TOOLCHAIN_TUPLE) | cut -d - -f 1)
 ifeq ($(RUMPRUN_TOOLCHAIN_ARCH),x86_64)
@@ -47,12 +47,12 @@ dl/$(TARBALL):
 	../scripts/fetch.sh $(UPSTREAM) dl/$(TARBALL)
 
 patches/$(PKGSRC_DIR):
-	(cd patches && cvs -q -z2 -d anoncvs@anoncvs.NetBSD.org:/cvsroot checkout -r pkgsrc-2015Q3 -P $(PKGSRC_DIR))
+	(cd patches && cvs -q -z2 -d anoncvs@anoncvs.NetBSD.org:/cvsroot checkout -r HEAD -P $(PKGSRC_DIR))
 	perl -pi -e 's/\@PYTHONBIN@/python/g' patches/$(PKGSRC_DIR)/patch-*
 
 .PHONY: bake_hw_generic
 bake_hw_generic:
-	rumpbake hw_generic $(NODE_BIN).bin $(NODE_BIN)
+	rumprun-bake hw_generic $(NODE_BIN).bin $(NODE_BIN)
 
 .PHONY: clean
 clean:
