@@ -4,6 +4,12 @@ Overview
 This is Node.js 4.2.2 LTS for Rumprun. Use any of the thousands of npm packages
 or run your own Javascript modules on the Rumprun unikernel.
 
+Maintainer
+----------
+
+* David Halls, dahalls@gmail.com
+* Github: @davedoesdev
+
 Patches
 =======
 
