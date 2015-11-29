@@ -1,0 +1,6 @@
+bin/
+build/
+images/*.iso
+*.swp
+.bundle
+examples/.bundle
