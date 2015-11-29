@@ -72,8 +72,11 @@ may see some link errors related to rc5. This doesn't affect the example.
 x86_64-rumprun-netbsd-gcc examples/hw.c \
 	-o examples/hw \
 	-Ibuild/pythondist/include/python3.4m \
+	-I../pkgs/include \
 	-Lbuild/pythondist/lib \
-	-lpython3.4m -lutil -lm -lz -lssl -lcrypto
+	-L../pkgs/lib \
+
+	-lpython3.4m -lutil -lm -lz -lssl -lcrypto -lsqlite3
 ```
 
 Now you've got a unikernel image. You just need to bake it. We'll use the hw_generic since
