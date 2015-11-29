@@ -3,6 +3,12 @@ Ruby
 
 Compiles MRI Ruby 2.2
 
+Maintainer
+----------
+
+* Reuben Sutton, reuben.sutton@gmail.com
+* Github: @reuben-sutton
+
 Example
 =======
 
