@@ -41,7 +41,12 @@ Tutorials you may want to complete for more in-depth knowledge:
 Contributing new packages
 -------------------------
 
-When adding new packages, include the following sections in the
+New packages are contributed by creating the package and, after
+sufficient testing, opening a pull request.  If you are a contributor
+with push access to rumprun-packages, you may also push directly into
+the repository instead of going the pull request route.
+
+When creating new packages, include the following sections in the
 package-specific README:
 
 * Overview: name of the package, version number, and a sentence or two on how the package can be used
