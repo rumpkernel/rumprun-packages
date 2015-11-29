@@ -45,5 +45,19 @@ When adding new packages, include the following sections in the
 package-specific README:
 
 * Overview: name of the package, version number, and a sentence or two on how the package can be used
-* Instructions: how to build.  If this section is "run script/make", excellent!
-* Examples: a few examples on how to run/use the resulting package
+  + Maintainer: maintainer of the package (you!).  Required: github account.  Optional: name, email address, irc nick.
+* Instructions [if an application and not e.g. library]: free-form description of how to bake the packaged software
+* Examples [optional but highly recommended]: a few examples on how to run/use the resulting package
+
+We require that new packages have a maintainer.  A maintainer should
+generally be interested in the welfare of a package by answering
+potential user questions, addressing problem reports, and updating
+the package especially when security vulnerabilities are discovered.
+All maintainers are given push access to the repository.  In case
+you created a package but do not want to maintain it, submit a pull
+request anyway; we will mark the pull request as `maintainer wanted`,
+and if someone who needs the software comes along and is willing to be
+maintainer, they potentially do not have to start from scratch.
+
+If something is unclear, see existing packages for examples or ask
+on the [mailing list or on irc](http://wiki.rumpkernel.org/Info:-Community).
