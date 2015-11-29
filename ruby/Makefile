@@ -1,6 +1,11 @@
 include ../Makefile.inc
 UPSTREAM=https://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.3.tar.gz
 #export CFLAGS="-static"
+ifeq ($(shell uname),Darwin)
+ISO_OPTIONS=-joliet
+else
+ISO_OPTIONS=
+endif
 
 all: bin/ruby images/usr.iso images/stubetc.iso
 
@@ -22,15 +27,15 @@ build/Makefile:
 
 images/usr.iso: 
 	mkdir -p images
-	$(RUMPRUN_GENISOIMAGE) -o images/usr.iso -hfs -joliet build/rubydist/
+	$(RUMPRUN_GENISOIMAGE) ${ISO_OPTIONS} -o images/usr.iso build/rubydist/
 
 images/stubetc.iso: ../stubetc/etc/*
 	mkdir -p images
-	$(RUMPRUN_GENISOIMAGE) -o images/stubetc.iso -hfs -joliet ../stubetc/etc/
+	$(RUMPRUN_GENISOIMAGE) ${ISO_OPTIONS} -o images/stubetc.iso ../stubetc/etc/
 
 images/examples.iso:
 	cd examples && bundle install --path=gems
-	$(RUMPRUN_GENISOIMAGE) -o images/examples.iso -hfs -joliet examples/
+	$(RUMPRUN_GENISOIMAGE) ${ISO_OPTIONS} -o images/examples.iso examples/
 	
 .PHONY: clean
 clean:
