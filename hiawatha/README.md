@@ -2,7 +2,7 @@ Overview
 ========
 
 Packaging of [Hiawatha webserver](https://www.hiawatha-webserver.org/)
-version 9.13 for rumprun.
+version 10.0 for rumprun.
 
 Hiawatha is a lightweight, threaded webserver which is well-suited to running
 as a unikernel. It also serves as an example for cross-compiling an application
