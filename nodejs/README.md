@@ -1,7 +1,14 @@
 Overview
 ========
 
-This is Node.js 4.1.1 for Rumprun. Use any of the thousands of npm packages or run your own Javascript modules on the Rumprun unikernel.
+This is Node.js 4.2.2 LTS for Rumprun. Use any of the thousands of npm packages
+or run your own Javascript modules on the Rumprun unikernel.
+
+Maintainer
+----------
+
+* David Halls, dahalls@gmail.com
+* Github: @davedoesdev
 
 Patches
 =======
@@ -24,7 +31,7 @@ Instructions
 ============
 
 Run `make`. This will produce `build/out/Release/node`, which you can then pass
-to `rumpbake`. If you're using the generic configuration, you can use
+to `rumprun-bake`. If you're using the generic configuration, you can use
 `make bake_hw_generic` to generate `build/out/Release/node.bin`.
 
 You can then run Node using something like this:
@@ -144,7 +151,7 @@ Known Issues
 - Although the Express "Hello World" example displays a message straight away
   that it's listening on port 3000, it seems to take 5 seconds from VM start
   before it's ready to respond. This occurs for DHCP only and is probably due
-  to Rumprun performing duplication address detection. Please see the
+  to Rumprun performing duplicate address detection. Please see the
   [Rumprun issue](https://github.com/rumpkernel/rumprun/issues/56) for more
   information.
 

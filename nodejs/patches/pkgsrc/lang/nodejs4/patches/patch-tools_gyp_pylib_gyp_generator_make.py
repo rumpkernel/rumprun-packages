@@ -1,4 +1,4 @@
-$NetBSD: patch-tools_gyp_pylib_gyp_generator_make.py,v 1.3 2013/12/12 11:52:37 jperkin Exp $
+$NetBSD: patch-tools_gyp_pylib_gyp_generator_make.py,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Add support for NetBSD and DragonFly.
 Ensure we use the system libtool on OSX.

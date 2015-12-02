@@ -1,4 +1,4 @@
-$NetBSD: patch-deps_v8_src_base_platform_platform-freebsd.cc,v 1.1 2015/08/26 06:57:01 rumko Exp $
+$NetBSD: patch-deps_v8_src_base_platform_platform-freebsd.cc,v 1.1 2015/11/09 20:21:51 fhajny Exp $
 
 Overlapping variables, taken from https://github.com/joyent/node/issues/9175
 

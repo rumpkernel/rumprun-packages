@@ -5,7 +5,10 @@ mpg123 is an mp3 decoder/player.  If you want to use it for playering,
 you need a guest environment with audio capability.  Currently, audio
 capability is most easily provided by an emulator such as QEMU.
 
-Maintainer: pooka@rumpkernel.org (github.com/anttikantee)
+Maintainer
+----------
+
+github: anttikantee
 
 
 Instructions
