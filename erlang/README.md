@@ -11,6 +11,12 @@ The patches within the `patches/` sub-directory is primarily to get
 ssl working, although in future it'll host some optimizations as
 discussed in `Unoptimized Memory Allocation`_ subsection.
 
+Maintainer
+----------
+
+github: neeraj9, igalic
+
+
 Instructions
 ============
 
