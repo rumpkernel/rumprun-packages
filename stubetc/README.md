@@ -6,6 +6,11 @@ applications.  Eventually we hope to make the contents automatically
 present in rumprun unikernels, but for now you have to manually
 supply an image to the rumprun launcher.
 
+Maintainer
+----------
+
+github: anttikantee
+
 
 Instructions
 ============
