@@ -4,6 +4,10 @@ Overview
 Packaging of the [PCRE](http://www.pcre.org/) Perl Compatible Regular
 Expressions library for rumprun.
 
+Maintainers
+===========
+
+@kaveman-, @mato
 
 Instructions
 ============
