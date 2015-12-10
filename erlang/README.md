@@ -132,7 +132,7 @@ $ ./erlrun.sh --cookie=mycookie
 
 Please peruse the top part of the shell-script for further options.
 
-The node "sample@10.0.120.101" is now ready, which also runs the echo server.
+The node "rumprun@10.0.120.101" is now ready, which also runs the echo server.
 The following sequence of steps demonstrate it's workability.
 Note that while building the target, a local copy of erlang is also built
 which can be used for testing on the host. Having said that you can always
@@ -220,19 +220,19 @@ shell prompt is different now indicating distribution mode.
 
 
 ```
-(linux@10.0.120.100)5> net_adm:ping('sample@10.0.120.101').
+(linux@10.0.120.100)5> net_adm:ping('rumprun@10.0.120.101').
 pong
 
 (linux@10.0.120.100)6> inet:gethostname().
 {ok,"linuxhost"}
 
-(linux@10.0.120.100)7> rpc:multicall(['sample@10.0.120.101'], inet, gethostname, []).
+(linux@10.0.120.100)7> rpc:multicall(['rumprun@10.0.120.101'], inet, gethostname, []).
 {[{ok,"rumprun"}],[]}
 
 (linux@10.0.120.100)8> erlang:system_info(system_architecture).
 "x86_64-unknown-linux-gnu"
 
-(linux@10.0.120.100)9> rpc:multicall(['sample@10.0.120.101'], erlang, system_info, [system_architecture]).
+(linux@10.0.120.100)9> rpc:multicall(['rumprun@10.0.120.101'], erlang, system_info, [system_architecture]).
 {["x86_64-rumprun-netbsd"],[]}
 
 (linux@10.0.120.100)10> erlang:memory().
@@ -247,7 +247,7 @@ pong
  {ets,292808}]
 
 
-(linux@10.0.120.100)11> rpc:multicall(['sample@10.0.120.101'], erlang, memory, []).
+(linux@10.0.120.100)11> rpc:multicall(['rumprun@10.0.120.101'], erlang, memory, []).
 {[[{total,10866312},
    {processes,4211520},
    {processes_used,4211520},
