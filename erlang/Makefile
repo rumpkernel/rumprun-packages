@@ -14,6 +14,7 @@ ifneq ($(V), 1)
   V=0
 endif
 
+.NOTPARALLEL: all
 all: build/erlang examples images
 
 build/erlang: build/Makefile
@@ -40,7 +41,7 @@ build/Makefile: build/bootstrap_complete
 
 build/bootstrap_complete: build/stamp_patch build/configure
 	(cd build; ./configure --enable-bootstrap-only)
-	(cd build; make)
+	(cd build; $(MAKE))
 	touch $@
 
 # only needed when building from a git repo
@@ -60,6 +61,7 @@ build/untar_sources: | dl/$(TARBALL)
 	(cd build && tar -x --strip-components 1 -f ../dl/$(TARBALL))
 	touch $@
 
+.PHONY: examples
 examples: examples/app.iso
 
 examples/app.iso:

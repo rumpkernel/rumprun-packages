@@ -11,6 +11,13 @@ This package also fetches and builds a copy of
 around `cargo build` and `rumpbake` which simplifies building and baking when
 using `cargo` as a build tool.
 
+Maintainer
+----------
+
+* Sebastian Wicki, gandro@rumpkernel.org
+* Github: @gandro
+
+
 Instructions
 ============
 
