@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-NODE_VERSION=4.2.2
+NODE_VERSION=4.2.4
 NODE_BIN=build/out/Release/node
  
 UPSTREAM=https://github.com/nodejs/node/archive/v$(NODE_VERSION).tar.gz
@@ -32,7 +32,7 @@ $(NODE_BIN): build/node.gyp build/config.mk _third_party_main.js rumpmain.js
 	$(MAKE) -C build
 
 build/config.mk: build/stamp_patch
-	(cd build; ./configure --dest-cpu=$(CPU) --link-module=../_third_party_main.js --link-module=../rumpmain.js)
+	(cd build; ./configure --without-snapshot --dest-cpu=$(CPU) --link-module=../_third_party_main.js --link-module=../rumpmain.js)
 
 build/stamp_patch: build/configure patches/*.patch | patches/$(PKGSRC_DIR)
 	(cd build && ../../scripts/apply-patches.sh -p 0 ./ ../patches/$(PKGSRC_DIR)/patch-* ../patches/*.patch)
