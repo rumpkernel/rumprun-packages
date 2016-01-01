@@ -1,7 +1,7 @@
 Overview
 ========
 
-This is Node.js 4.2.2 LTS for Rumprun. Use any of the thousands of npm packages
+This is Node.js 4.2.4 LTS for Rumprun. Use any of the thousands of npm packages
 or run your own Javascript modules on the Rumprun unikernel.
 
 Maintainer
@@ -147,13 +147,6 @@ I've added an example of using an Addon in `examples/ursa/test.js`:
 
 Known Issues
 ============
-
-- Although the Express "Hello World" example displays a message straight away
-  that it's listening on port 3000, it seems to take 5 seconds from VM start
-  before it's ready to respond. This occurs for DHCP only and is probably due
-  to Rumprun performing duplicate address detection. Please see the
-  [Rumprun issue](https://github.com/rumpkernel/rumprun/issues/56) for more
-  information.
 
 - If you use `nad` to inject more than one Addon into `build/node.gyp`, you
   might run into problems. You'll end up with conflicting definitions for
