@@ -1,1 +1,1 @@
-console.log("Hello, Rump!!");
+default.js

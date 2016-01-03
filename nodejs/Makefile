@@ -24,9 +24,14 @@ export RANLIB=$(RUMPRUN_TOOLCHAIN_TUPLE)-ranlib
 export LINK=$(CXX)
 export GYP_DEFINES="OS=netbsd"
 
+NODE_OUT=$(BUILD_DIR)/out/Release/node
+
 all: $(NODE_BIN)
 
-$(NODE_BIN): $(BUILD_DIR)/node.gyp $(BUILD_DIR)/config.mk _third_party_main.js rumpmain.js
+$(NODE_BIN): $(NODE_OUT)
+	cp $^ $@
+
+$(NODE_OUT): $(BUILD_DIR)/node.gyp $(BUILD_DIR)/config.mk _third_party_main.js rumpmain.js
 	$(MAKE) -C $(BUILD_DIR)
 
 $(BUILD_DIR)/config.mk: $(BUILD_DIR)/stamp_patch
@@ -48,13 +53,9 @@ patches/$(PKGSRC_DIR):
 	(cd patches && cvs -q -z2 -d anoncvs@anoncvs.NetBSD.org:/cvsroot checkout -r HEAD -P $(PKGSRC_DIR))
 	perl -pi -e 's/\@PYTHONBIN@/python/g' patches/$(PKGSRC_DIR)/patch-*
 
-.PHONY: bake_hw_generic
-bake_hw_generic:
-	rumprun-bake hw_generic $(NODE_BIN).bin $(NODE_BIN)
-
 .PHONY: clean
 clean:
-	if [ -d $(BUILD_DIR) ]; then $(MAKE) -C $(BUILD_DIR) clean; rm -f $(NODE_BIN).bin; fi
+	if [ -d $(BUILD_DIR) ]; then $(MAKE) -C $(BUILD_DIR) clean; rm -f $(NODE_BIN) $(NODE_BIN).bin; fi
 	$(MAKE) -C examples clean
 
 .PHONY: distclean

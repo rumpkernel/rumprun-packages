@@ -7,16 +7,17 @@ express-$(EXPRESS_VERSION).iso: | express-$(EXPRESS_VERSION)
 
 .PHONY: run_express_hello_world
 run_express_hello_world: express-$(EXPRESS_VERSION).iso
-	rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i -b express-$(EXPRESS_VERSION).iso,/express ../$(NODE_BIN) /express/examples/hello-world/index.js
+	rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i -b express-$(EXPRESS_VERSION).iso,/express ../$(NODE_BIN).bin /express/examples/hello-world/index.js
 
 .PHONY: bundle_express_hello_world
 bundle_express_hello_world: | node_modules express-$(EXPRESS_VERSION)
-	./node_modules/.bin/webpack --target node --module-bind json ./express-$(EXPRESS_VERSION)/examples/hello-world/index.js ../rumpmain.js
+	./node_modules/.bin/webpack --target node --module-bind json ./express-$(EXPRESS_VERSION)/examples/hello-world/index.js hello-world.js
+	ln -sf examples/hello-world.js ../rumpmain.js
 	make -C ..
 
 .PHONY: run_kvm
 run_kvm:
-	rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i ../$(NODE_BIN)
+	rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i ../$(NODE_BIN).bin
 
 ursa.iso: ursa/test.js | node_modules ursa/node_modules/ursa
 	genisoimage -l -r -o $@ ursa
@@ -29,7 +30,7 @@ inject_ursa: | node_modules ursa/node_modules/ursa
 
 .PHONY: run_ursa
 run_ursa: ursa.iso
-	rumprun kvm -M 160 -i -b ursa.iso,/ursa ../$(NODE_BIN) /ursa/test.js
+	rumprun kvm -M 160 -i -b ursa.iso,/ursa ../$(NODE_BIN).bin /ursa/test.js
 
 node_modules:
 	npm install webpack json-loader nad
