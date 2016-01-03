@@ -171,12 +171,10 @@ I've added an example of using an Addon in `examples/ursa/test.js`:
 Node 5
 ======
 
-Node 5.3.0 is known to build successfully. Change the first two lines of
-`Makefile.inc` to:
+Node 5.3.0 is known to build successfully:
 
-```make
-NODE_VERSION=5.3.0
-PKGSRC=nodejs
+```shell
+make NODE_VERSION=5.3.0 PKGSRC=nodejs
 ```
 
 Known Issues

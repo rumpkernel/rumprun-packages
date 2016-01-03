@@ -44,4 +44,4 @@ ursa/node_modules/ursa:
 
 .PHONY: clean
 clean:
-	rm -rf *.iso node_modules ursa/node_modules express-*
+	rm -rf *.iso node_modules ursa/node_modules express-* hello-world.js
