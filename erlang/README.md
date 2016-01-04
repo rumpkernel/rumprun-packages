@@ -52,18 +52,18 @@ The following build command will generate an image for non-smp, while using
 `hw` as the platform.
 
 ```
-rumpbake hw_virtio beam.hw.bin bin/beam
+rumprun-bake hw_virtio beam.hw.bin bin/beam
 ```
 
 The above can be either used in qemu or kvm. In case you
 want to use xen then the following commands can be used towards the same.
 
-> Note that the build commands in turn use *rumpbake* internally, so
-> be sure that you have built the appropriate platform for it
-> to work. Additionally rumpbake with xen_pv is used in the Makefile.
+> Note that the build commands in turn use *rumprun-bake* internally, so be
+> sure that you have built the appropriate platform for it to work.
+> Additionally rumprun-bake with xen_pv is used in the Makefile.
 
 ```
-rumpbake xen_pv bin/beam.xen_pv.bin bin/beam
+rumprun-bake xen_pv bin/beam.xen_pv.bin bin/beam
 ```
 
 Now you've got a baked unikernel image.
