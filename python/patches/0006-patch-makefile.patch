@@ -1,0 +1,138 @@
+--- a/Makefile.pre.in	2016-01-05 22:02:10.921176411 -0500
++++ b/Makefile.pre.in	2016-01-05 22:08:29.133166136 -0500
+@@ -218,10 +218,12 @@
+ LIBOBJDIR=	Python/
+ LIBOBJS=	@LIBOBJS@
+ 
+-PYTHON=		python$(EXE)
+-BUILDPYTHON=	python$(BUILDEXE)
++PYTHON=			python$(EXE)
++HOSTPYTHON=		hostpython
++BUILDPYTHON=		python$(BUILDEXE)
++HOSTBUILDPYTHON=	hostpython
+ 
+-PYTHON_FOR_BUILD=@PYTHON_FOR_BUILD@
++PYTHON_FOR_BUILD=@PYTHON_FOR_BUILD@
+ _PYTHON_HOST_PLATFORM=@_PYTHON_HOST_PLATFORM@
+ BUILD_GNU_TYPE=	@build@
+ HOST_GNU_TYPE=	@host@
+@@ -276,6 +278,7 @@
+ ##########################################################################
+ # Parser
+ PGEN=		Parser/pgen$(EXE)
++HOSTPGEN=	Parser/hostpgen
+ 
+ PSRCS=		\
+ 		Parser/acceler.c \
+@@ -506,7 +509,7 @@
+ 
+ run_profile_task:
+ 	: # FIXME: can't run for a cross build
+-	$(LLVM_PROF_FILE) $(RUNSHARED) ./$(BUILDPYTHON) $(PROFILE_TASK) || true
++	$(LLVM_PROF_FILE) $(RUNSHARED) ./$(HOSTBUILDPYTHON) $(PROFILE_TASK) || true
+ 
+ build_all_merge_profile:
+ 	$(LLVM_PROF_MERGER)
+@@ -712,11 +715,11 @@
+ 	$(LINKCC) $(PY_LDFLAGS) -o $@ Programs/_freeze_importlib.o $(LIBRARY_OBJS_OMIT_FROZEN) $(LIBS) $(MODLIBS) $(SYSLIBS) $(LDLAST)
+ 
+ Python/importlib_external.h: $(srcdir)/Lib/importlib/_bootstrap_external.py Programs/_freeze_importlib
+-	./Programs/_freeze_importlib \
++	./Programs/host_freeze_importlib \
+ 		$(srcdir)/Lib/importlib/_bootstrap_external.py Python/importlib_external.h
+ 
+ Python/importlib.h: $(srcdir)/Lib/importlib/_bootstrap.py Programs/_freeze_importlib
+-	./Programs/_freeze_importlib \
++	./Programs/host_freeze_importlib \
+ 		$(srcdir)/Lib/importlib/_bootstrap.py Python/importlib.h
+ 
+ 
+@@ -779,7 +782,7 @@
+ 
+ $(GRAMMAR_H): $(GRAMMAR_INPUT) $(PGEN)
+ 		@$(MKDIR_P) Include
+-		$(PGEN) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
++		$(HOSTPGEN) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
+ $(GRAMMAR_C): $(GRAMMAR_H)
+ 		touch $(GRAMMAR_C)
+ 
+@@ -866,7 +869,7 @@
+ 
+ Objects/typeobject.o: Objects/typeslots.inc
+ Objects/typeslots.inc: $(srcdir)/Include/typeslots.h $(srcdir)/Objects/typeslots.py
+-	$(PYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > Objects/typeslots.inc
++	$(HOSTPYTHON) $(srcdir)/Objects/typeslots.py < $(srcdir)/Include/typeslots.h > Objects/typeslots.inc
+ 
+ ############################################################################
+ # Header files
+@@ -968,7 +971,7 @@
+ ######################################################################
+ 
+ TESTOPTS=	$(EXTRATESTOPTS)
+-TESTPYTHON=	$(RUNSHARED) ./$(BUILDPYTHON) $(TESTPYTHONOPTS)
++TESTPYTHON=	$(RUNSHARED) ./$(HOSTBUILDPYTHON) $(TESTPYTHONOPTS)
+ TESTRUNNER=	$(TESTPYTHON) $(srcdir)/Tools/scripts/run_tests.py
+ TESTTIMEOUT=	3600
+ 
+@@ -1000,7 +1003,7 @@
+ 		fi
+ 		$(TESTRUNNER) -u all $(TESTOPTS)
+ 		$(RUNSHARED) /usr/libexec/oah/translate \
+-			./$(BUILDPYTHON) -E -m test -j 0 -u all $(TESTOPTS)
++			./$(HOSTBUILDPYTHON) -E -m test -j 0 -u all $(TESTOPTS)
+ 
+ # Like testall, but with only one pass and without multiple processes.
+ # Run an optional script to include information about the build environment.
+@@ -1078,7 +1081,7 @@
+ 		fi; \
+ 	done
+ 	if test "$(PYTHONFRAMEWORKDIR)" = "no-framework" ; then \
+-		$(INSTALL_PROGRAM) $(BUILDPYTHON) $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
++		$(INSTALL_PROGRAM) $(HOSTBUILDPYTHON) $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
+ 	else \
+ 		$(INSTALL_PROGRAM) $(STRIPFLAG) Mac/pythonw $(DESTDIR)$(BINDIR)/python$(LDVERSION)$(EXE); \
+ 	fi
+@@ -1455,7 +1458,7 @@
+ 		fi; \
+ 	done
+ 	$(LN) -fsn include/python$(LDVERSION) $(DESTDIR)$(prefix)/Headers
+-	sed 's/%VERSION%/'"`$(RUNSHARED) ./$(BUILDPYTHON) -c 'import platform; print(platform.python_version())'`"'/g' < $(RESSRCDIR)/Info.plist > $(DESTDIR)$(prefix)/Resources/Info.plist
++	sed 's/%VERSION%/'"`$(RUNSHARED) ./$(HOSTBUILDPYTHON) -c 'import platform; print(platform.python_version())'`"'/g' < $(RESSRCDIR)/Info.plist > $(DESTDIR)$(prefix)/Resources/Info.plist
+ 	$(LN) -fsn $(VERSION) $(DESTDIR)$(PYTHONFRAMEWORKINSTALLDIR)/Versions/Current
+ 	$(LN) -fsn Versions/Current/$(PYTHONFRAMEWORK) $(DESTDIR)$(PYTHONFRAMEWORKINSTALLDIR)/$(PYTHONFRAMEWORK)
+ 	$(LN) -fsn Versions/Current/Headers $(DESTDIR)$(PYTHONFRAMEWORKINSTALLDIR)/Headers
+@@ -1521,7 +1524,7 @@
+ 
+ # Run reindent on the library
+ reindent:
+-	./$(BUILDPYTHON) $(srcdir)/Tools/scripts/reindent.py -r $(srcdir)/Lib
++	./$(HOSTBUILDPYTHON) $(srcdir)/Tools/scripts/reindent.py -r $(srcdir)/Lib
+ 
+ # Rerun configure with the same options as it was run last time,
+ # provided the config.status script exists
+@@ -1583,6 +1586,7 @@
+ 	-rm -f pybuilddir.txt
+ 	-rm -f Lib/lib2to3/*Grammar*.pickle
+ 	-rm -f Programs/_testembed Programs/_freeze_importlib
++	-rm -f Programs/_testembed Programs/host_freeze_importlib
+ 	-rm -rf build
+ 
+ profile-removal:
+@@ -1592,7 +1596,7 @@
+ 	rm -rf $(COVERAGE_REPORT)
+ 
+ clobber: clean profile-removal
+-	-rm -f $(BUILDPYTHON) $(PGEN) $(LIBRARY) $(LDLIBRARY) $(DLLLIBRARY) \
++	-rm -f $(HOSTBUILDPYTHON) $(PGEN) $(LIBRARY) $(LDLIBRARY) $(DLLLIBRARY) \
+ 		tags TAGS \
+ 		config.cache config.log pyconfig.h Modules/config.c
+ 	-rm -rf build platform
+@@ -1656,7 +1660,7 @@
+ 
+ # Perform some verification checks on any modified files.
+ patchcheck: all
+-	$(RUNSHARED) ./$(BUILDPYTHON) $(srcdir)/Tools/scripts/patchcheck.py
++	$(RUNSHARED) ./$(HOSTBUILDPYTHON) $(srcdir)/Tools/scripts/patchcheck.py
+ 
+ # Dependencies
+ 

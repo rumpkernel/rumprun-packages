@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-UPSTREAM=https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
+UPSTREAM=https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
 
@@ -19,6 +19,7 @@ PYTHON_CONF_ENV += \
 	CPPFLAGS="$(CPPFLAGS) -static" \
 	CFLAGS="$(CFLAGS) -static" \
 	CC=$(RUMPRUN_CC) \
+	PYTHON_FOR_BUILD=$(shell pwd)/build/hostdist/bin/python3 \
 	CONFIG_SITE=config.site
 
 PYTHON_CONF_OPTS += \
@@ -29,21 +30,32 @@ PYTHON_CONF_OPTS += \
 	--enable-ipv6 \
         --without-ensurepip
 
-build/Makefile: build/stamp_patch
-	(cd build; $(PYTHON_CONF_ENV) ./configure $(PYTHON_CONF_OPTS))
-
-build/stamp_patch: build/configure patches/*
-	(cd build && ../../scripts/apply-patches.sh ./ ../patches/*)
-	touch $@
-
 dl/$(TARBALL):
 	mkdir -p dl
 	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
 
-build/configure: | dl/$(TARBALL)
+build/hostpython: | dl/$(TARBALL)
 	mkdir -p build
 	(cd build && tar -x --strip-components 1 -f ../dl/$(TARBALL))
+	(cd build; ./configure --prefix=$(shell pwd)/build/hostdist; make python Parser/pgen && make install)
+	mv build/python build/hostpython
+
+build/Parser/hostpgen: build/hostpython
+	mv build/Parser/pgen build/Parser/hostpgen
+
+build/Programs/host_freeze_importlib: build/Parser/hostpgen
+	mv build/Programs/_freeze_importlib build/Programs/host_freeze_importlib
+
+build/configure: build/Programs/host_freeze_importlib
+	(cd build; make distclean)
+
+build/stamp_patch: build/configure patches/*
 	cp config.site build/
+	(cd build && ../../scripts/apply-patches.sh ./ ../patches/*)
+	touch $@
+
+build/Makefile: build/stamp_patch
+	(cd build; $(PYTHON_CONF_ENV) ./configure $(PYTHON_CONF_OPTS))
 
 .PHONY: images
 images: images/stubetc.iso
@@ -54,7 +66,7 @@ images/stubetc.iso: images/python.iso ../stubetc/etc/*
 
 images/python.iso: build/python
 	mkdir -p images
-	genisoimage -l -r -o images/python.iso build/pythondist/lib/python3.4
+	genisoimage -l -r -o images/python.iso build/pythondist/lib/python3.5
 
 .PHONY: clean
 clean:

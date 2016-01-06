@@ -1,6 +1,6 @@
---- a/Modules/Setup.dist	2015-02-25 06:27:45.000000000 -0500
-+++ b/Modules/Setup.dist	2015-08-13 15:55:59.463164556 -0400
-@@ -153,6 +153,7 @@
+--- a/Modules/Setup.dist	2016-01-05 22:26:50.553136212 -0500
++++ b/Modules/Setup.dist	2016-01-05 23:18:06.409052646 -0500
+@@ -154,6 +154,7 @@
  # detail; also note that *static* reverses this effect):
  
  #*shared*
@@ -8,22 +8,18 @@
  
  # GNU readline.  Unlike previous Python incarnations, GNU readline is
  # now incorporated in an optional module, configured in the Setup file
-@@ -167,31 +168,31 @@
+@@ -168,30 +169,30 @@
  
  # Modules that should always be present (non UNIX dependent):
  
 -#array arraymodule.c	# array objects
--#cmath cmathmodule.c _math.c # -lm # complex math library functions
++array arraymodule.c	# array objects
+ #cmath cmathmodule.c _math.c # -lm # complex math library functions
 -#math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
 -#_struct _struct.c	# binary structure packing/unpacking
--#time timemodule.c # -lm # time operations and variables
--#_weakref _weakref.c	# basic weak reference support
-+array arraymodule.c	# array objects
-+cmath cmathmodule.c _math.c # -lm # complex math library functions
 +math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
 +_struct _struct.c	# binary structure packing/unpacking
-+time timemodule.c # -lm # time operations and variables
-+_weakref _weakref.c	# basic weak reference support
+ #_weakref _weakref.c	# basic weak reference support
  #_testcapi _testcapimodule.c    # Python C API test module
 -#_random _randommodule.c	# Random number generator
 -#_elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
@@ -125,4 +121,3 @@
  
  # Interface to the Expat XML parser
  #
-
