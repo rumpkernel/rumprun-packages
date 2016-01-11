@@ -1,8 +1,9 @@
 Overview
 ========
 
-This document will enable you to bake erlang on rumprun and launch
-it within qemu, while running in xen falls on the same lines.
+This packages [Erlang/OTP](http://erlang.se/) for 18.2.1 the
+development environment for building distributed real-time
+high-availability systems.
 
 Patches
 =======
