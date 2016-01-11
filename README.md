@@ -44,7 +44,10 @@ Contributing new packages
 New packages are contributed by creating the package and, after
 sufficient testing, opening a pull request.  If you are a contributor
 with push access to rumprun-packages, you may also push directly into
-the repository instead of going the pull request route.
+the repository instead of going the pull request route. __If you push
+directly, make sure you push only the commit(s) you meant to push.__
+Opening a pull request and merging it from the GitHub web interface
+gives you an extra review step, so it is safer in that regard.
 
 When creating new packages, include the following sections in the
 package-specific README:
