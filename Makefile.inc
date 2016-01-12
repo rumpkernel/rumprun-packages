@@ -33,6 +33,6 @@ endif
 RUMPRUN_PKGS_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/pkgs
 
 CPPFLAGS+=-I$(RUMPRUN_PKGS_DIR)/include
-LDFLAGS+=-I$(RUMPRUN_PKGS_DIR)/lib
+LDFLAGS+=-L$(RUMPRUN_PKGS_DIR)/lib
 export CPPFLAGS
 export LDFLAGS
