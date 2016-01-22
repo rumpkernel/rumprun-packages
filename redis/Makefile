@@ -1,10 +1,13 @@
 include ../Makefile.inc
-UPSTREAM=http://download.redis.io/releases/redis-3.0.2.tar.gz
+UPSTREAM=http://download.redis.io/releases/redis-3.0.6.tar.gz
+PERSISTENCE_SIZE=2048
 CC=$(RUMPRUN_CC)
 CXX=$(RUMPRUN_CXX)
 export CC CXX
 
 all: bin/redis-server images/data.iso
+
+aof: all images/datapers.iso
 
 bin/redis-server: build/redis-server
 	mkdir -p bin
@@ -19,10 +22,19 @@ build/Makefile:
 	(cd build && tar -xz --strip-components 1 -f redis.tar.gz)
 
 images/data.iso: images/data/conf/*
-	genisoimage -l -r -o $@ images/data
+	$(RUMPRUN_GENISOIMAGE) -o $@ images/data
+
+images/datapers.iso:
+	dd if=/dev/zero of=$@ bs=1024k seek=$(PERSISTENCE_SIZE) count=0
+	mkfs.ext2 -q images/datapers.iso
 
 .PHONY: clean
-clean:
-	-$(MAKE) -C build clean
-	rm -f bin/*
+clean:	clean/build clean/bin
+	
+clean/build:
+	rm -rf build
+
+clean/bin:
+	rm -rf bin
 	rm -f images/data.iso
+	rm -f images/datapers.iso
