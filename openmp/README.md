@@ -50,9 +50,9 @@ First you have to make sure that `RUMPRUN_TOOLCHAIN_TUPLE` is set and the path t
 ```
 $ make
 ```
-The Makefile determines your currently installed GCC version and fetches the proper GCC sources brnach required to build libgomp (OpenMP library) for Rumprun.
+The Makefile determines your currently installed GCC version and fetches the proper GCC sources branch required to build libgomp (OpenMP library) for Rumprun.
 
-When the build/fetch process was succesfull you will find two new folders named `include` and `lib`  with the OpenMP header file and the OpenMP static library. To build an OpenMP application now you have to compile the application supplying additional the path to the two folders mentioned above as arguments.
+When the build/fetch process was successful you will find two new directories named `include` and `lib`  with the OpenMP header file and the OpenMP static library. To build an OpenMP application for Rumprun you have to compile the application supplying additional the path to the two directories mentioned above as arguments.
 
 ```
 $ x86_64-rumprun-netbsd-gcc ./example/omp_hello.c -I ./include \
