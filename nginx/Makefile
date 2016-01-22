@@ -45,7 +45,6 @@ NGINX_CONF_OPTS += \
 	--http-fastcgi-temp-path=/tmp/fastcgi \
 	--http-scgi-temp-path=/tmp/scgi \
 	--http-uwsgi-temp-path=/tmp/uwsgi \
-	--without-http_rewrite_module \
 	--with-http_ssl_module \
 	--with-ipv6 \
 	--with-pcre
