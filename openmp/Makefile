@@ -11,8 +11,6 @@ bin/openmp:	build/openmp
 	cp gcc-build/omp.h include/
 	mkdir -p lib
 	cp gcc-build/.libs/libgomp.a lib/
-	rm -rf gcc-build
-	rm -rf gcc-source
 
 build/openmp:	build/configure
 	cd gcc-build; $(MAKE)
@@ -23,17 +21,22 @@ build/configure:	build/getsource
 	
 build/getsource:	build/gcc-branch
 	mkdir -p gcc-source
-	sh ./scripts/git_clone.sh $(UPSTREAM) gcc-source $(GCC_BRANCH)
+	$(eval RET_CODE=$(shell git clone -b $(GCC_BRANCH) $(UPSTREAM) gcc-source))
+	$(if $(RET_CODE)==0,,$(error Clone of Git Repository failed!))
 	
 build/gcc-branch:
 	
 #Call Shell Script that determines GCC Version and exports it as gcc_branch variable
-	$(eval GCC_BRANCH:=$(shell ./scripts/get_gcc_ver.sh))
-	$(if $(GCC_BRANCH),,$(error gcc_branch is not set))
+	$(eval GCC_BRANCH:=$(shell ./scripts/get_gcc_ver.sh $(CC)))
+	$(if $(GCC_BRANCH),,$(error GCC_BRANCH variable is not set!))
 
 .PHONY: clean
-clean:
+clean: clean/sources clean/build
+
+clean/sources:
 	rm -rf gcc-source
 	rm -rf gcc-build
+	
+clean/build:
 	rm -rf include
 	rm -rf lib
