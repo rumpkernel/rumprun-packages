@@ -1,5 +1,7 @@
 include ../Makefile.inc
-UPSTREAM=http://download.redis.io/releases/redis-3.0.2.tar.gz
+VERSION=3.0.6
+TARBALL=redis-${VERSION}.tar.gz
+UPSTREAM=http://download.redis.io/releases/${TARBALL}
 CC=$(RUMPRUN_CC)
 CXX=$(RUMPRUN_CXX)
 export CC CXX
@@ -13,10 +15,12 @@ bin/redis-server: build/redis-server
 build/redis-server: build/Makefile
 	$(MAKE) -C build MALLOC=libc redis-server
 
-build/Makefile:
+build/Makefile: build/${TARBALL}
+	(cd build && tar -xz --strip-components 1 -f ${TARBALL})
+
+build/${TARBALL}:
 	mkdir -p build
-	../scripts/fetch.sh ${UPSTREAM} build/redis.tar.gz
-	(cd build && tar -xz --strip-components 1 -f redis.tar.gz)
+	../scripts/fetch.sh ${UPSTREAM} build/${TARBALL}
 
 images/data.iso: images/data/conf/*
 	$(RUMPRUN_GENISOIMAGE) -o $@ images/data
