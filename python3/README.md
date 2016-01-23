@@ -1,7 +1,7 @@
 Overview
 ========
 
-Using the following instructions, you will cross-compile python 3.4.3
+Using the following instructions, you will cross-compile python 3.5.1
 for rumprun, compile a python program to C using `cython` and launch
 the result as a rumprun guest.
 
@@ -28,7 +28,7 @@ Instructions
 ============
 
 Run this `make` from a user account, *not the root account*. At the end of the
-Python installation, the build will attempt to install packages in `/usr/lib/python3.4/site-packages/`
+Python installation, the build will attempt to install packages in `/usr/lib/python3.5/site-packages/`
 even though the install prefix doesn't point there.
 
 The build script requires `genisoimage` to create the `stubetc.iso` and `python.iso` images.
@@ -71,26 +71,25 @@ may see some link errors related to rc5. This doesn't affect the example.
 ```
 x86_64-rumprun-netbsd-gcc examples/hw.c \
 	-o examples/hw \
-	-Ibuild/pythondist/include/python3.4m \
+	-Ibuild/pythondist/include/python3.5m \
 	-I../pkgs/include \
 	-Lbuild/pythondist/lib \
 	-L../pkgs/lib \
-
-	-lpython3.4m -lutil -lm -lz -lssl -lcrypto -lsqlite3
+	-lpython3.5m -lutil -lm -lz -lssl -lcrypto -lsqlite3
 ```
 
 Now you've got a unikernel image. You just need to bake it. We'll use the hw_generic since
 we don't have any additional needs.
 
 ```
-rumpbake hw_generic examples/hw.bin examples/hw
+rumprun-bake hw_generic examples/hw.bin examples/hw
 ```
 
 You are now ready to run your first Python unikernel. To run the rumpkernel using KVM, the following will work:
 
 ```
 rumprun kvm -i \
-   -b images/python.iso,/python/lib/python3.4 \
+   -b images/python.iso,/python/lib/python3.5 \
    -b images/stubetc.iso,/etc \
    -e PYTHONHOME=/python \
    examples/hw.bin
