@@ -8,7 +8,7 @@ the result as a rumprun guest.
 Maintainer
 ----------
 
-* Ryan Day, ryan@ryanday.net
+* Ryan Day, rday@rumpkernel.org
 * Github: @rday
 
 
@@ -37,63 +37,41 @@ The example program requires `cython` to compile the python script, and autotool
 Run `make` from the python package directory:
 
 ```
-cd rumprun-packages/python
+cd rumprun-packages/python3
 make
 ```
-
-Errors
-======
-
-An error happens while linking the Unikernel:
-
-```
-warning: RC5 is a patented algorithm; link against libcrypto_rc5
-```
-
-This is, of course, dependent on your crypto library. The warning is to be expected.
-
 
 Examples
 ========
 
-In order to run a Python program, you will need to use `cython` to compile one module. Cython
-will provide a `main` function that will embed the python interpreter. This module can then import
-and run pure python code.
+In order to run a Python program, you will need to create one module that can be loaded by the
+interpreter from the command line. One such module exists already in the examples/ directory. First, 
+create an ISO containing that example module.
 
 ```
-cython --embed -v -3 -Werror -o examples/hw.c examples/hw.py
+genisoimage -r -o examples/main.iso examples/main.py
 ```
 
-Next you need to compile the cython generated C file using the rumprun cross compiler. Be sure
-to link any libraries required for the static modules you have built. When using crypto, you
-may see some link errors related to rc5. This doesn't affect the example.
+Now you must bake the rumprun unikernel.
 
 ```
-x86_64-rumprun-netbsd-gcc examples/hw.c \
-	-o examples/hw \
-	-Ibuild/pythondist/include/python3.5m \
-	-I../pkgs/include \
-	-Lbuild/pythondist/lib \
-	-L../pkgs/lib \
-	-lpython3.5m -lutil -lm -lz -lssl -lcrypto -lsqlite3
+rumprun-bake hw_generic examples/python.bin build/python 
 ```
 
-Now you've got a unikernel image. You just need to bake it. We'll use the hw_generic since
-we don't have any additional needs.
-
-```
-rumprun-bake hw_generic examples/hw.bin examples/hw
-```
-
-You are now ready to run your first Python unikernel. To run the rumpkernel using KVM, the following will work:
+You are now ready to run the Python example. To run the rumpkernel using KVM, the following will work:
 
 ```
 rumprun kvm -i \
    -b images/python.iso,/python/lib/python3.5 \
    -b images/stubetc.iso,/etc \
+   -b examples/main.iso,/python/lib/python3.5/site-packages \
    -e PYTHONHOME=/python \
-   examples/hw.bin
+   -- examples/python.bin -m main
 ```
+
+Please note that the *main.iso* file is being mounted in the *site-packages/* directory. This 
+is what let's you import the *main* module from the command line and get your Python application
+running.
 
 You will have to replace `kvm` with `xen` to run under Xen.
 
