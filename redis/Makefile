@@ -19,7 +19,7 @@ build/Makefile:
 	(cd build && tar -xz --strip-components 1 -f redis.tar.gz)
 
 images/data.iso: images/data/conf/*
-	genisoimage -l -r -o $@ images/data
+	$(RUMPRUN_GENISOIMAGE) -o $@ images/data
 
 .PHONY: clean
 clean:
