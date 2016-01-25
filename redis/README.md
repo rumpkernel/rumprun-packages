@@ -19,7 +19,7 @@ Known Issues
 ------------
 
 - RDB Data persistence is disabled in the config as redis forks to snapshot data
-- AOF (Append Only File) works for persistence by building redis with `make aof`
+- AOF (Append Only File) works for persistence by building redis (*default `make`*)
 
  **See (http://redis.io/topics/persistence) for an comparison of AOF and RDB persistence mode**
 
@@ -31,9 +31,10 @@ The build script also requires `genisoimage` in order to build the ISO image
 for `/data` and `/backup`
 
 **There are two build options:**
--  `make` builds redis **without** any persistence
--  `make aof` builds redis with AOF persistence
+-  `make` builds redis with AOF persistence
+-  `make cache` builds redis **without** persistence (e.g. when used as a cache)
 
+**Running redis with AOF persistence decreases performance compared to version without persistance**
 
 Bake the final unikernel image:
 ```
@@ -49,7 +50,19 @@ This example uses QEMU/KVM and "tap" networking. Depending on your QEMU network
 setup, you may need to configure the `tap0` interface manually after the
 unikernel has started.
 
-Run Redis without any Persistence (build with `make`)
+
+Run redis with AOF persistence (build with `make`)
+------------------------------------------------------
+````
+rumprun qemu -i -M 256 \
+    -I if,vioif,'-net tap,script=no,ifname=tap0' \
+    -W if,inet,static,10.0.120.101/24 \
+    -b images/data.iso,/data \
+    -b images/datapers.img,/backup \
+    -- bin/redis-server.bin /data/conf/redisaof.conf
+````
+
+Run Redis without any Persistence (build with `make cache`)
 ------------------------------------------------------
 ````
 rumprun qemu -i -M 256 \
@@ -57,16 +70,6 @@ rumprun qemu -i -M 256 \
     -W if,inet,static,10.0.120.101/24 \
     -b images/data.iso,/data \
     -- bin/redis-server.bin /data/conf/redis.conf
-````
-Run redis with AOF persistence (build with `make aof`)
-------------------------------------------------------
-````
-rumprun qemu -i -M 256 \
-    -I if,vioif,'-net tap,script=no,ifname=tap0' \
-    -W if,inet,static,10.0.120.101/24 \
-    -b images/data.iso,/data \
-    -b images/datapers.iso,/backup \
-    -- bin/redis-server.bin /data/conf/redisaof.conf
 ````
 
 
