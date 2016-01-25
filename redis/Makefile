@@ -5,9 +5,9 @@ CC=$(RUMPRUN_CC)
 CXX=$(RUMPRUN_CXX)
 export CC CXX
 
-all: bin/redis-server images/data.iso
+all: bin/redis-server images/data.iso images/datapers.img
 
-aof: all images/datapers.iso
+cache: bin/redis-server images/data.iso
 
 bin/redis-server: build/redis-server
 	mkdir -p bin
@@ -24,9 +24,9 @@ build/Makefile:
 images/data.iso: images/data/conf/*
 	$(RUMPRUN_GENISOIMAGE) -o $@ images/data
 
-images/datapers.iso:
+images/datapers.img:
 	dd if=/dev/zero of=$@ bs=1024k seek=$(PERSISTENCE_SIZE) count=0
-	mkfs.ext2 -q images/datapers.iso
+	mkfs.ext2 -q $@
 
 .PHONY: clean
 clean:	clean/build clean/bin
