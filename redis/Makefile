@@ -1,12 +1,14 @@
 include ../Makefile.inc
-VERSION=3.0.6
-TARBALL=redis-${VERSION}.tar.gz
-UPSTREAM=http://download.redis.io/releases/${TARBALL}
+UPSTREAM=http://download.redis.io/releases/redis-3.0.6.tar.gz
+TARBALL=$(notdir $(UPSTREAM))
+PERSISTENCE_SIZE=2048
 CC=$(RUMPRUN_CC)
 CXX=$(RUMPRUN_CXX)
 export CC CXX
 
-all: bin/redis-server images/data.iso
+all: bin/redis-server images/data.iso images/datapers.img
+
+cache: bin/redis-server images/data.iso
 
 bin/redis-server: build/redis-server
 	mkdir -p bin
@@ -15,18 +17,28 @@ bin/redis-server: build/redis-server
 build/redis-server: build/Makefile
 	$(MAKE) -C build MALLOC=libc redis-server
 
-build/Makefile: build/${TARBALL}
-	(cd build && tar -xz --strip-components 1 -f ${TARBALL})
-
-build/${TARBALL}:
+build/Makefile: dl/${TARBALL}
 	mkdir -p build
-	../scripts/fetch.sh ${UPSTREAM} build/${TARBALL}
+	(cd build && tar -xz --strip-components 1 -f ../dl/${TARBALL})
+
+dl/$(TARBALL):
+	mkdir -p dl
+	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
 
 images/data.iso: images/data/conf/*
 	$(RUMPRUN_GENISOIMAGE) -o $@ images/data
 
+images/datapers.img:
+	dd if=/dev/zero of=$@ bs=1024k seek=$(PERSISTENCE_SIZE) count=0
+	mkfs.ext2 -q $@
+
 .PHONY: clean
-clean:
-	-$(MAKE) -C build clean
-	rm -f bin/*
+clean:	clean/build clean/bin
+	
+clean/build:
+	rm -rf build
+
+clean/bin:
+	rm -rf bin
 	rm -f images/data.iso
+	rm -f images/datapers.iso
