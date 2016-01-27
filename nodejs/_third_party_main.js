@@ -1,5 +1,7 @@
 var path = require('path'),
+    fs = require('fs'),
     mod = require('module'),
+    dir = path.dirname(process.argv[0]),
     orig_load = mod._load;
 
 mod._load = function (id)
@@ -17,13 +19,19 @@ mod._load = function (id)
     return orig_load.apply(this, arguments);
 };
 
-process.chdir(path.dirname(process.argv[0]));
+fs.stat(dir, function (err, stats)
+{
+    if (stats && stats.isDirectory())
+    {
+        process.chdir(dir);
+    }
 
-if (process.argv[1])
-{
-    mod.runMain();
-}
-else
-{
-    require('rumpmain');
-}
+    if (process.argv[1])
+    {
+        mod.runMain();
+    }
+    else
+    {
+        require('rumpmain');
+    }
+});
