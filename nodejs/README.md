@@ -78,6 +78,8 @@ genisoimage -l -r -o express.iso express/
 rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i -b express.iso,/express build-4.2.4/out/Release/node-default.bin /express/examples/hello-world/index.js
 ```
 
+Point your browser to [http://localhost:3000](http://localhost:3000)
+
 The second option is to bundle your entire application into a single file,
 and link `rumpmain.js` to it. You can do this using
 [webpack](http://webpack.github.io/).
@@ -167,6 +169,41 @@ I've added an example of using an Addon in `examples/ursa/test.js`:
 3. Bake the Node binary (e.g. `rumprun-bake hw_generic build-4.2.4/out/Release/node-default.bin build-4.2.4/out/Release/node-default`)
 4. In the `examples` directory, run `make run_ursa`. You should see a
    PEM-formatted public key displayed.
+
+A Large Web App Example
+=======================
+
+Coming soon...
+
+Some Fun Examples
+=================
+
+Here are instructions for running a couple of Node.js multiplayer games on
+Rumprun.
+
+[Nodekick](https://github.com/amirrajan/nodekick)
+-------------------------------------------------
+
+```shell
+git clone --depth=1 https://github.com/amirrajan/nodekick.git
+(cd nodekick; npm install)
+genisoimage -l -r -o nodekick.iso nodekick
+qemu-system-x86_64 -enable-kvm -m 160 -kernel build-4.2.4/out/Release/node-default.bin -drive if=virtio,file=nodekick.iso -net nic,model=virtio -net user,hostfwd=tcp::3000-:3000 -append '{"net": {"if": "vioif0",, "type": "inet",, "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/nodekick"},, "cmdline": "/nodekick/node /nodekick/server.js"}'
+```
+
+Point your browser to [http://localhost:3000](http://localhost:3000)
+
+[Chess](https://github.com/thebinarypenguin/socket.io-chess)
+------------------------------------------------------------
+
+```shell
+git clone --depth=1 https://github.com/thebinarypenguin/socket.io-chess.git
+(cd socket.io-chess; npm install)
+genisoimage -l -r -o socket.io-chess.iso socket.io-chess
+qemu-system-x86_64 -enable-kvm -m 256 -kernel build-4.2.4/out/Release/node-default.bin -drive if=virtio,file=socket.io-chess.iso -net nic,model=virtio -net user,hostfwd=tcp::3000-:3000 -append '{"net": {"if": "vioif0",, "type": "inet",, "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/chess"},, "cmdline": "node /chess/server.js"}'
+```
+
+Point your browser to [http://localhost:3000](http://localhost:3000)
 
 Node 5
 ======
