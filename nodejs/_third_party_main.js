@@ -17,6 +17,8 @@ mod._load = function (id)
     return orig_load.apply(this, arguments);
 };
 
+process.chdir(path.dirname(process.argv[0]));
+
 if (process.argv[1])
 {
     mod.runMain();
