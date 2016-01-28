@@ -1,7 +1,7 @@
 Overview
 ========
 
-Packaging of the [Nanomsg](https://www.nanomsg.org/).
+Packaging of the [Nanomsg](https://www.nanomsg.org/), a socket library written in C that provides several common communication patterns.
 
 
 Maintainer
