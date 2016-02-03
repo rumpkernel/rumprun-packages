@@ -110,10 +110,9 @@ I've implemented a third option which works better with larger applications
 (actually with any application).
 
 First you Zip up your application. Then you run `zipload.sh`, passing the Zip
-file in as standard input and the name of the script inside the Zip file which
-should be run after the Rumpkernel starts. `zipload.sh` will write a completely
-self-contained script to standard output, which you can then save and link
-`rumpmain.js` to.
+file as standard input and the name of the script inside the Zip file to run
+as a parameter. `zipload.sh` will write a completely self-contained script to
+standard output, which you can then save and link `rumpmain.js` to.
 
 For example:
 
