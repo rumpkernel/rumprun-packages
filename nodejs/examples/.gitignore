@@ -2,3 +2,9 @@ node_modules
 /express-*
 /*.iso
 /hello-world.js
+/nodekick
+/socket.io-chess
+/Ghost-*
+/ghost-*.js
+/ghost_data.img
+/bootstrap.js

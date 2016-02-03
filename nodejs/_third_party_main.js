@@ -26,12 +26,10 @@ fs.stat(dir, function (err, stats)
         process.chdir(dir);
     }
 
-    if (process.argv[1])
+    if (process.argv.length == 1)
     {
-        mod.runMain();
+        process.argv.push('rumpmain');
     }
-    else
-    {
-        require('rumpmain');
-    }
+
+    mod.runMain();
 });
