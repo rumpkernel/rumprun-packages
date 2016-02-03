@@ -1,0 +1,19 @@
+--- lib/module.js.orig	2016-02-01 17:44:10.025019524 +0000
++++ lib/module.js	2016-02-01 17:48:10.477903962 +0000
+@@ -8,8 +8,14 @@
+ const assert = require('assert').ok;
+ const fs = require('fs');
+ const path = require('path');
+-const internalModuleReadFile = process.binding('fs').internalModuleReadFile;
+-const internalModuleStat = process.binding('fs').internalModuleStat;
++function internalModuleReadFile()
++{
++    return process.binding('fs').internalModuleReadFile.apply(this, arguments);
++}
++function internalModuleStat()
++{
++    return process.binding('fs').internalModuleStat.apply(this, arguments);
++}
+ 
+ const splitRe = process.platform === 'win32' ? /[\/\\]/ : /\//;
+ const isIndexRe = /^index\.\w+?$/;

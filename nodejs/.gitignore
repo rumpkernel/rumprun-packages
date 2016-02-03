@@ -1,5 +1,3 @@
 /build-*
 /dl
 /patches/**/CVS
-/nodekick*
-/socket.io-chess*

@@ -1,17 +1,14 @@
-Overview
-========
+# Overview
 
 This is Node.js 4.2.4 LTS for Rumprun. Use any of the thousands of npm packages
 or run your own Javascript modules on the Rumprun unikernel.
 
-Maintainer
-----------
+## Maintainer
 
 * David Halls, dahalls@gmail.com
 * Github: @davedoesdev
 
-Patches
-=======
+# Patches
 
 The build process first applies the NetBSD pkgsrc patches for Node.js and then
 applies patches from the `patches` directory.
@@ -27,8 +24,7 @@ There are a couple of changes worth noting:
   be enough for small programs. If you need more, use the `--code-range-size`
   argument when you use `rumprun` to launch Node (e.g. `--code-range-size=64`).
 
-Instructions
-============
+# Instructions
 
 Run `make`. This will produce `build-4.2.4/out/Release/node-default`, which you
 can then pass to `rumprun-bake` &mdash; for example:
@@ -43,8 +39,7 @@ You can then run Node using something like this:
 rumprun kvm -M 160 -i build-4.2.4/out/Release/node-default.bin
 ```
 
-Examples
-========
+# Examples
 
 The files `_third_party_main.js` and `rumpmain.js` in this directory are bundled
 into `build-4.2.4/out/Release/node-default`. `_third_party_main.js` runs when
@@ -61,8 +56,10 @@ output binary too, based on the name of the file you link to. For example,
 if you link `rumpmain.js` to `foo.js` then `make` will produce
 `build-4.2.4/out/Release/node-foo`.
 
-Most applications require code in separate modules, and you have two
+Most applications require code in separate modules, and you have three
 options for running these.
+
+## Separate filesystem
 
 The first option is to put your application's files into a filesystem (e.g.
 using `genisoimage`) and attach it to `rumprun` using the `-b` option. You can
@@ -78,15 +75,23 @@ genisoimage -l -r -o express.iso express/
 rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i -b express.iso,/express build-4.2.4/out/Release/node-default.bin /express/examples/hello-world/index.js
 ```
 
+or in the `examples` directory:
+
+```shell
+make run_express_hello_world
+```
+
 Point your browser to [http://localhost:3000](http://localhost:3000)
+
+## Webpack/Browserify
 
 The second option is to bundle your entire application into a single file,
 and link `rumpmain.js` to it. You can do this using
-[webpack](http://webpack.github.io/).
+[webpack](http://webpack.github.io/) or [browserify](http://browserify.org/).
 
 For instance, to run the same Express "Hello World" example:
 
-```
+```shell
 npm install webpack json-loader
 (cd express; npm install --production)
 ./node_modules/.bin/webpack --target node --module-bind json ./express/examples/hello-world/index.js hello-world.js
@@ -96,28 +101,51 @@ rumprun-bake hw_generic build-4.2.4/out/Release/node-hello-world.bin build-4.2.4
 rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i build-4.2.4/out/Release/node-hello-world.bin
 ```
 
-You can find a sample `Makefile` for both options in the `examples` directory.
+This approach is fine for applications which are compatible with Webpack or
+Browserify but larger applications can require quite a bit of tweaking.
 
-In the `examples` directory, type the following to run the filesystem (`.iso`)
-option:
+## Ziploader
+
+I've implemented a third option which works better with larger applications
+(actually with any application).
+
+First you Zip up your application. Then you run `zipload.sh`, passing the Zip
+file in as standard input and the name of the script inside the Zip file which
+should be run after the Rumpkernel starts. `zipload.sh` will write a completely
+self-contained script to standard output, which you can then save and link
+`rumpmain.js` to.
+
+For example:
 
 ```shell
-make run_express_hello_world
+zip -r express.zip express
+./zipload.sh ./express/examples/hello-world/index.js < express.zip > hello-world.js
+ln -sf hello-world.js rumpmain.js
+make
+rumprun-bake hw_generic build-4.2.4/out/Release/node-hello-world.bin build-4.2.4/out/Release/node-hello-world
+rumprun kvm -M 160 -I 'nic,vioif,-net user,hostfwd=tcp::3000-:3000' -W nic,inet,dhcp -i build-4.2.4/out/Release/node-hello-world.bin
 ```
 
-Type the following to run the bundled version:
+or in the `examples` directory:
 
 ```shell
 make bundle_express_hello_world
 rumprun-bake hw_generic ../build-4.2.4/out/Release/node-hello-world.bin ../build-4.2.4/out/Release/node-hello-world
-make run_kvm
+make run_bundled_express_hello_world
 ```
 
-Please note it's best to use Node 4.2.4 (and associated `npm` version) on your
-build system when installing you application's dependencies.
+Behind the scenes, Node's `fs` module is monkey-patched to load modules and
+files from the Zip file. The Zip file is written into the script as a
+base64-encoded string and accessed using
+[JSZip](https://stuk.github.io/jszip/), which is also bundled into the script.
 
-Native Addons
-=============
+## Baked-in disk image
+
+Yes, this is the fourth of three options and isn't available yet!
+Hopefully one day, Rumprun will be able to bake file system images into the
+Rumpkernel binaries and mount them as virtual disks for applications to access.
+
+# Native Addons
 
 Some Node modules use Node.js native
 [Addons](https://nodejs.org/api/addons.html). These are compiled from C++ into
@@ -170,10 +198,22 @@ I've added an example of using an Addon in `examples/ursa/test.js`:
 4. In the `examples` directory, run `make run_ursa`. You should see a
    PEM-formatted public key displayed.
 
-A Large Web App Example
-=======================
+A Serious Example
+=================
 
-Coming soon...
+I've got the [Ghost](https://ghost.org/) blogging platform running under
+Rumprun:
+
+```shell
+cd examples
+make bundle_ghost ghost_data.img
+rumprun-bake hw_generic ../build-4.2.4/out/Release/node-ghost-0.7.5.bin ../build-4.2.4/out/Release/node-ghost-0.7.5 
+qemu-system-x86_64 -enable-kvm -m 1024 -kernel ../build-4.2.4/out/Release/node-ghost-0.7.5.bin -drive if=virtio,file=ghost_data.img -net nic,model=virtio -net user,hostfwd=tcp::2368-:2368 -append '{"net": {"if": "vioif0",, "type": "inet",,  "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/ghost_data"},, "env": "GHOST_CONFIG=/ghost_data/config.js",, "cmdline": "node --code-range-size=64"}' 
+```
+
+Point your browser to [http://localhost:2368](http://localhost:2368)
+
+The persistent data is kept in `ghost_data.img`.
 
 Some Fun Examples
 =================
@@ -185,10 +225,11 @@ Rumprun.
 -------------------------------------------------
 
 ```shell
+cd examples
 git clone --depth=1 https://github.com/amirrajan/nodekick.git
 (cd nodekick; npm install)
 genisoimage -l -r -o nodekick.iso nodekick
-qemu-system-x86_64 -enable-kvm -m 160 -kernel build-4.2.4/out/Release/node-default.bin -drive if=virtio,file=nodekick.iso -net nic,model=virtio -net user,hostfwd=tcp::3000-:3000 -append '{"net": {"if": "vioif0",, "type": "inet",, "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/nodekick"},, "cmdline": "/nodekick/node /nodekick/server.js"}'
+qemu-system-x86_64 -enable-kvm -m 160 -kernel ../build-4.2.4/out/Release/node-default.bin -drive if=virtio,file=nodekick.iso -net nic,model=virtio -net user,hostfwd=tcp::3000-:3000 -append '{"net": {"if": "vioif0",, "type": "inet",, "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/nodekick"},, "cmdline": "/nodekick/node /nodekick/server.js"}'
 ```
 
 Point your browser to [http://localhost:3000](http://localhost:3000)
@@ -197,10 +238,11 @@ Point your browser to [http://localhost:3000](http://localhost:3000)
 ------------------------------------------------------------
 
 ```shell
+cd examples
 git clone --depth=1 https://github.com/thebinarypenguin/socket.io-chess.git
 (cd socket.io-chess; npm install)
 genisoimage -l -r -o socket.io-chess.iso socket.io-chess
-qemu-system-x86_64 -enable-kvm -m 256 -kernel build-4.2.4/out/Release/node-default.bin -drive if=virtio,file=socket.io-chess.iso -net nic,model=virtio -net user,hostfwd=tcp::3000-:3000 -append '{"net": {"if": "vioif0",, "type": "inet",, "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/chess"},, "cmdline": "node /chess/server.js"}'
+qemu-system-x86_64 -enable-kvm -m 256 -kernel ../build-4.2.4/out/Release/node-default.bin -drive if=virtio,file=socket.io-chess.iso -net nic,model=virtio -net user,hostfwd=tcp::3000-:3000 -append '{"net": {"if": "vioif0",, "type": "inet",, "method":"dhcp"},, "blk": {"source": "dev",, "path": "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/chess"},, "cmdline": "node /chess/server.js"}'
 ```
 
 Point your browser to [http://localhost:3000](http://localhost:3000)
@@ -221,3 +263,5 @@ Known Issues
   you might run into problems. You'll end up with conflicting definitions for
   `module_root_dir`, so if both the Addons rely on its value then one will
   fail to compile.
+- It's best to use Node 4.2.4 (and associated `npm` version) on your build
+  system when installing you application's dependencies.
