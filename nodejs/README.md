@@ -158,7 +158,7 @@ files from the Zip file. The Zip file is written into the script as a
 base64-encoded string and accessed using
 [JSZip](https://stuk.github.io/jszip/), which is also bundled into the script.
 
-This option produces a smaler single image than the baked-in filesystem option
+This option produces a smaller single image than the baked-in filesystem option
 but does incur an overhead in decompressing modules before they're loaded.
 
 # Native Addons
