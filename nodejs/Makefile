@@ -56,6 +56,7 @@ patches/$(PKGSRC_DIR):
 .PHONY: clean
 clean:
 	if [ -d $(BUILD_DIR) ]; then $(MAKE) -C $(BUILD_DIR) clean; rm -f $(NODE_BIN) $(NODE_BIN).bin; fi
+	ln -sf default.js rumpmain.js
 	$(MAKE) -C examples clean
 
 .PHONY: distclean
