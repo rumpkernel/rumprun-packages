@@ -9,7 +9,7 @@ Packaging of [Roundcube webmail](https://roundcube.net/) 1.1.2 for rumprun.
 
 ## Instructions
 
-* Build and `rumpbake` the `nginx`, `php` and `mysql` packages.
+* Build and `rumprun-bake` the `nginx`, `php` and `mysql` packages.
 * With the `roundcube` package:
   * Edit `config/etc-hosts` and `run/*.sh` to suit your network configuration.
   * Edit `config/config.inc.php` to set your IMAP and SMTP configuration.

@@ -8,7 +8,7 @@ version 0.5.0.
 
 This package also fetches and builds a copy of
 [cargo-rumpbake](https://github.com/gandro/cargo-rumpbake), a small wrapper
-around `cargo build` and `rumpbake` which simplifies building and baking when
+around `cargo build` and `rumprun-bake` which simplifies building and baking when
 using `cargo` as a build tool.
 
 Maintainer
@@ -67,7 +67,7 @@ for the Rumprun target with `--target=x86_64-rumprun-netbsd`. For example:
 
     cd examples/hello
     rustc --target=x86_64-rumprun-netbsd hello.rs
-    rumpbake hw_virtio hello.img hello
+    rumprun-bake hw_virtio hello.img hello
     rumprun qemu -i hello.img
 
 If you don't have a display attached, you can run:

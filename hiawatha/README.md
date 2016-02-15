@@ -33,7 +33,7 @@ make
 
 Bake the final unikernel image:
 ```
-rumpbake hw_virtio bin/hiawatha.bin bin/hiawatha
+rumprun-bake hw_virtio bin/hiawatha.bin bin/hiawatha
 ```
 
 (Replace `hw_virtio` with the platform you are baking for.)

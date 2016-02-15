@@ -31,7 +31,7 @@ make
 
 Bake the final unikernel image:
 ```
-rumpbake xen_pv bin/nginx.bin bin/nginx
+rumprun-bake xen_pv bin/nginx.bin bin/nginx
 ```
 
 (Replace `xen_pv` with the platform you are baking for.)

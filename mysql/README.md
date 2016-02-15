@@ -33,7 +33,7 @@ make
 
 Bake the final unikernel image:
 ```
-rumpbake xen_pv bin/mysqld.bin bin/mysqld
+rumprun-bake xen_pv bin/mysqld.bin bin/mysqld
 ```
 
 The default installation creates a single root-equivalent user, `rump` with *no

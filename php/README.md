@@ -28,8 +28,8 @@ make
 
 Bake the final unikernel images:
 ```
-rumpbake xen_pv bin/php-cgi.bin bin/php-cgi
-rumpbake xen_pv bin/phpi.bin bin/php
+rumprun-bake xen_pv bin/php-cgi.bin bin/php-cgi
+rumprun-bake xen_pv bin/phpi.bin bin/php
 ```
 
 (Replace `xen_pv` with the platform you are baking for.)

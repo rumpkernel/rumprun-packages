@@ -25,7 +25,7 @@ make
 
 Bake the final unikernel image:
 ```
-rumpbake xen_pv bin/ngircd.bin bin/ngircd
+rumprun-bake xen_pv bin/ngircd.bin bin/ngircd
 ```
 (Replace `xen_pv` with the platform you are baking for.)
 

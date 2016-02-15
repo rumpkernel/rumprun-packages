@@ -32,7 +32,7 @@ make
 
 Bake the final unikernel image:
 ```
-rumpbake xen_pv bin/mathopd.bin bin/mathopd
+rumprun-bake xen_pv bin/mathopd.bin bin/mathopd
 ```
 
 (Replace `xen_pv` with the platform you are baking for.)

@@ -31,8 +31,8 @@ benchmark. By default, these are installed in bin/. The static library and
 headers are installed to lib/ and include/ respectivey. To change the
 installation directory, adjust INSTALL_PREFIX in the Makefile.
 
-Run `rumpbake` on the desired test and the benchmark programs. You will most
-likely want to use the `hw_generic` target, e.g `rumpbake hw_generic
+Run `rumprun-bake` on the desired test and the benchmark programs. You will most
+likely want to use the `hw_generic` target, e.g `rumprun-bake hw_generic
 bin/db_bench.bin bin/db_bench`.
 
 Examples
