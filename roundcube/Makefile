@@ -21,17 +21,17 @@ data-php.iso: build/index.php config/config-gen.inc.php config/config.inc.php
 	        ../data-common/www
 	cp config/config.inc.php config/config-gen.inc.php \
 	        data-common/www/config
-	genisoimage -q -l -r -o data-php.iso data-common
+	$(RUMPRUN_GENISOIMAGE) -o data-php.iso data-common
 
 data-nginx.iso: data-php.iso config/nginx/* config/nginx/cert.pem
 	mkdir -p data-nginx
 	cp -r config/nginx data-nginx/conf
-	genisoimage -q -l -r -o data-nginx.iso data-common data-nginx
+	$(RUMPRUN_GENISOIMAGE) -o data-nginx.iso data-common data-nginx
 
 etc-common.iso: config/etc-hosts ../stubetc/etc/*
 	mkdir -p etc-common
 	cp -r config/etc-hosts etc-common/hosts
-	genisoimage -q -l -r -o etc-common.iso etc-common ../stubetc/etc
+	$(RUMPRUN_GENISOIMAGE) -o etc-common.iso etc-common ../stubetc/etc
 
 config/bootstrap.sql: build/index.php config/db-password
 	scripts/mkbootstrap-sql.sh config

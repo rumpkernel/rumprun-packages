@@ -27,7 +27,7 @@ build/CMakeLists.txt:
 images: images/data.iso
 
 images/data.iso: images/data/conf/* images/data/www/*
-	genisoimage -l -r -o images/data.iso images/data
+	$(RUMPRUN_GENISOIMAGE) -o images/data.iso images/data
 
 .PHONY: clean
 clean:

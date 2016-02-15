@@ -49,7 +49,7 @@ build/autogen.sh:
 images: images/data.iso
 
 images/data.iso: images/data/conf/ngircd.conf images/data/conf/Commands.txt
-	genisoimage -l -r -o images/data.iso images/data
+	$(RUMPRUN_GENISOIMAGE) -o images/data.iso images/data
 
 
 

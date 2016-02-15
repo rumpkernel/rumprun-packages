@@ -19,7 +19,7 @@ build/src/Makefile:
 images: images/data.iso
 
 images/data.iso: images/data/mathopd.conf images/data/www/*
-	genisoimage -l -r -o images/data.iso images/data
+	$(RUMPRUN_GENISOIMAGE) -o images/data.iso images/data
 
 .PHONY: clean
 clean:

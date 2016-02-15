@@ -59,7 +59,7 @@ build/Makefile: build/stamp_patch
 
 images/python.iso: build/python
 	mkdir -p images
-	genisoimage -l -r -o images/python.iso build/pythondist/lib/python3.5
+	$(RUMPRUN_GENISOIMAGE) -o images/python.iso build/pythondist/lib/python3.5
 
 .PHONY: clean
 clean:
