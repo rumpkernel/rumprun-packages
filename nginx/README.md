@@ -20,8 +20,8 @@ developed by Samuel Martin for the buildroot project, their upstream home is
 Instructions
 ============
 
-The build script also requires `genisoimage` in order to build the ISO images
-for `/data` and `/etc`.
+The build script also requires `genisoimage` in order to build the ISO image
+for `/data`.
 
 Run `make`:
 
@@ -45,7 +45,6 @@ example):
 ````
 rumprun xen -M 128 -di \
     -n inet,static,10.10.10.10/24 \
-    -b images/stubetc.iso,/etc \
     -b images/data.iso,/data \
     -- bin/nginx.bin -c /data/conf/nginx.conf
 ````

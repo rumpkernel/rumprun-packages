@@ -34,17 +34,9 @@ build/configure: | dl/$(TARBALL)
 	mkdir -p build
 	(cd build && tar -xz --strip-components 1 -f ../dl/$(TARBALL))
 
-.PHONY: images
-images: images/stubetc.iso
-
-images/stubetc.iso: build/configure build/Makefile ../stubetc/etc/*
-	mkdir -p images
-	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
-
 .PHONY: clean
 clean:
 	(cd build; make clean)
-	rm -f images/stubetc.iso
 	rm build/stamp_patch
 
 .PHONY: distclean

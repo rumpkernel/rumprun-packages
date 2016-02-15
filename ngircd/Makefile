@@ -46,10 +46,7 @@ build/autogen.sh:
 
 
 .PHONY: images
-images: images/data.iso images/stubetc.iso
-
-images/stubetc.iso: ../stubetc/etc
-	genisoimage -l -r -o images/stubetc.iso $<
+images: images/data.iso
 
 images/data.iso: images/data/conf/ngircd.conf images/data/conf/Commands.txt
 	genisoimage -l -r -o images/data.iso images/data
@@ -60,4 +57,4 @@ images/data.iso: images/data/conf/ngircd.conf images/data/conf/Commands.txt
 clean:
 	-$(MAKE) -C build clean
 	rm -f bin/ngircd
-	rm -f images/stubetc.iso images/data.iso
+	rm -f images/data.iso

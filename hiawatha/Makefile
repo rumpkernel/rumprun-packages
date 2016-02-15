@@ -24,10 +24,7 @@ build/CMakeLists.txt:
 	(cd build && tar -xz --strip-components 1 -f hiawatha.tar.gz)
 
 .PHONY: images
-images: images/stubetc.iso images/data.iso
-
-images/stubetc.iso: ../stubetc/etc/*
-	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
+images: images/data.iso
 
 images/data.iso: images/data/conf/* images/data/www/*
 	genisoimage -l -r -o images/data.iso images/data
@@ -36,6 +33,6 @@ images/data.iso: images/data/conf/* images/data/www/*
 clean:
 	$(MAKE) -C build/build clean
 	rm -f bin/*
-	rm -f images/stubetc.iso images/data.iso
+	rm -f images/data.iso
 distclean: clean
 	rm -rf build/build

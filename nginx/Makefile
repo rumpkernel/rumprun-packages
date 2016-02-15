@@ -65,10 +65,7 @@ build/configure: | dl/$(TARBALL)
 	(cd build && tar -xz --strip-components 1 -f ../dl/$(TARBALL))
 
 .PHONY: images
-images: images/stubetc.iso images/data.iso
-
-images/stubetc.iso: ../stubetc/etc/*
-	$(RUMPRUN_GENISOIMAGE) -o images/stubetc.iso ../stubetc/etc
+images: images/data.iso
 
 images/data.iso: images/data/conf/* images/data/www/*
 	$(RUMPRUN_GENISOIMAGE) -o images/data.iso images/data
@@ -77,7 +74,7 @@ images/data.iso: images/data/conf/* images/data/www/*
 clean:
 	-$(MAKE) -C build clean
 	rm -f bin/*
-	rm -f images/stubetc.iso images/data.iso
+	rm -f images/data.iso
 
 .PHONY: distclean
 distclean: clean

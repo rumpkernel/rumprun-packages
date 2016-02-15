@@ -17,8 +17,8 @@ None required.
 Instructions
 ============
 
-The build script also requires `genisoimage` in order to build the ISO images
-for `/data` and `/etc`.
+The build script also requires `genisoimage` in order to build the ISO image
+for `/data`.
 
 Run `make`:
 

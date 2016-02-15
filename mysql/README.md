@@ -46,7 +46,6 @@ To start a Xen domU running mysqld, run (for example):
 
 ````
 rumprun xen "$@" -M 128 -i \
-    -b images/stubetc.iso,/etc \
     -b images/data.ffs,/data \
     -I xen0,xenif -W inet,static,10.0.0.10/24 \
     -- \

@@ -5,10 +5,7 @@ Rumprun-packages is a work-in-progress repository for software running on the
 [Rumprun unikernel](http://repo.rumpkernel.org/rumprun).
 
 Packaging is done in a BSD ports-like fashion, with individual
-packages as subdirectories of this repository.  Additionally, `stubetc`
-provides a minimal `/etc` tree required by most applications (contains
-e.g. `/etc/services`), and `scripts` provides helper scripts for the
-the package build process.
+packages as subdirectories of this repository.
 
 __NOTE__ to users: check the license of each individual package to make
 sure it suits your deployment needs.  Unlike everything else provided

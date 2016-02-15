@@ -15,8 +15,8 @@ Instructions
 ============
 
 The configuration script needs to be generated so `aclocal` is needed.  
-The build script also requires `genisoimage` in order to build the ISO images
-for `/data` and `/etc`.
+The build script also requires `genisoimage` in order to build the ISO image
+for `/data`.
 
 Run `make` to build ngIRCd:
 ```
@@ -45,7 +45,6 @@ To start a Xen domU running ngIRCd, as root run (for example):
 ````
 rumprun xen -M 32 -di \
     -n inet,static,10.10.10.10/24 \
-    -b images/stubetc.iso,/etc \
     -b images/data.iso,/data \
     -- bin/ngircd.bin --config /data/conf/ngircd.conf --nodaemon
 ````

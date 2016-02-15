@@ -16,10 +16,7 @@ build/src/Makefile:
 	(cd build && tar -xz --strip-components 1 -f mathopd.tar.gz)
 
 .PHONY: images
-images: images/stubetc.iso images/data.iso
-
-images/stubetc.iso: ../stubetc/etc/*
-	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
+images: images/data.iso
 
 images/data.iso: images/data/mathopd.conf images/data/www/*
 	genisoimage -l -r -o images/data.iso images/data
@@ -28,4 +25,4 @@ images/data.iso: images/data/mathopd.conf images/data/www/*
 clean:
 	-$(MAKE) -C build/src clean
 	rm -f bin/*
-	rm -f images/stubetc.iso images/data.iso
+	rm -f images/data.iso

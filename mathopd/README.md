@@ -21,8 +21,8 @@ None required.
 Instructions
 ============
 
-The build script also requires `genisoimage` in order to build the ISO images
-for `/data` and `/etc`.
+The build script also requires `genisoimage` in order to build the ISO image
+for `/data`.
 
 Run `make`:
 
@@ -45,7 +45,6 @@ To start a Xen domU running mathopd, as root run (for example):
 ````
 rumprun xen -M 32 -di \
     -n inet,static,10.10.10.10/24 \
-    -b images/stubetc.iso,/etc \
     -b images/data.iso,/data \
     -- bin/mathopd.bin -n -t -f /data/mathopd.conf
 ````

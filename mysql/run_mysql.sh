@@ -1,7 +1,6 @@
 #!/bin/sh
 set -x
 rumprun xen "$@" -M 128 -i \
-    -b images/stubetc.iso,/etc \
     -b images/data.ffs,/data \
     -n inet6,auto \
     -- \

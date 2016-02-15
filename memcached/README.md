@@ -38,7 +38,6 @@ rumprun-bake hw_generic build/memcached.bin build/memcached
 rumprun kvm -i -M 256 \
     -I if,vioif,'-net tap,script=no,ifname=tap0' \
     -W if,inet,static,10.0.120.101/24 \
-    -b images/stubetc.iso,/etc \
     -- build/memcached.bin -u root
 ````
 

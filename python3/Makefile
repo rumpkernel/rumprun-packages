@@ -57,13 +57,6 @@ build/stamp_patch: build/configure patches/*
 build/Makefile: build/stamp_patch
 	(cd build; $(PYTHON_CONF_ENV) ./configure $(PYTHON_CONF_OPTS))
 
-.PHONY: images
-images: images/stubetc.iso
-
-images/stubetc.iso: images/python.iso ../stubetc/etc/*
-	mkdir -p images
-	genisoimage -l -r -o images/stubetc.iso ../stubetc/etc
-
 images/python.iso: build/python
 	mkdir -p images
 	genisoimage -l -r -o images/python.iso build/pythondist/lib/python3.5
@@ -72,7 +65,7 @@ images/python.iso: build/python
 clean:
 	-$(MAKE) -C build clean
 	rm -f bin/*
-	rm -f images/stubetc.iso images/python.iso
+	rm -f images/python.iso
 	rm -f examples/hw.c examples/hw.bin examples/hw
 
 .PHONY: distclean

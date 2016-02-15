@@ -7,7 +7,7 @@ else
 ISO_OPTIONS=
 endif
 
-all: bin/ruby images/usr.iso images/stubetc.iso
+all: bin/ruby images/usr.iso
 
 bin/ruby: build/ruby
 	mkdir -p bin
@@ -28,10 +28,6 @@ build/Makefile:
 images/usr.iso: 
 	mkdir -p images
 	$(RUMPRUN_GENISOIMAGE) ${ISO_OPTIONS} -o images/usr.iso build/rubydist/
-
-images/stubetc.iso: ../stubetc/etc/*
-	mkdir -p images
-	$(RUMPRUN_GENISOIMAGE) ${ISO_OPTIONS} -o images/stubetc.iso ../stubetc/etc/
 
 images/examples.iso:
 	cd examples && bundle install --path=gems
