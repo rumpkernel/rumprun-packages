@@ -50,8 +50,8 @@ NATIVE_DIR=$(abspath $(BUILD_DIR)/build-native)
 build/mysql_native_stamp: build/mysql_patch_stamp
 	mkdir -p $(NATIVE_DIR)
 	cd $(NATIVE_DIR) && cmake \
-	    -DWITH_SSL=system \
-	    -DWITH_ZLIB=system \
+	    -DWITH_SSL=bundled \
+	    -DWITH_ZLIB=bundled \
 	    -DDISABLE_SHARED=ON \
 	    -DFEATURE_SET=small \
 	    -DWITHOUT_PERFSCHEMA_STORAGE_ENGINE=1 \
