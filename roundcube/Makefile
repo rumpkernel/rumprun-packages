@@ -2,6 +2,8 @@ include ../Makefile.inc
 UPSTREAM=https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/1.1.2/roundcubemail-1.1.2-complete.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
+BASEFSDIR=${RUMPRUN_SYSROOT}/../share/rumprun/rumprunfs_base
+
 all: ../mysql/bin/mysqld-bootstrap build/index.php data-php.iso data-nginx.iso etc-common.iso data-mysql.ffs
 
 # XXX Express a "dependency" on mysqld-bootstrap which is needed to build.
@@ -28,10 +30,10 @@ data-nginx.iso: data-php.iso config/nginx/* config/nginx/cert.pem
 	cp -r config/nginx data-nginx/conf
 	$(RUMPRUN_GENISOIMAGE) -o data-nginx.iso data-common data-nginx
 
-etc-common.iso: config/etc-hosts ../stubetc/etc/*
+etc-common.iso: config/etc-hosts ${BASEFSDIR}/etc/*
 	mkdir -p etc-common
 	cp -r config/etc-hosts etc-common/hosts
-	$(RUMPRUN_GENISOIMAGE) -o etc-common.iso etc-common ../stubetc/etc
+	$(RUMPRUN_GENISOIMAGE) -o etc-common.iso etc-common ${BASEFSDIR}/etc
 
 config/bootstrap.sql: build/index.php config/db-password
 	scripts/mkbootstrap-sql.sh config
