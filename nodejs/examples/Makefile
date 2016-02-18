@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 EXPRESS_VERSION=4.13.3
-GHOST_VERSION=0.7.5
+GHOST_VERSION=0.7.8
 
 .PHONY: run_express_hello_world
 run_express_hello_world: express-$(EXPRESS_VERSION).iso
@@ -19,7 +19,7 @@ run_ursa: ursa.iso
 
 .PHONY: inject_ghost
 inject_ghost: | node_modules/nad Ghost-$(GHOST_VERSION)
-	(cd Ghost-$(GHOST_VERSION)/node_modules/sqlite3; mv binding.gyp binding.gyp.orig; sed -e 's/<(module_name)/sqlite3/g' -e "s/sqlite !=/'internal' !=/" -e "s:\(deps/\):$$PWD/\1:g" -e "s:\.\./:$$PWD/:g" binding.gyp.orig > binding.gyp; mv deps/sqlite3.gyp deps/sqlite3.gyp.orig; sed -e "s:\.\./:$$PWD/:g" deps/sqlite3.gyp.orig > deps/sqlite3.gyp; $(NAD) configure --nodedir ../../../../$(BUILD_DIR) && $(NAD) inject)
+	(cd Ghost-$(GHOST_VERSION)/node_modules/sqlite3; mv binding.gyp binding.gyp.orig; sed -e 's/<(module_name)/sqlite3/g' -e "s/sqlite !=/'internal' !=/" -e "s:\([^/]\)\(deps/\):\1$$PWD/\2:g" -e "s:\.\./:$$PWD/:g" binding.gyp.orig > binding.gyp; mv deps/sqlite3.gyp deps/sqlite3.gyp.orig; sed -e "s:\.\./:$$PWD/:g" deps/sqlite3.gyp.orig > deps/sqlite3.gyp; $(NAD) configure --nodedir ../../../../$(BUILD_DIR) && $(NAD) inject)
 	NODE_PATH=../examples/Ghost-$(GHOST_VERSION)/node_modules/sqlite3/node_modules make -C ..
 
 node_modules/nad:
