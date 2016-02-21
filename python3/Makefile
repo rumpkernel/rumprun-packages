@@ -7,6 +7,7 @@ ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
 all: build/python images/python.iso
 
 build/python: build/Makefile
+	$(MAKE) -C ../sqlite
 	$(MAKE) -C build
 	$(MAKE) -C build install
 
