@@ -72,6 +72,7 @@ running PHP serving FastCGI.
    addresses used as appropriate.
 3. Edit `images/data/conf/nginx.conf` replacing the IP address in
    `fastcgi_pass` to match the IP you will use for the PHP domU.
-4. As root on your Xen dom0, run `./run_nginx.sh` in one window and
+4. Rebuild the `data.img` file (run `make`).
+5. As root on your Xen dom0, run `./run_nginx.sh` in one window and
    `./run_php.sh` in another.
-5. Browse to `http://<nginx_ip>/`.
+6. Browse to `http://<nginx_ip>/`.
