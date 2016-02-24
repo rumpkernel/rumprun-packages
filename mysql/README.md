@@ -1,6 +1,6 @@
 # Overview
 
-Packaging of [MySQL](http://www.mysql.com/) 5.6.26 for rumprun.
+Packaging of [MySQL](http://www.mysql.com/) 5.6.29 for rumprun.
 
 *Experimental work in progress, may eat your data.*
 

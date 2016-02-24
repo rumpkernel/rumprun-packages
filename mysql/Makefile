@@ -4,7 +4,7 @@ include ../Makefile.inc
 # Cross-build script for MySQL on rumprun-xen
 #
 
-UPSTREAM=http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.26.tar.gz
+UPSTREAM=http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.29.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 PACKAGE_DIR=$(abspath .)
 
