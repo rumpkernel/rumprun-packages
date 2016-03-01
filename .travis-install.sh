@@ -7,7 +7,7 @@ git clone https://github.com/rumpkernel/rumprun /tmp/rumprun
 (
 	cd /tmp/rumprun
 	git submodule update --init
-	./build-rr.sh -d /usr/local -o ./obj -qq ${PLATFORM} build
-	sudo ./build-rr.sh -d /usr/local -o ./obj ${PLATFORM} install
+	./build-rr.sh -d /usr/local -o ./obj -qq ${RUMPRUN_PLATFORM} build
+	sudo ./build-rr.sh -d /usr/local -o ./obj ${RUMPRUN_PLATFORM} install
 )
 echo RUMPRUN_TOOLCHAIN_TUPLE=${RUMPRUN_TOOLCHAIN_TUPLE} >config.mk
