@@ -6,3 +6,5 @@ script: bash -ex ./.travis-script.sh
 
 env:
   - PACKAGE=mathopd
+
+# Touch me to force a build
