@@ -1,0 +1,8 @@
+sudo: required
+dist: trusty
+language: generic
+install: bash -ex ./.travis-install.sh
+script: bash -ex ./.travis-script.sh
+
+env:
+  - PACKAGE=mathopd
