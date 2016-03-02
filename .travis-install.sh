@@ -3,7 +3,7 @@
 RUMPRUN_PLATFORM=${RUMPRUN_PLATFORM:-hw}
 RUMPRUN_TOOLCHAIN_TUPLE=${RUMPRUN_TOOLCHAIN_TUPLE:-x86_64-rumprun-netbsd}
 
-git clone https://github.com/rumpkernel/rumprun /tmp/rumprun
+git clone -q https://github.com/rumpkernel/rumprun /tmp/rumprun
 (
 	cd /tmp/rumprun
 	git submodule update --init
