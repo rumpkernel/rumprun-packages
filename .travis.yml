@@ -6,5 +6,6 @@ script: bash -ex ./.travis-script.sh
 
 env:
   - PACKAGE=mathopd
+  - PACKAGE=hiawatha
 
 # Touch me to force a build 1
