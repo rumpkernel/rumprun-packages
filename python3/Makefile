@@ -4,7 +4,7 @@ UPSTREAM=https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a images
+all: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a images/python.iso
 
 .NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a
 $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a:
