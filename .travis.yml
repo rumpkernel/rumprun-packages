@@ -5,7 +5,30 @@ install: bash -ex ./.travis-install.sh
 script: bash -ex ./.travis-script.sh
 
 env:
-  - PACKAGE=mathopd
+  - PACKAGE=erlang
+  - PACKAGE=haproxy
   - PACKAGE=hiawatha
+  - PACKAGE=leveldb
+  - PACKAGE=libcurl
+  - PACKAGE=libevent
+  - PACKAGE=libxml2
+  - PACKAGE=mathopd
+  - PACKAGE=memcached
+  - PACKAGE=mpg123
+  - PACKAGE=mysql
+  - PACKAGE=nanomsg
+  - PACKAGE=nginx
+  - PACKAGE=ngircd
+  - PACKAGE=nodejs
+  - PACKAGE=openmp
+  - PACKAGE=pcre
+  - PACKAGE=php
+  - PACKAGE=php7
+  - PACKAGE=python3
+  - PACKAGE=redis
+#  - PACKAGE=roundcube
+  - PACKAGE=ruby
+#  - PACKAGE=rust
+  - PACKAGE=sqlite
 
 # Touch me to force a build 1
