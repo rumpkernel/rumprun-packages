@@ -3,7 +3,7 @@ include ../Makefile.inc
 UPSTREAM=http://www.memcached.org/files/memcached-1.4.25.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libevent.a
+all: $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/configure build/Makefile
 
 .NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libevent.a
 $(RUMPRUN_PKGS_DIR)/lib/libevent.a:
