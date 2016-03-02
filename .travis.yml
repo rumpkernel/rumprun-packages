@@ -3,9 +3,6 @@ dist: trusty
 language: generic
 install: bash -ex ./.travis-install.sh
 script: bash -ex ./.travis-script.sh
-cache:
-  directories:
-    - /usr/local
 
 env:
   - PACKAGE=mathopd
