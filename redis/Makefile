@@ -30,7 +30,7 @@ images/data.iso: images/data/conf/*
 
 images/datapers.img:
 	dd if=/dev/zero of=$@ bs=1024k seek=$(PERSISTENCE_SIZE) count=0
-	mkfs.ext2 -q $@
+	mkfs.ext2 -F -q $@
 
 .PHONY: clean
 clean:	clean/build clean/bin
