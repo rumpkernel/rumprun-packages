@@ -1,7 +1,7 @@
 Overview
 ========
 
-Packaging of unmodified [PHP](http://php.net/) 5.6.12 for rumprun.
+Packaging of unmodified [PHP](http://php.net/) 5.6.18 for rumprun.
 
 Maintainer
 ----------
