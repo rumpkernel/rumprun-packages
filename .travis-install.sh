@@ -1,4 +1,8 @@
 #!/bin/bash
+# Install additional build dependencies for packages
+# mysql: makefs
+sudo apt-get install makefs
+
 # Build and install rumprun toolchain from source
 RUMPRUN_PLATFORM=${RUMPRUN_PLATFORM:-hw}
 RUMPRUN_TOOLCHAIN_TUPLE=${RUMPRUN_TOOLCHAIN_TUPLE:-x86_64-rumprun-netbsd}
