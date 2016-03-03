@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-UPSTREAM=http://php.net/get/php-7.0.3.tar.bz2/from/a/mirror
+UPSTREAM=http://de1.php.net/get/php-7.0.3.tar.bz2/from/this/mirror
 TARBALL=php.tar.bz2
 
 # "Minimal" build.
