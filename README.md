@@ -71,3 +71,14 @@ installed in the Travis CI environment we use (`dist: trusty`).
 
 If something is unclear, see existing packages for examples or ask
 on the [mailing list or on irc](http://wiki.rumpkernel.org/Info:-Community).
+
+Travis CI integration
+---------------------
+
+Due to the time taken for a complete build of all packages (3+ hours as of
+this writing) we do not use the traditional model of triggering a build on
+each commit. Instead, full builds of all packages are triggered twice a
+day, currently at 6am and 6pm CET.
+
+Pull requests are not currently built as there is no straightforward way to
+get Travis to build only the subset of packages affected by a pull request.
