@@ -1,4 +1,4 @@
-Rumprun-packages
+Rumprun-packages [![Build Status](https://travis-ci.org/rumpkernel/rumprun-packages.svg?branch=master)](https://travis-ci.org/rumpkernel/rumprun-packages)
 ================
 
 Rumprun-packages is a work-in-progress repository for software running on the
@@ -63,6 +63,11 @@ you created a package but do not want to maintain it, submit a pull
 request anyway; we will mark the pull request as `maintainer wanted`,
 and if someone who needs the software comes along and is willing to be
 maintainer, they potentially do not have to start from scratch.
+
+__When creating new packages, renaming or removing existing packages,__
+please update `.travis.yml` to reflect your changes, and
+`.travis-install.sh` if your package has any build dependencies not
+installed in the Travis CI environment we use (`dist: trusty`).
 
 If something is unclear, see existing packages for examples or ask
 on the [mailing list or on irc](http://wiki.rumpkernel.org/Info:-Community).
