@@ -22,7 +22,7 @@ env:
   - PACKAGE=nodejs
   - PACKAGE=openmp
   - PACKAGE=pcre
-  - PACKAGE=php
+  - PACKAGE=php5
   - PACKAGE=php7
   - PACKAGE=python3
   - PACKAGE=redis
