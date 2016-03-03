@@ -26,9 +26,9 @@ env:
   - PACKAGE=php7
   - PACKAGE=python3
   - PACKAGE=redis
+# Disabled, does not actually build anything interesting
 #  - PACKAGE=roundcube
   - PACKAGE=ruby
+# Disabled, build takes several hours
 #  - PACKAGE=rust
   - PACKAGE=sqlite
-
-# Touch me to force a build 1
