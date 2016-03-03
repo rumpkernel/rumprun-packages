@@ -25,7 +25,7 @@ build/Makefile:
 	(cd build && tar -xz --strip-components 1 -f ruby.tar.gz)
 	(cd build && ../../scripts/apply-patches.sh ./ ../patches/*)
 
-images/usr.iso: 
+images/usr.iso: bin/ruby
 	mkdir -p images
 	$(RUMPRUN_GENISOIMAGE) ${ISO_OPTIONS} -o images/usr.iso build/rubydist/
 
