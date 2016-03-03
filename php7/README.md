@@ -6,6 +6,9 @@ Packaging of unmodified [PHP](http://php.net/) 7.0.3 for rumprun.
 Maintainer
 ----------
 
+* Martin Lucina, mato@rumpkernel.org
+* Github: @mato
+
 * Brian Graham, drakain@github.com
 * Github: @incognito
 
