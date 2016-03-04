@@ -1,15 +1,13 @@
 Overview
 ========
 
-This document explains how to build a Rust cross-compiler and the cargo package
-manager for rumprun. The Rust compiler version is a 1.5.0-dev snapshot
-(the first version that supports Rumprun), cargo and cargo-rumpbake are
-version 0.5.0.
+> Rust is a systems programming language that runs blazingly fast, prevents
+> segfaults, and guarantees thread safety.
+>                              — [rust-lang.org](https://www.rust-lang.org)
 
-This package also fetches and builds a copy of
-[cargo-rumpbake](https://github.com/gandro/cargo-rumpbake), a small wrapper
-around `cargo build` and `rumprun-bake` which simplifies building and baking when
-using `cargo` as a build tool.
+This document explains how to build a Rust cross-compiler and the cargo package
+manager for Rumprun. The Rust compiler version is a 1.9.0-dev snapshot, cargo
+is version 0.9.0.
 
 Maintainer
 ----------
@@ -21,9 +19,9 @@ Maintainer
 Instructions
 ============
 
-Running `make` will build a Rust cross-compiler for Rumprun, including the
-standard library. The cargo package manager and the cargo-rumpbake subcommand
-are also included by default. To build Rust without cargo, run `make rust`.
+Running `make` will build a Rust cross-compiler and the Rust standard library
+for Rumprun. The cargo package manager is also included by the default target.
+To build Rust without cargo, run `make rust`.
 
 Make sure the `bin` folder of your Rumprun destdir is in `$PATH`.
 
@@ -76,16 +74,18 @@ If you don't have a display attached, you can run:
 
 to have `qemu` display output on your terminal instead.
 
-### cargo rumpbake
+### Using cargo
 
-When building with cargo, you can use `cargo rumpbake`, a tool which invokes
-rumpbake automatically. To build the example TCP/IP server, proceed as follows:
+When building with cargo, you need to specify the `--target` flag as well. The
+generated binary in the target directory needs to be baked as usual.
+To build the example TCP/IP server with cargo, proceed as follows:
 
     cd examples/hello-tcp
-    cargo rumpbake hw_virtio
+    cargo build --target=x86_64-rumprun-netbsd
+    rumprun-bake hw_virtio hello-tcp.img target/x86_64-rumprun-netbsd/debug/hello-tcp
 
-This will build and bake a `hello-tcp.img` unikernel image. To run it, make sure
-you configure the network correctly. For example on Linux:
+This will build and bake a `hello-tcp.img` unikernel image. To run the binary,
+make sure to configure the network correctly. For example on Linux:
 
     sudo ip tuntap add tap0 mode tap
     sudo ip addr add 10.0.23.2/24 dev tap0

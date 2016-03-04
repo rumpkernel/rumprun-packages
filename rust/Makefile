@@ -1,12 +1,9 @@
 include ../Makefile.inc
 RUST_GIT=https://github.com/rust-lang/rust.git
-RUST_VER=c9c79084
+RUST_VER=b9e61c9 # 1.9.0-dev
 
 CARGO_GIT=https://github.com/rust-lang/cargo.git
-CARGO_VER=0.5.0
-
-CARGO_RUMPBAKE_GIT=https://github.com/gandro/cargo-rumpbake.git
-CARGO_RUMPBAKE_VER=0.5.0
+CARGO_VER=0.9.0
 
 ifneq (x86_64-rumprun-netbsd,$(RUMPRUN_TOOLCHAIN_TUPLE))
 $(error Rust currently only supports x86_64-rumprun-netbsd)
@@ -15,7 +12,9 @@ endif
 RUST_DESTDIR ?= $(abspath build/destdir)
 CARGO_HOME := $(RUST_DESTDIR)/cargo
 
-all: rust cargo cargo-rumpbake
+all:
+	$(MAKE) rust
+	$(MAKE) cargo
 
 ######################################################################
 # rust - The Rust compiler and standard library
@@ -76,31 +75,11 @@ build/cargo/configure:
 	mkdir -p build
 	(cd build && git clone --branch $(CARGO_VER) $(CARGO_GIT))
 
-######################################################################
-# cargo-rumpbake - Cargo subcommand for invoking rumpbake
-######################################################################
-
-.PHONY: cargo-rumpbake
-cargo-rumpbake: build/cargo-rumpbake.stamp
-
-build/cargo-rumpbake.stamp: build/cargo-rumpbake/Cargo.toml build/cargo.stamp rustenv.sh
-	(cd build/cargo-rumpbake && \
-		sh -c '. ../../rustenv.sh && cargo build')
-	cp build/cargo-rumpbake/target/debug/cargo-rumpbake \
-		$(RUST_DESTDIR)/bin/cargo-rumpbake
-	touch $@
-
-build/cargo-rumpbake/Cargo.toml:
-	mkdir -p build
-	(cd build && \
-		git clone --branch $(CARGO_RUMPBAKE_VER) $(CARGO_RUMPBAKE_GIT))
-
 .PHONY: clean
 clean:
 	-$(MAKE) -C build/rust clean
 	-$(MAKE) -C build/cargo clean
-	rm -rf build/cargo-rumpbake/target
-	rm -f build/rust.stamp build/cargo.stamp build/cargo-rumpbake.stamp
+	rm -f build/rust.stamp build/cargo.stamp
 	rm -f rustenv.sh
 
 .PHONY: cleandir
