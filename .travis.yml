@@ -20,7 +20,8 @@ env:
   - PACKAGE=nginx
   - PACKAGE=ngircd
   - PACKAGE=nodejs
-  - PACKAGE=openmp
+# broken: issue #92
+#  - PACKAGE=openmp
   - PACKAGE=pcre
   - PACKAGE=php5
   - PACKAGE=php7
