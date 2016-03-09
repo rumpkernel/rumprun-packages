@@ -5,9 +5,9 @@ Overview
 > segfaults, and guarantees thread safety.
 >                              — [rust-lang.org](https://www.rust-lang.org)
 
-This document explains how to build a Rust cross-compiler and the cargo package
-manager for Rumprun. The Rust compiler version is a 1.9.0-dev snapshot, cargo
-is version 0.9.0.
+This document explains how to obtain a Rust cross-compiler and the cargo package
+manager for Rumprun. The Rust compiler built by the Makefile is a 1.9.0-dev
+snapshot, cargo is version 0.9.0.
 
 Maintainer
 ----------
@@ -18,6 +18,30 @@ Maintainer
 
 Instructions
 ============
+
+To build Rust binaries for Rumprun, you need to install a Rust cross-compiler
+targeting Rumprun. You can either use the pre-built compiler and standard
+library from the official Rust distribution, or you can use the provided
+Makefile to build Rust from source.
+
+## Using the Rust Binary Distribution
+
+The Rust distribution offers daily updated builds of the standard
+library for the Rumprun target. You can obtain them using
+[multirust](https://github.com/brson/multirust) 0.8.0 or newer.
+
+    multirust update nightly
+    multirust add-target nightly x86_64-rumprun-netbsd
+    multirust override nightly
+
+This will set up a Rust cross-compiler which is able to compile binaries
+for Rumprun. The cargo package manager will also be installed, so you should
+be able to follow the examples below.
+
+> **Note**: Currently only the nightly channel has support for the Rumprun
+> cross-std installation.
+
+## Building from Source
 
 Running `make` will build a Rust cross-compiler and the Rust standard library
 for Rumprun. The cargo package manager is also included by the default target.
