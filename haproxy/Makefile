@@ -35,7 +35,7 @@ bake_hw_generic: all
 	rumprun-bake hw_generic $(HAPROXY_BIN).bin $(HAPROXY_BIN)
 
 images/$(ISO) :
-	$(RUMPRUN_GENISOIMAGE) -o images/$(ISO) images/conf
+	$(RUMPRUN_GENISOIMAGE) -r -o images/$(ISO) images/conf
 
 .PHONY: run
 run: all bake_hw_generic images/$(ISO)
