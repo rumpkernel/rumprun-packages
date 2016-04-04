@@ -34,7 +34,7 @@ for `/data` and `/backup`
 -  `make` builds redis with AOF persistence
 -  `make cache` builds redis **without** persistence (e.g. when used as a cache)
 
-**Running redis with AOF persistence decreases performance compared to version without persistance**
+**Running redis with AOF persistence decreases performance compared to version without persistence**
 
 Bake the final unikernel image:
 ```
