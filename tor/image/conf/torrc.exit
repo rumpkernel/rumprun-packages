@@ -14,3 +14,6 @@ ExitPolicy accept *:*
 
 NumCPUs 1
 AvoidDiskWrites 1
+
+GeoIPFile /tor/conf/geoip
+GeoIPv6File /tor/conf/geoip6
