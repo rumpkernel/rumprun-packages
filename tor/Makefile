@@ -40,7 +40,7 @@ build/configure: | dl/$(TARBALL)
 image: image/tor.img
 
 image/tor.img:
-	dd if=/dev/zero of=tor.img bs=1M count=100
+	dd if=/dev/zero of=tor.img bs=1M count=150
 	newfs_ext2fs tor.img 2>/dev/null || mkfs.ext2 tor.img 2>/dev/null
 	sudo mount -o loop tor.img /mnt
 	cp build/src/config/geoip* image/conf
