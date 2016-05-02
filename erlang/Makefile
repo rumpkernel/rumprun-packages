@@ -3,7 +3,7 @@ include ../Makefile.inc
 PKG_VERSION=18.2.1
 UPSTREAM=http://www.erlang.org/download/otp_src_$(PKG_VERSION).tar.gz
 TARBALL=$(notdir $(UPSTREAM))
-ARCH=$(shell $(RUMPRUN_CC) -dumpmachine)
+ARCH=$(shell $(HOST_CC) -dumpmachine)
 RUMP_INSTALL_LOCATION=/opt/erlang
 
 LOCAL_INSTALL_DESTINATION=$(shell pwd)/build/erlangdist
