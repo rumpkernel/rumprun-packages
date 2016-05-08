@@ -33,6 +33,7 @@ env:
 # Disabled, build takes several hours
 #  - PACKAGE=rust
   - PACKAGE=sqlite
+  - PACKAGE=tor
 
 notifications:
   irc:
