@@ -16,12 +16,13 @@ build/tor: build/Makefile
 TOR_CONF_OPTS += \
 	--prefix=$(RUMPRUN_PKGS_DIR) \
 	--disable-asciidoc \
+	--disable-systemd \
 	--enable-static-libevent \
-	--with-libevent-dir=$(shell pwd)/../../pkgs \
+	--with-libevent-dir=$(RUMPRUN_PKGS_DIR) \
 	--enable-static-openssl \
-	--with-openssl-dir=$(shell pwd)/../../pkgs \
+	--with-openssl-dir=$(RUMPRUN_SYSROOT) \
 	--enable-static-zlib \
-	--with-zlib-dir=$(shell pwd)/../../pkgs \
+	--with-zlib-dir=$(RUMPRUN_SYSROOT) \
 	--enable-static-tor
 
 build/Makefile: build/configure
