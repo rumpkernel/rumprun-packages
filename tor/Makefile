@@ -3,7 +3,7 @@ include ../Makefile.inc
 UPSTREAM=https://www.torproject.org/dist/tor-0.2.7.6.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/tor image
+all: $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/tor
 
 .NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libevent.a
 $(RUMPRUN_PKGS_DIR)/lib/libevent.a:

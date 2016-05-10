@@ -28,6 +28,13 @@ Run `make`:
 make
 ```
 
+Build the file system image (WARNING: the following step will use `sudo` and
+currently works only on Linux):
+
+```
+make image
+```
+
 Bake the final tor unikernel image.  For example:
 ```
 rumprun-bake hw_virtio tor.bin build/src/or/tor
