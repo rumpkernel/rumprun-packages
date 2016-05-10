@@ -56,4 +56,5 @@ clean:
 distclean: clean
 	rm -rf dl
 	rm -rf build
+	rm image/conf/geoip*
 	rm -f tor.img
