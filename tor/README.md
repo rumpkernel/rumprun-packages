@@ -12,22 +12,18 @@ Maintainer
 Instructions
 ============
 
-The Makefile utilizes sudo to automagically prepare a writable disk image
-with the contents of the `image` directory.  In the `image/conf` directory,
-there are several torrc files, torrc, torrc.relay and torrc.exit.  If you
-do nothing, the default torrc file is identical to torrc.relay, providing
-a minimal relay only configuration.  If you would prefer to run an exit,
-copy torrc.exit to torrc for a minimal exit configuration instead.  Modify
-these files as you see fit.  If sudo isn't configured for the user building
-this unikernel, either build as root or manually intervene as root to handle
-disk image creation.
-
 Run `make`:
 
 ```
 make
 ```
 
+In the `image/conf` directory,
+there are several torrc files, torrc, torrc.relay and torrc.exit.  If you
+do nothing, the default torrc file is identical to torrc.relay, providing
+a minimal relay only configuration.  If you would prefer to run an exit,
+copy torrc.exit to torrc for a minimal exit configuration instead.  Modify
+these files as you see fit.
 Build the file system image (WARNING: the following step will use `sudo` and
 currently works only on Linux):
 
