@@ -4,7 +4,7 @@ UPSTREAM=https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(HOST_CC) -dumpmachine)
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a images/python.iso
+all: libssl $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a images/python.iso
 
 .NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a
 $(RUMPRUN_PKGS_DIR)/lib/libsqlite.a:
@@ -15,8 +15,8 @@ build/python: build/Makefile
 	$(MAKE) -C build install
 
 PYTHON_CONF_ENV += \
-	LDFLAGS="-static -static-libgcc" \
-	CPPFLAGS="$(CPPFLAGS) -static" \
+	LDFLAGS="-static -static-libgcc -L${RUMPRUN_PKGS_DIR}/lib" \
+	CPPFLAGS="$(CPPFLAGS) -static -I${RUMPRUN_PKGS_DIR}/include" \
 	CFLAGS="$(CFLAGS) -static" \
 	CC=$(RUMPRUN_CC) \
 	PYTHON_FOR_BUILD=$(shell pwd)/build/hostdist/bin/python3 \
@@ -28,7 +28,8 @@ PYTHON_CONF_OPTS += \
 	--host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	--build $(ARCH) \
 	--enable-ipv6 \
-        --without-ensurepip
+	--with-openssl=${RUMPRUN_PKGS_DIR} \
+	--without-ensurepip
 
 dl/$(TARBALL):
 	mkdir -p dl
@@ -71,3 +72,5 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -rf build
+
+include ../Makefile.deps
