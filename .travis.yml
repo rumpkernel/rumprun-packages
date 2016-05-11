@@ -11,6 +11,7 @@ env:
   - PACKAGE=leveldb
   - PACKAGE=libcurl
   - PACKAGE=libevent
+  - PACKAGE=libressl
   - PACKAGE=libxml2
   - PACKAGE=mathopd
   - PACKAGE=memcached
