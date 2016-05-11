@@ -1,0 +1,6 @@
+.NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libssl.a
+$(RUMPRUN_PKGS_DIR)/lib/libssl.a:
+	$(MAKE) -C ../$(RUMPRUN_SSL)
+
+.PHONY: libssl
+libssl: $(RUMPRUN_PKGS_DIR)/lib/libssl.a
