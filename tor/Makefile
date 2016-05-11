@@ -3,15 +3,11 @@ include ../Makefile.inc
 UPSTREAM=https://www.torproject.org/dist/tor-0.2.7.6.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/tor
+all: libssl $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/tor
 
 .NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libevent.a
 $(RUMPRUN_PKGS_DIR)/lib/libevent.a:
 	$(MAKE) -C ../libevent
-
-.NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libssl.a
-$(RUMPRUN_PKGS_DIR)/lib/libssl.a:
-	$(MAKE) -C ../${RUMPRUN_SSL}
 
 build/tor: build/Makefile
 	$(MAKE) -C build
@@ -58,3 +54,5 @@ distclean: clean
 	rm -rf build
 	rm image/conf/geoip*
 	rm -f tor.img
+
+include ../Makefile.deps

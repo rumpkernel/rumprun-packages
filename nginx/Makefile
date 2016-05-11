@@ -3,15 +3,11 @@ include ../Makefile.inc
 UPSTREAM=http://nginx.org/download/nginx-1.8.0.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libpcre.a $(RUMPRUN_PKGS_DIR)/lib/libssl.a bin/nginx images
+all: libssl $(RUMPRUN_PKGS_DIR)/lib/libpcre.a bin/nginx images
 
 .NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libpcre.a
 $(RUMPRUN_PKGS_DIR)/lib/libpcre.a:
 	$(MAKE) -C ../pcre
-
-.NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libssl.a
-$(RUMPRUN_PKGS_DIR)/lib/libssl.a:
-	$(MAKE) -C ../$(RUMPRUN_SSL)
 
 bin/nginx: build/objs/nginx
 	mkdir -p bin
@@ -83,3 +79,5 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -rf build
+
+include ../Makefile.deps
