@@ -70,11 +70,11 @@ To instead run the tor unikernel via qemu directly, execute a command
 such as the following:
 
 ````
-qemu-system-x86_64 -m 256 -no-kvm -boot order=dc \
+qemu-system-x86_64 -m 256 -no-kvm \
+  -nographic -display curses -monitor stdio \
   -drive index=0,if=virtio,file=tor.img \
   -net nic,model=virtio,macaddr=00:13:37:00:00:01 \
   -net tap,script=no,ifname=tap0 \
-  -nographic -display curses -monitor stdio \
   -kernel tor.bin \
   -append '{,, "blk" : {,, "source": "dev",, "path" : "/dev/ld0a",, "fstype": "blk",, "mountpoint": "/tor",, },, "net" :  {,, "if": "vioif0",, "type": "inet",, "method": "static",, "addr" : "10.10.10.10",, "mask" : "24",, "gw": "10.10.10.1",, },, "cmdline": "tor.bin -f /tor/conf/torrc ",, },,'
 
