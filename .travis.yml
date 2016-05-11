@@ -16,7 +16,8 @@ env:
   - PACKAGE=mathopd
   - PACKAGE=memcached
   - PACKAGE=mpg123
-  - PACKAGE=mysql
+# broken: issue #106
+#  - PACKAGE=mysql
   - PACKAGE=nanomsg
   - PACKAGE=nginx
   - PACKAGE=ngircd
