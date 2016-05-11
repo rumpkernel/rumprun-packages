@@ -9,6 +9,10 @@ all: $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/tor
 $(RUMPRUN_PKGS_DIR)/lib/libevent.a:
 	$(MAKE) -C ../libevent
 
+.NOTPARALLEL: $(RUMPRUN_PKGS_DIR)/lib/libssl.a
+$(RUMPRUN_PKGS_DIR)/lib/libssl.a:
+	$(MAKE) -C ../${RUMPRUN_SSL}
+
 build/tor: build/Makefile
 	$(MAKE) -C build
 	$(MAKE) install -C build
@@ -20,7 +24,7 @@ TOR_CONF_OPTS += \
 	--enable-static-libevent \
 	--with-libevent-dir=$(RUMPRUN_PKGS_DIR) \
 	--enable-static-openssl \
-	--with-openssl-dir=$(RUMPRUN_SYSROOT) \
+	--with-openssl-dir=$(RUMPRUN_PKGS_DIR) \
 	--enable-static-zlib \
 	--with-zlib-dir=$(RUMPRUN_SYSROOT) \
 	--enable-static-tor
