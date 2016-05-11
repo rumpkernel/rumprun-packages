@@ -6,7 +6,8 @@ Packaging of the [Tor](http://torproject.org/) 0.2.7.6 tor server.
 Maintainer
 ==========
 
-* Kyle Amon, amonk@backwatcher.com
+* Kyle Amon, amonk@backwatcher.com [GPG: ed25519/F57091DBD60FBBB8]
+* Freenode: amonk [OTR: DC446975 0D1CC62D 092E633C 2E3D3D82 B4CE1C47]
 * Github: @supradix
 
 Instructions
