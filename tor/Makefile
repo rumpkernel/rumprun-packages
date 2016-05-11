@@ -42,7 +42,7 @@ image: image/tor.img
 
 image/tor.img:
 	cp build/src/config/geoip* image/conf
-	genext2fs -b 153600 -N 46 -m 0 -q -d image tor.img
+	genext2fs -b 153600 -i 1024 -m 0 -q -d image tor.img
 
 .PHONY: clean
 clean:  
