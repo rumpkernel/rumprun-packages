@@ -38,3 +38,6 @@ export CPPFLAGS
 export LDFLAGS
 
 HOST_CC?= cc
+
+# set various defaults
+RUMPRUN_SSL?= libressl
