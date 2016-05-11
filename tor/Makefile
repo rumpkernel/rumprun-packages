@@ -41,12 +41,8 @@ build/configure: | dl/$(TARBALL)
 image: image/tor.img
 
 image/tor.img:
-	dd if=/dev/zero of=tor.img bs=1M count=150
-	newfs_ext2fs tor.img 2>/dev/null || mkfs.ext2 -F tor.img 2>/dev/null
-	sudo mount -o loop tor.img /mnt
 	cp build/src/config/geoip* image/conf
-	tar -C ./image -czf - . | sudo tar -C /mnt -xvzf -
-	sudo umount /mnt
+	genext2fs -b 153600 -i 1024 -m 0 -q -d image tor.img
 
 .PHONY: clean
 clean:  
@@ -56,4 +52,5 @@ clean:
 distclean: clean
 	rm -rf dl
 	rm -rf build
+	rm image/conf/geoip*
 	rm -f tor.img
