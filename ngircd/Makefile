@@ -5,11 +5,11 @@ UPSTREAM = https://github.com/ngircd/ngircd/archive/rel-22.1.tar.gz
 NGIRCD_CONF_OPTS += \
 	--without-pam \
 	--enable-ipv6 \
-	--with-openssl
+	--with-openssl=${RUMPRUN_PKGS_DIR}
 
 
 
-all: bin/ngircd images/data/conf/ngircd.conf images/data/conf/Commands.txt
+all: libssl bin/ngircd images/data/conf/ngircd.conf images/data/conf/Commands.txt
 
 
 
@@ -58,3 +58,5 @@ clean:
 	-$(MAKE) -C build clean
 	rm -f bin/ngircd
 	rm -f images/data.iso
+
+include ../Makefile.deps
