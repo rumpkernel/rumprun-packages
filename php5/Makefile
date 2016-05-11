@@ -6,12 +6,12 @@ TARBALL=php.tar.bz2
 # "Kitchen sink" build. Depends on libxml2 being built.
 # Fileinfo, iconv and opcache are disabled for now (patches needed).
 all: CONFIGURE_OPTS := --with-libxml-dir=$(RUMPRUN_PKGS_DIR) \
-        --with-openssl=$(RUMPRUN_SYSROOT) \
+        --with-openssl=$(RUMPRUN_PKGS_DIR) \
         --with-zlib=$(RUMPRUN_SYSROOT) \
         --with-mysql --with-pdo-mysql \
         --disable-fileinfo --disable-opcache --without-iconv
 
-all: $(RUMPRUN_PKGS_DIR)/lib/libxml2.a bin/php-cgi bin/php images
+all: libssl $(RUMPRUN_PKGS_DIR)/lib/libxml2.a bin/php-cgi bin/php images
 
 # "Minimal" build.
 minimal: CONFIGURE_OPTS := --disable-all --enable-cli
@@ -64,3 +64,5 @@ clean:
 distclean: clean
 	rm -rf build/
 	rm -r dl/
+
+include ../Makefile.deps
