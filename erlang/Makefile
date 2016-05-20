@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-PKG_VERSION=18.2.1
+PKG_VERSION=18.3
 UPSTREAM=http://www.erlang.org/download/otp_src_$(PKG_VERSION).tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(HOST_CC) -dumpmachine)

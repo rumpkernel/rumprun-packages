@@ -1,7 +1,7 @@
 Overview
 ========
 
-This packages [Erlang/OTP](http://erlang.se/) for 18.2.1 the
+This packages [Erlang/OTP](http://erlang.se/) for 18.3 the
 development environment for building distributed real-time
 high-availability systems.
 
