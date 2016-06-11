@@ -1,6 +1,8 @@
 %% -- ERLANG INET CONFIGURATION FILE --
 %% the hosts file
 {file, hosts, "/opt/erlang/hosts"}.
+%% do not monitor the hosts file
+{hosts_file, ""}.
 %% enable EDNS, either comment it or set of false to disable it
 {edns,0}.
 %% cache_size default value is 100
