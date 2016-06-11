@@ -75,6 +75,7 @@ images/erlang.iso: build/Makefile
 	mkdir -p images
 	cp erl_inetrc build/erlangdist/$(RUMP_INSTALL_LOCATION)/
 	cp hosts.template build/erlangdist/$(RUMP_INSTALL_LOCATION)/hosts
+	cp resolv.conf.template build/erlangdist/$(RUMP_INSTALL_LOCATION)/resolv.conf
 	$(RUMPRUN_GENISOIMAGE) -o images/erlang.iso build/erlangdist/$(RUMP_INSTALL_LOCATION)
 
 .PHONY: clean

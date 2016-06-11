@@ -1,0 +1,10 @@
+#
+# /etc/resolv.conf
+#
+
+#search <yourdomain.tld>
+#nameserver <ip>
+
+nameserver 10.0.120.100
+
+# End of file
