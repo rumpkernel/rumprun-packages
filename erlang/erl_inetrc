@@ -4,8 +4,8 @@
 %% do not monitor the hosts file
 {hosts_file, ""}.
 {file, resolv, "/opt/erlang/resolv.conf"}.
-%% do not monitor resolv.conf because it'll never change
-{resolv_conf, ""}.
+%% set resolv_conf as well, otherwise things dont work
+{resolv_conf, "/opt/erlang/resolv.conf"}.
 %% enable EDNS, either comment it or set of false to disable it
 {edns,0}.
 %% cache_size default value is 100
