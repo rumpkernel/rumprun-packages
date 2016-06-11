@@ -128,7 +128,7 @@ rumprun unikernel).
 
 
 ```shell
-$ ./erlrun.sh --cookie=mycookie
+$ ./erlrun.sh --epmd --cookie=mycookie
 ```
 
 Please peruse the top part of the shell-script for further options.
@@ -153,7 +153,7 @@ Eshell V7.0  (abort with ^G)
 
 ```
 
-And start a local empd, so that you can talk to the remote (rumprun) node.
+And start a local epmd, so that you can talk to the remote (rumprun) node.
 
 ```
 erlpmd_ctl:start().
@@ -174,7 +174,7 @@ ErlPMD listener: started at Ip: 0.0.0.0:4369
 ```
 
 
-Now connect to the local instance of empd while setting name and
+Now connect to the local instance of epmd while setting name and
 cookie, which is required for authentication with the remote
 rumprun erlang node. Notice that the cookie used is the same
 here as well.

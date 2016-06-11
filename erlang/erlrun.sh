@@ -12,7 +12,7 @@ Usage: "${0##*/}" [-h] ...
     --erlpath      Path to erlang installation. (Default: /opt/erlang)
     --ip           Which IP to configure this VM on. (Default 10.0.120.101)
     --virt         virtualization. One of xen, qemu, kvm
-    --empd         Enable Empd. Requires the following options:
+    --epmd         Enable Epmd. Requires the following options:
     --cookie       Set a specific cookie. (Default: mycookie)
     --name         Set a different name. (Default: rumprun)
     --network      DANGER ZONE: Configures the network, will prompt for sudo password
@@ -31,7 +31,7 @@ main() {
   local virt=qemu
   local module=echoserver
   local network=
-  local empd_opt=-no_epmd
+  local epmd_opt=-no_epmd
   local epmd_conf=
 
   local OPTIND=1 # Reset is necessary if getopts was used previously
@@ -47,7 +47,7 @@ main() {
           erlpath=*)     erlpath="${OPTARG#*=}"     ;;
           ip=*)          ip="${OPTARG#*=}"          ;;
           virt=*)        virt="${OPTARG#*=}"        ;;
-          epmd|empd)     empd_opt=''                ;;
+          epmd)          epmd_opt=''                ;;
           cookie=*)      cookie="${OPTARG#*=}"      ;;
           name=*)        name="${OPTARG#*=}"        ;;
           network)       network=1                  ;;
@@ -68,7 +68,7 @@ main() {
     trap true INT
   }
 
-  [[ -z "$empd_opt" ]] && {
+  [[ -z "$epmd_opt" ]] && {
     epmd_conf="-s erlpmd_ctl start -s setnodename start $name@$ip $cookie"
   }
 
