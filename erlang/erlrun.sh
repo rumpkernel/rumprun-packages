@@ -11,6 +11,7 @@ Usage: "${0##*/}" [-h] ...
     --erlhome      Erlang Home. (Default: /tmp)
     --erlpath      Path to erlang installation. (Default: /opt/erlang)
     --ip           Which IP to configure this VM on. (Default 10.0.120.101)
+    --gw           Which gateway to configure this VM on. (Default 10.0.120.100)
     --virt         virtualization. One of xen, qemu, kvm
     --epmd         Enable Epmd. Requires the following options:
     --cookie       Set a specific cookie. (Default: mycookie)
@@ -27,6 +28,7 @@ main() {
   local erlpath=/opt/erlang
   local name=rumprun
   local ip=10.0.120.101
+  local gw=10.0.120.100
   local cookie=mycookie
   local virt=qemu
   local module=echoserver
@@ -46,6 +48,7 @@ main() {
           erlhome=*)     erlhome="${OPTARG#*=}"     ;;
           erlpath=*)     erlpath="${OPTARG#*=}"     ;;
           ip=*)          ip="${OPTARG#*=}"          ;;
+          gw=*)          gw="${OPTARG#*=}"          ;;
           virt=*)        virt="${OPTARG#*=}"        ;;
           epmd)          epmd_opt=''                ;;
           cookie=*)      cookie="${OPTARG#*=}"      ;;
@@ -74,7 +77,7 @@ main() {
 
   rumprun "$virt" \
      -I if,vioif,'-net tap,script=no,ifname=tap0' \
-     -W if,inet,static,"$ip/24" \
+     -W if,inet,static,"$ip/24","$gw" \
      -e ERL_INETRC="$erlpath/erl_inetrc" \
      -b images/erlang.iso,"$erlpath" \
      -b examples/app.iso,"$erlapp_path" \
