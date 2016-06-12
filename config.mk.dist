@@ -6,5 +6,5 @@
 # building packages. (eg. x86_64-rumprun-netbsd, i486-rumprun-netbsdelf).
 RUMPRUN_TOOLCHAIN_TUPLE=
 
-# Select ssl package (only one option for now)
+# Select ssl package (another option is openssl)
 #RUMPRUN_SSL= libressl
