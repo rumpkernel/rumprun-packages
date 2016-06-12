@@ -5,6 +5,6 @@
 #search <yourdomain.tld>
 #nameserver <ip>
 
-nameserver 10.0.120.100
+nameserver 8.8.8.8
 
 # End of file
