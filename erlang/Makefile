@@ -25,15 +25,15 @@ build/erlang: build/Makefile
 
 ERLANG_CONF_OPTS += \
 	--prefix=$(RUMP_INSTALL_LOCATION) \
+	--with-ssl=$(RUMPRUN_PKGS_DIR) \
 	--disable-shared \
+	--enable-static \
 	--host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	--build=$(ARCH) \
 	erl_xcomp_sysroot=$(RUMPRUN_SYSROOT) \
 	--without-termcap \
 	--without-odbc \
 	--without-wx \
-	--disable-shared \
-	--enable-static \
 	--disable-dynamic-ssl-lib
 
 build/Makefile: build/bootstrap_complete

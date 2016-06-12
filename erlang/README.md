@@ -21,6 +21,10 @@ github: neeraj9, igalic
 Instructions
 ============
 
+> The Erlang build is tested with openssl but the default ssl in
+> rumprun-packages is libressl. In order to change the default edit
+> ../config.mk and set RUMPRUN_SSL to openssl.
+
 Run this `make` from a user account, *not the root account*. At the end of the
 installation, the Makefile will build two variants of the build. One is
 required for a host, so that the erlang code can be compiled on this
