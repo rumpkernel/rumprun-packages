@@ -81,6 +81,7 @@ main() {
      -e ERL_INETRC="$erlpath/erl_inetrc" \
      -b images/erlang.iso,"$erlpath" \
      -b examples/app.iso,"$erlapp_path" \
+     -M 256 \
      -i beam.hw.bin \
        "-- $epmd_opt -root $erlpath/lib/erlang \
         -progname erl -- \
