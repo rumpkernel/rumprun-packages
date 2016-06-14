@@ -37,7 +37,7 @@ libopenssl_CONF_OPTS += \
 	--openssldir=$(RUMPRUN_PKGS_DIR)/bin \
 	zlib enable-cms enable-tlsext enable-camellia enable-seed \
 	enable-md2 enable-rfc3779 no-idea \
-	no-ecdh no-mdc2 no-rc5 no-ec no-ecdsa \
+	no-mdc2 no-rc5 \
 	no-shared $(TARGET)
 
 build/Makefile: build/Configure
