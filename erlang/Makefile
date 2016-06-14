@@ -7,6 +7,7 @@ ARCH=$(shell $(HOST_CC) -dumpmachine)
 RUMP_INSTALL_LOCATION=/opt/erlang
 
 LOCAL_INSTALL_DESTINATION=$(shell pwd)/build/erlangdist
+LOCAL_BUILD_LOCATION=$(shell pwd)/build
 
 # use "make V=1" for getting verbose build of erlang, which
 # is very useful for debugging build issues
@@ -28,6 +29,8 @@ ERLANG_CONF_OPTS += \
 	--with-ssl=$(RUMPRUN_PKGS_DIR) \
 	--disable-shared \
 	--enable-static \
+	--enable-static-nifs=$(LOCAL_BUILD_LOCATION)/lib/crypto/priv/lib/$(RUMPRUN_TOOLCHAIN_TUPLE)/crypto.a,$(LOCAL_BUILD_LOCATION)/lib/asn1/priv/lib/$(RUMPRUN_TOOLCHAIN_TUPLE)/asn1rt_nif.a \
+	--enable-static-drivers \
 	--host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	--build=$(ARCH) \
 	erl_xcomp_sysroot=$(RUMPRUN_SYSROOT) \
@@ -36,8 +39,9 @@ ERLANG_CONF_OPTS += \
 	--without-wx \
 	--disable-dynamic-ssl-lib
 
+
 build/Makefile: build/bootstrap_complete
-	(cd build; ./configure $(ERLANG_CONF_OPTS))
+	(cd build; LIBS="$(RUMPRUN_PKGS_DIR)/lib/libcrypto.a" ./configure $(ERLANG_CONF_OPTS))
 
 build/bootstrap_complete: build/stamp_patch build/configure
 	(cd build; ./configure --enable-bootstrap-only)
