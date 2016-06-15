@@ -15,13 +15,21 @@ ifneq ($(V), 1)
 endif
 
 .NOTPARALLEL: all
-all: libssl build/erlang examples images
+all: libssl build_erlang examples images
 
-build/erlang: build/Makefile
+build_erlang: bin/beam
+
+build/erlang_build_complete: build/Makefile
 	$(MAKE) -C build V=$(V)
 	$(MAKE) -C build V=$(V) DESTDIR=$(LOCAL_INSTALL_DESTINATION) install
+	touch $@
+
+bin/beam: build/erlang_build_complete
 	mkdir -p bin
 	cp build/bin/$(RUMPRUN_TOOLCHAIN_TUPLE)/beam bin/
+
+beam.hw.bin: bin/beam
+	rumprun-bake hw_virtio beam.hw.bin bin/beam
 
 ERLANG_CONF_OPTS += \
 	--prefix=$(RUMP_INSTALL_LOCATION) \
@@ -67,14 +75,14 @@ build/untar_sources: | dl/$(TARBALL)
 .PHONY: examples
 examples: examples/app.iso
 
-examples/app.iso:
+examples/app.iso: build/bootstrap_complete
 	$(MAKE) -C examples all
 
 .PHONY: images
 images: images/erlang.iso
 
 
-images/erlang.iso: build/Makefile
+images/erlang.iso: build/erlang_build_complete
 	mkdir -p images
 	cp erl_inetrc build/erlangdist/$(RUMP_INSTALL_LOCATION)/
 	cp hosts.template build/erlangdist/$(RUMP_INSTALL_LOCATION)/hosts
