@@ -15,7 +15,7 @@ ifneq ($(V), 1)
 endif
 
 .NOTPARALLEL: all
-all: build/erlang examples images
+all: libssl build/erlang examples images
 
 build/erlang: build/Makefile
 	$(MAKE) -C build V=$(V)
@@ -91,3 +91,5 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -rf build
+
+include ../Makefile.deps
