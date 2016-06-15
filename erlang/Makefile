@@ -1,7 +1,6 @@
 include ../Makefile.inc
 
-PKG_VERSION=18.3
-UPSTREAM=http://www.erlang.org/download/otp_src_$(PKG_VERSION).tar.gz
+UPSTREAM=https://github.com/erlang/otp/archive/OTP-18.3.4.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(HOST_CC) -dumpmachine)
 RUMP_INSTALL_LOCATION=/opt/erlang
