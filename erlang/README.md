@@ -154,9 +154,9 @@ are disabled in local copy).
 Start the erlang shell.
 
 ```
-./build/bootstrap/bin/erl -pa build/lib/epmd/ebin
+./build/bin/erl
 
-Eshell V7.0  (abort with ^G)
+Eshell V7.3.1 (abort with ^G)
 1>
 
 ```
