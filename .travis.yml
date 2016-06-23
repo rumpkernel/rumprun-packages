@@ -1,6 +1,7 @@
 sudo: required
 dist: trusty
 language: generic
+cache: ccache
 install: bash -ex ./.travis-install.sh
 script: bash -ex ./.travis-script.sh
 
