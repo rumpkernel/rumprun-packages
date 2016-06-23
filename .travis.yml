@@ -1,42 +1,47 @@
 sudo: required
 dist: trusty
 language: generic
-cache: ccache
+cache:
+  directories:
+    - $HOME/.ccache
 install: bash -ex ./.travis-install.sh
 script: bash -ex ./.travis-script.sh
 
 env:
-  - PACKAGE=erlang
-  - PACKAGE=haproxy
-  - PACKAGE=hiawatha
-  - PACKAGE=leveldb
-  - PACKAGE=libcurl
-  - PACKAGE=libevent
-  - PACKAGE=libressl
-  - PACKAGE=libxml2
-  - PACKAGE=mathopd
-  - PACKAGE=memcached
-  - PACKAGE=mpg123
-# broken: issue #106
-#  - PACKAGE=mysql
-  - PACKAGE=nanomsg
-  - PACKAGE=nginx
-  - PACKAGE=ngircd
-  - PACKAGE=nodejs
-# broken: issue #92
-#  - PACKAGE=openmp
-  - PACKAGE=pcre
-  - PACKAGE=php5
-  - PACKAGE=php7
-  - PACKAGE=python3
-  - PACKAGE=redis
-# Disabled, does not actually build anything interesting
-#  - PACKAGE=roundcube
-  - PACKAGE=ruby
-# Disabled, build takes several hours
-#  - PACKAGE=rust
-  - PACKAGE=sqlite
-  - PACKAGE=tor
+  global:
+      - PATH="/usr/lib/ccache:$PATH"
+  matrix:
+    - PACKAGE=erlang
+    - PACKAGE=haproxy
+    - PACKAGE=hiawatha
+    - PACKAGE=leveldb
+    - PACKAGE=libcurl
+    - PACKAGE=libevent
+    - PACKAGE=libressl
+    - PACKAGE=libxml2
+    - PACKAGE=mathopd
+    - PACKAGE=memcached
+    - PACKAGE=mpg123
+  # broken: issue #106
+  #  - PACKAGE=mysql
+    - PACKAGE=nanomsg
+    - PACKAGE=nginx
+    - PACKAGE=ngircd
+    - PACKAGE=nodejs
+  # broken: issue #92
+  #  - PACKAGE=openmp
+    - PACKAGE=pcre
+    - PACKAGE=php5
+    - PACKAGE=php7
+    - PACKAGE=python3
+    - PACKAGE=redis
+  # Disabled, does not actually build anything interesting
+  #  - PACKAGE=roundcube
+    - PACKAGE=ruby
+  # Disabled, build takes several hours
+  #  - PACKAGE=rust
+    - PACKAGE=sqlite
+    - PACKAGE=tor
 
 notifications:
   irc:
