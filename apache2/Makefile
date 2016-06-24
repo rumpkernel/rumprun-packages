@@ -1,12 +1,12 @@
 include ../Makefile.inc
 
 UPSTREAM_HTTPD=http://www.motorlogy.com/apache//httpd/httpd-2.4.20.tar.gz
-	TARBALL_HTTPD=dl/$(notdir $(UPSTREAM_HTTPD))
-	UPSTREAM_APR=http://www.motorlogy.com/apache/apr/apr-1.5.2.tar.gz
-	TARBALL_APR=dl/$(notdir $(UPSTREAM_APR))
-	UPSTREAM_APR_UTIL=http://ftp.nluug.nl/internet/apache/apr/apr-util-1.5.4.tar.gz
-	TARBALL_APR_UTIL=dl/$(notdir $(UPSTREAM_APR_UTIL))
-	TARBALLS=$(TARBALL_HTTPD) $(TARBALL_APR) $(TARBALL_APR_UTIL)
+TARBALL_HTTPD=dl/$(notdir $(UPSTREAM_HTTPD))
+UPSTREAM_APR=http://www.motorlogy.com/apache/apr/apr-1.5.2.tar.gz
+TARBALL_APR=dl/$(notdir $(UPSTREAM_APR))
+UPSTREAM_APR_UTIL=http://ftp.nluug.nl/internet/apache/apr/apr-util-1.5.4.tar.gz
+TARBALL_APR_UTIL=dl/$(notdir $(UPSTREAM_APR_UTIL))
+TARBALLS=$(TARBALL_HTTPD) $(TARBALL_APR) $(TARBALL_APR_UTIL)
 
 ARCH=$(shell $(HOST_CC) -dumpmachine)
 
