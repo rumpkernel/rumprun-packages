@@ -28,7 +28,7 @@ APACHE_CONF_ENV += \
 		   ac_cv_sizeof_struct_iovec=1 \
 		   ac_cv_func_setpgrp_void=yes \
 		   ac_cv_file__dev_zero=no \
-		   apr_cv_tcp_nodelay_with_cork=yes \
+		   apr_cv_tcp_nodelay_with_cork=no \
 		   ac_cv_define_SO_ACCEPTFILTER=no \
 		   CC=$(RUMPRUN_CC)
 

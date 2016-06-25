@@ -42,6 +42,7 @@ env:
   #  - PACKAGE=rust
     - PACKAGE=sqlite
     - PACKAGE=tor
+    - PACKAGE=apache2
 
 notifications:
   irc:
