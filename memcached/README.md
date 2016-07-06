@@ -1,7 +1,7 @@
 Overview
 ========
 
-This is the memcached 1.4.25 package for rumprun unikernels
+This is the memcached 1.4.28 package for rumprun unikernels
 
 Maintainer
 ----------
