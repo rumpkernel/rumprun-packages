@@ -13,11 +13,10 @@ bin/ruby: build/ruby
 	mkdir -p bin
 	rumprun-bake hw_generic bin/ruby.bin build/rubydist/bin/ruby
 
-# --with-out-ext=fiddle,bigdecimal,continuation,coverage,date,dbm,-test*;
 build/ruby: build/Makefile
 	(cd build; \
-	./configure --enable-static --disable-shared --host=$(RUMPRUN_TOOLCHAIN_TUPLE) --with-static-linked-ext --prefix=$(shell pwd)/build/rubydist --disable-install-doc --with-out-ext=-test* LDFLAGS="-Bstatic -static"; \
-	$(MAKE) --debug; make install)
+	./configure --enable-static --disable-shared --host=$(RUMPRUN_TOOLCHAIN_TUPLE) --with-static-linked-ext --prefix=/usr --disable-install-doc --with-out-ext=-test* LDFLAGS="-Bstatic -static"; \
+	$(MAKE) --debug; make install DESTDIR=rubydist)
 
 build/Makefile:
 	mkdir -p build
