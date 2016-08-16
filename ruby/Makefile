@@ -9,11 +9,11 @@ endif
 
 all: bin/ruby images/usr.iso
 
-bin/ruby: build/ruby
+bin/ruby: build/rubydist/usr/bin/ruby
 	mkdir -p bin
-	rumprun-bake hw_generic bin/ruby.bin build/rubydist/bin/ruby
+	cp $< $@
 
-build/ruby: build/Makefile
+build/rubydist/usr/bin/ruby: build/Makefile
 	(cd build; \
 	./configure --enable-static --disable-shared --host=$(RUMPRUN_TOOLCHAIN_TUPLE) --with-static-linked-ext --prefix=/usr --disable-install-doc --with-out-ext=-test* LDFLAGS="-Bstatic -static"; \
 	$(MAKE) --debug; make install DESTDIR=rubydist)
