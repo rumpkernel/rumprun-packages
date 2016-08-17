@@ -1,0 +1,21 @@
+diff -ruN a/src/x86/unix64.S b/src/x86/unix64.S
+--- a/src/x86/unix64.S	2016-08-16 16:19:54.652352911 -0600
++++ b/src/x86/unix64.S	2016-08-16 16:24:43.458234126 -0600
+@@ -75,12 +75,14 @@
+ 	/* Call the user function.  */
+ 	call	*%r11
+ 
++	movq	0(%rbp), %rcx		/* Reload flags.  */
++	movq	8(%rbp), %rdi		/* Reload raddr.  */
++	movq	16(%rbp), %r12		/* Backup old frame pointer.  */
++
+ 	/* Deallocate stack arg area; local stack frame in redzone.  */
+ 	leaq	24(%rbp), %rsp
+ 
+-	movq	0(%rbp), %rcx		/* Reload flags.  */
+-	movq	8(%rbp), %rdi		/* Reload raddr.  */
+-	movq	16(%rbp), %rbp		/* Reload old frame pointer.  */
++	movq	%r12, %rbp		/* Restore old frame pointer.  */
+ .LUW2:
+ 
+ 	/* The first byte of the flags contains the FFI_TYPE.  */

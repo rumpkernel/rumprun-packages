@@ -5,4 +5,9 @@ if [ -z "${PACKAGE}" ]; then
 	exit 1
 fi
 cd ${PACKAGE}
-make -j2
+# Openjdk make should not be used with option -j
+if [ "${PACKAGE}" == "openjdk8" ]; then
+	make
+else
+	make -j2
+fi

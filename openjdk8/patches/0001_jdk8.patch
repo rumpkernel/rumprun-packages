@@ -1,0 +1,433 @@
+diff -ruN -x jdk -x hotspot -x '.*' old/common/autoconf/configure.ac new/common/autoconf/configure.ac
+--- old/common/autoconf/configure.ac	2016-08-16 10:50:09.988844290 -0600
++++ new/common/autoconf/configure.ac	2016-08-16 14:39:07.090641060 -0600
+@@ -154,6 +154,9 @@
+ #
+ ###############################################################################
+ 
++# See if we are doing a complete static build or not
++JDKOPT_SETUP_STATIC_BUILD
++
+ TOOLCHAIN_SETUP_SYSROOT_AND_OUT_OPTIONS
+ # Locate the actual tools
+ TOOLCHAIN_SETUP_PATHS
+diff -ruN -x jdk -x hotspot -x '.*' old/common/autoconf/generated-configure.sh new/common/autoconf/generated-configure.sh
+--- old/common/autoconf/generated-configure.sh	2016-08-16 10:50:09.992844407 -0600
++++ new/common/autoconf/generated-configure.sh	2016-08-16 14:39:07.070640165 -0600
+@@ -779,6 +779,7 @@
+ LD_OUT_OPTION
+ EXE_OUT_OPTION
+ CC_OUT_OPTION
++STATIC_BUILD
+ BUILD_HOTSPOT
+ HOTSPOT_DIST
+ BUILD_OUTPUT
+@@ -1050,6 +1051,7 @@
+ with_override_nashorn
+ with_override_jdk
+ with_import_hotspot
++enable_static_build
+ with_msvcr_dll
+ with_dxsdk
+ with_dxsdk_lib
+@@ -1735,6 +1737,7 @@
+                           run the Queens test after Hotspot build [disabled]
+   --enable-unlimited-crypto
+                           Enable unlimited crypto policy [disabled]
++  --enable-static-build   enable static library build [disabled]
+   --enable-static-libjli  Enable staticly linking libjli on bsd [disabled]
+   --disable-debug-symbols disable generation of debug symbols [enabled]
+   --disable-zip-debug-info
+@@ -16683,6 +16686,36 @@
+ ###############################################################################
+ 
+ 
++# See if we are doing a complete static build or not
++
++  # Check whether --enable-static-build was given.
++if test "${enable_static_build+set}" = set; then :
++  enableval=$enable_static_build;
++fi
++
++  STATIC_BUILD=false
++  if test "x$enable_static_build" = "xyes"; then
++    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if static build is enabled" >&5
++$as_echo_n "checking if static build is enabled... " >&6; }
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
++$as_echo "yes" >&6; }
++    STATIC_BUILD_CFLAGS="-DSTATIC_BUILD=1"
++    LEGACY_EXTRA_CFLAGS="$LEGACY_EXTRA_CFLAGS $STATIC_BUILD_CFLAGS"
++    LEGACY_EXTRA_CXXFLAGS="$LEGACY_EXTRA_CXXFLAGS $STATIC_BUILD_CFLAGS"
++    CFLAGS_JDKLIB_EXTRA="$CFLAGS_JDKLIB_EXTRA $STATIC_BUILD_CFLAGS"
++    CXXFLAGS_JDKLIB_EXTRA="$CXXFLAGS_JDKLIB_EXTRA $STATIC_BUILD_CFLAGS"
++    STATIC_BUILD=true
++  elif test "x$enable_static_build" = "xno"; then
++    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if static build is enabled" >&5
++$as_echo_n "checking if static build is enabled... " >&6; }
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++  elif test "x$enable_static_build" != "x"; then
++    as_fn_error $? "--enable-static-build can only be assigned \"yes\" or \"no\"" "$LINENO" 5
++  fi
++
++
++
+   ###############################################################################
+   #
+   # Configure the development tool paths and potential sysroot.
+@@ -29355,10 +29388,7 @@
+     COMPILER_NAME=gcc
+     PICFLAG="-fPIC"
+     LIBRARY_PREFIX=lib
+-    SHARED_LIBRARY='lib$1.so'
+     STATIC_LIBRARY='lib$1.a'
+-    SHARED_LIBRARY_FLAGS="-shared"
+-    SHARED_LIBRARY_SUFFIX='.so'
+     STATIC_LIBRARY_SUFFIX='.a'
+     OBJ_SUFFIX='.o'
+     EXE_SUFFIX=''
+@@ -29373,6 +29403,15 @@
+     LDCXX="$CXX"
+     LDEXECXX="$CXX"
+     POST_STRIP_CMD="$STRIP -g"
++    if test "x$STATIC_BUILD" = xtrue; then
++      SHARED_LIBRARY='lib$1.a'
++      SHARED_LIBRARY_SUFFIX='.a'
++      SHARED_LIBRARY_FLAGS=''
++    else
++      SHARED_LIBRARY='lib$1.so'
++      SHARED_LIBRARY_SUFFIX='.so'
++      SHARED_LIBRARY_FLAGS="-shared"
++    fi
+ 
+     # Linking is different on MacOSX
+     if test "x$OPENJDK_TARGET_OS" = xmacosx; then
+@@ -30348,10 +30387,19 @@
+       PULSE_NOT_NEEDED=yes
+       { $as_echo "$as_me:${as_lineno-$LINENO}: result: alsa pulse" >&5
+ $as_echo "alsa pulse" >&6; }
++    elif test "x$OPENJDK_TARGET_OS_VENDOR" = xnetbsd; then
++      CUPS_NOT_NEEDED=yes
++      ALSA_NOT_NEEDED=yes
++      PULSE_NOT_NEEDED=yes
++      X11_NOT_NEEDED=yes
++      FREETYPE_NOT_NEEDED=yes
++      { $as_echo "$as_me:${as_lineno-$LINENO}: result: cups alsa pulse x11 freetype" >&5
++$as_echo "cups alsa pulse x11 freetype" >&6; }
+     else
++      ALSA_NOT_NEEDED=yes
+       PULSE_NOT_NEEDED=yes
+-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: pulse" >&5
+-$as_echo "pulse" >&6; }
++      { $as_echo "$as_me:${as_lineno-$LINENO}: result: alsa pulse" >&5
++$as_echo "alsa pulse" >&6; }
+     fi
+   fi
+ 
+@@ -31575,7 +31623,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -32160,7 +32208,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -32462,7 +32510,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -32760,7 +32808,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -33053,7 +33101,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -33348,7 +33396,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -33639,7 +33687,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -33930,7 +33978,7 @@
+ $as_echo "$as_me: Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD" >&6;}
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&5
+ $as_echo "$as_me: Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location." >&6;}
+@@ -34506,7 +34554,7 @@
+       if test "x$OPENJDK_TARGET_OS" = xwindows; then
+         FREETYPE_LIBS="$FREETYPE_LIB_PATH/freetype.lib"
+       else
+-        FREETYPE_LIBS="-L$FREETYPE_LIB_PATH -lfreetype"
++        FREETYPE_LIBS="-L$FREETYPE_LIB_PATH -Wl,-Bstatic -lfreetype"
+       fi
+     fi
+ 
+@@ -35320,7 +35368,7 @@
+ 
+ 
+   ###############################################################################
+-  LIBZIP_CAN_USE_MMAP=true
++  LIBZIP_CAN_USE_MMAP=false
+ 
+ 
+ 
+@@ -36238,7 +36286,7 @@
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking that precompiled headers work" >&5
+ $as_echo_n "checking that precompiled headers work... " >&6; }
+       echo "int alfa();" > conftest.h
+-      $CXX -x c++-header conftest.h -o conftest.hpp.gch 2>&5 >&5
++      $CXX -c -x c++-header conftest.h -o conftest.hpp.gch 2>&5 >&5
+       if test ! -f conftest.hpp.gch; then
+         USE_PRECOMPILED_HEADER=0
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+diff -ruN -x jdk -x hotspot -x '.*' old/common/autoconf/jdk-options.m4 new/common/autoconf/jdk-options.m4
+--- old/common/autoconf/jdk-options.m4	2016-08-16 10:50:09.992844407 -0600
++++ new/common/autoconf/jdk-options.m4	2016-08-16 14:39:07.074640345 -0600
+@@ -624,6 +624,38 @@
+   AC_SUBST(CXXFLAGS_DEBUG_SYMBOLS)
+ ])
+ 
++
++################################################################################
++#
++# Static build support.  When enabled will generate static 
++# libraries instead of shared libraries for all JDK libs.
++#
++AC_DEFUN_ONCE([JDKOPT_SETUP_STATIC_BUILD],
++[
++  AC_ARG_ENABLE([static-build], [AS_HELP_STRING([--enable-static-build],
++    [enable static library build @<:@disabled@:>@])])
++  STATIC_BUILD=false
++  if test "x$enable_static_build" = "xyes"; then
++    AC_MSG_CHECKING([if static build is enabled])
++    AC_MSG_RESULT([yes])
++    STATIC_BUILD_CFLAGS="-DSTATIC_BUILD=1"
++    LEGACY_EXTRA_CFLAGS="$LEGACY_EXTRA_CFLAGS $STATIC_BUILD_CFLAGS"
++    LEGACY_EXTRA_CXXFLAGS="$LEGACY_EXTRA_CXXFLAGS $STATIC_BUILD_CFLAGS"
++    CFLAGS_JDKLIB_EXTRA="$CFLAGS_JDKLIB_EXTRA $STATIC_BUILD_CFLAGS"
++    CXXFLAGS_JDKLIB_EXTRA="$CXXFLAGS_JDKLIB_EXTRA $STATIC_BUILD_CFLAGS"
++    STATIC_BUILD=true
++  elif test "x$enable_static_build" = "xno"; then
++    AC_MSG_CHECKING([if static build is enabled])
++    AC_MSG_RESULT([no])
++  elif test "x$enable_static_build" != "x"; then
++    AC_MSG_ERROR([--enable-static-build can only be assigned "yes" or "no"])
++  fi
++
++  AC_SUBST(STATIC_BUILD)
++])
++
++
++
+ # Support for customization of the build process. Some build files
+ # will include counterparts from this location, if they exist. This allows
+ # for a degree of customization of the build targets and the rules/recipes
+diff -ruN -x jdk -x hotspot -x '.*' old/common/autoconf/libraries.m4 new/common/autoconf/libraries.m4
+--- old/common/autoconf/libraries.m4	2016-08-16 10:50:09.992844407 -0600
++++ new/common/autoconf/libraries.m4	2016-08-16 14:39:07.074640345 -0600
+@@ -74,6 +74,13 @@
+       ALSA_NOT_NEEDED=yes
+       PULSE_NOT_NEEDED=yes
+       AC_MSG_RESULT([alsa pulse])
++    elif test "x$OPENJDK_TARGET_OS_VENDOR" = xnetbsd; then
++      CUPS_NOT_NEEDED=yes
++      ALSA_NOT_NEEDED=yes
++      PULSE_NOT_NEEDED=yes
++      X11_NOT_NEEDED=yes
++      FREETYPE_NOT_NEEDED=yes
++      AC_MSG_RESULT([alsa pulse x11 cups])
+     else
+       PULSE_NOT_NEEDED=yes
+       AC_MSG_RESULT([pulse])
+@@ -271,7 +278,7 @@
+     AC_MSG_NOTICE([Found freetype include files at $POTENTIAL_FREETYPE_INCLUDE_PATH using $METHOD])
+     FOUND_FREETYPE=yes
+ 
+-    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${SHARED_LIBRARY_SUFFIX}"
++    FREETYPE_LIB_NAME="${LIBRARY_PREFIX}freetype${STATIC_LIBRARY_SUFFIX}"
+     if ! test -s "$POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME"; then
+       AC_MSG_NOTICE([Could not find $POTENTIAL_FREETYPE_LIB_PATH/$FREETYPE_LIB_NAME. Ignoring location.])
+       FOUND_FREETYPE=no
+@@ -482,7 +489,7 @@
+       if test "x$OPENJDK_TARGET_OS" = xwindows; then
+         FREETYPE_LIBS="$FREETYPE_LIB_PATH/freetype.lib"
+       else
+-        FREETYPE_LIBS="-L$FREETYPE_LIB_PATH -lfreetype"
++        FREETYPE_LIBS="-L$FREETYPE_LIB_PATH -Wl,-Bstatic -lfreetype"
+       fi
+     fi
+ 
+@@ -751,7 +758,7 @@
+   AC_SUBST(USE_EXTERNAL_LIBZ)
+ 
+   ###############################################################################
+-  LIBZIP_CAN_USE_MMAP=true
++  LIBZIP_CAN_USE_MMAP=false
+ 
+   AC_SUBST(LIBZIP_CAN_USE_MMAP)
+ 
+diff -ruN -x jdk -x hotspot -x '.*' old/common/autoconf/spec.gmk.in new/common/autoconf/spec.gmk.in
+--- old/common/autoconf/spec.gmk.in	2016-08-16 10:50:09.996844526 -0600
++++ new/common/autoconf/spec.gmk.in	2016-08-16 14:39:07.078640523 -0600
+@@ -440,7 +440,7 @@
+ STATIC_LIBRARY_SUFFIX:=@STATIC_LIBRARY_SUFFIX@
+ EXE_SUFFIX:=@EXE_SUFFIX@
+ OBJ_SUFFIX:=@OBJ_SUFFIX@
+-
++STATIC_BUILD:=@STATIC_BUILD@
+ POST_STRIP_CMD:=@POST_STRIP_CMD@
+ POST_MCS_CMD:=@POST_MCS_CMD@
+ 
+@@ -685,5 +685,8 @@
+ JDK_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JDK_BUNDLE_SUBDIR)
+ JRE_BUNDLE_DIR=$(IMAGES_OUTPUTDIR)/$(JRE_BUNDLE_SUBDIR)
+ 
++# libffi
++LIBFFI_LIBS=@LIBFFI_LIBS@
++
+ # Include the custom-spec.gmk file if it exists
+ -include $(dir @SPEC@)/custom-spec.gmk
+diff -ruN -x jdk -x hotspot -x '.*' old/common/autoconf/toolchain.m4 new/common/autoconf/toolchain.m4
+--- old/common/autoconf/toolchain.m4	2016-08-16 10:50:09.996844526 -0600
++++ new/common/autoconf/toolchain.m4	2016-08-16 14:39:07.074640345 -0600
+@@ -606,10 +606,7 @@
+     COMPILER_NAME=gcc
+     PICFLAG="-fPIC"
+     LIBRARY_PREFIX=lib
+-    SHARED_LIBRARY='lib[$]1.so'
+     STATIC_LIBRARY='lib[$]1.a'
+-    SHARED_LIBRARY_FLAGS="-shared"
+-    SHARED_LIBRARY_SUFFIX='.so'
+     STATIC_LIBRARY_SUFFIX='.a'
+     OBJ_SUFFIX='.o'
+     EXE_SUFFIX=''
+@@ -624,6 +621,21 @@
+     LDCXX="$CXX"
+     LDEXECXX="$CXX"
+     POST_STRIP_CMD="$STRIP -g"
++    # For full static builds, we're overloading the SHARED_LIBRARY
++    # variables in order to limit the amount of changes required.
++    # It would be better to remove SHARED and just use LIBRARY and
++    # LIBRARY_SUFFIX for libraries that can be built either 
++    # shared or static and use STATIC_* for libraries that are 
++    # always built statically.
++    if test "x$STATIC_BUILD" = xtrue; then
++      SHARED_LIBRARY='lib[$]1.a'
++      SHARED_LIBRARY_SUFFIX='.a'
++      SHARED_LIBRARY_FLAGS="-shared"
++    else
++      SHARED_LIBRARY='lib[$]1.so'
++      SHARED_LIBRARY_SUFFIX='.so'
++      SHARED_LIBRARY_FLAGS="-shared"
++    fi
+ 
+     # Linking is different on MacOSX
+     if test "x$OPENJDK_TARGET_OS" = xmacosx; then
+diff -ruN -x jdk -x hotspot -x '.*' old/common/include/dlfcn_static.h new/common/include/dlfcn_static.h
+--- old/common/include/dlfcn_static.h	1969-12-31 17:00:00.000000000 -0700
++++ new/common/include/dlfcn_static.h	2016-08-16 21:48:08.000000000 -0600
+@@ -0,0 +1,20 @@
++#ifndef __DLFCN_STATIC_H__
++#define __DLFCN_STATIC_H__
++
++#include <dlfcn.h>
++
++#define dlopen(fname,flag) static_dlopen()
++#define dlsym(handle,name) static_dlsym(name)
++#define dlclose(handle)    static_dlclose()
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++    void *static_dlopen();
++    void *static_dlsym(const char*);
++    int   static_dlclose();
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff -ruN -x jdk -x hotspot -x '.*' old/make/common/NativeCompilation.gmk new/make/common/NativeCompilation.gmk
+--- old/make/common/NativeCompilation.gmk	2016-08-16 10:50:33.141525365 -0600
++++ new/make/common/NativeCompilation.gmk	2016-08-16 14:39:16.943081685 -0600
+@@ -155,6 +155,15 @@
+   $(call LogSetupMacroEntry,SetupNativeCompilation($1),$2,$3,$4,$5,$6,$7,$8,$9,$(10),$(11),$(12),$(13),$(14),$(15),$(16),$(17),$(18),$(19),$(20),$(21),$(22),$(23),$(24),$(25),$(26),$(27),$(28),$(29))
+   $(if $(30),$(error Internal makefile error: Too many arguments to SetupNativeCompilation, please update NativeCompilation.gmk))
+ 
++  # If we're doing a static build and producing a library
++  # force it to be a static library and remove the -l libraries
++  ifeq ($(STATIC_BUILD), true)
++    ifneq ($$($1_LIBRARY),)
++      $1_STATIC_LIBRARY := $$($1_LIBRARY)
++      $1_LIBRARY :=
++    endif
++  endif
++
+   ifneq (,$$($1_BIN))
+     $$(error BIN has been replaced with OBJECT_DIR)
+   endif
+@@ -351,6 +360,12 @@
+     $1_EXTRA_CFLAGS += $$(C_FLAG_REORDER)
+     $1_EXTRA_CXXFLAGS += $$(CXX_FLAG_REORDER)
+   endif
++  
++  # Pass the library name for static JNI library naming
++  ifneq ($$($1_STATIC_LIBRARY),)
++    $1_EXTRA_CFLAGS += -DLIBRARY_NAME=$$($1_STATIC_LIBRARY)
++    $1_EXTRA_CXXFLAGS += -DLIBRARY_NAME=$$($1_STATIC_LIBRARY)
++  endif
+ 
+   ifeq (NONE, $$($1_OPTIMIZATION))
+     $1_EXTRA_CFLAGS += $(C_O_FLAG_NONE)
+@@ -502,7 +517,7 @@
+     $$($1_TARGET) : $$($1_EXPECTED_OBJS) $$($1_RES)
+ 	$$(call ARCHIVING_MSG,$$($1_LIBRARY))
+ 	$(AR) $$($1_ARFLAGS) $(AR_OUT_OPTION)$$($1_TARGET) $$($1_EXPECTED_OBJS) \
+-	    $$($1_RES) $$($1_LDFLAGS_SUFFIX) $$($1_EXTRA_LDFLAGS_SUFFIX)
++	    $$($1_RES)
+   endif
+ 
+   ifneq (,$$($1_PROGRAM))
