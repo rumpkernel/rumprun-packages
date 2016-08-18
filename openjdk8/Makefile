@@ -74,17 +74,22 @@ build/get_source.sh:
 images/jre.iso: build/javadist
 	mkdir -p images
 	$(RUMPRUN_GENISOIMAGE) -o images/jre.iso $(JRE_DIR)/lib
+	
+jar/HelloWorld.jar:
+	(cd examples; javac HelloWorld.java \
+	&& jar cfe ../jar/HelloWorld.jar HelloWorld HelloWorld.class)
 
-images/jar.ffs:
+images/jar.ffs: jar/HelloWorld.jar
 	mkdir -p images
 	../mysql/scripts/rumprun-makefs.sh -u 1 -g 1 images/jar.ffs jar
 
 .PHONY: clean
 clean:
 	-$(MAKE) -C build clean
-	rm -f bin/java
-	rm -f images/jre.iso
-	rm -f images/jar.ffs
+	rm -f bin/*
+	rm -f examples/HelloWorld.class
+	rm -f jar/HelloWorld.jar
+	rm -f images/*
 
 .PHONY: distclean
 distclean: clean
