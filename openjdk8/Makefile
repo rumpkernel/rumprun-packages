@@ -76,6 +76,7 @@ images/jre.iso: build/javadist
 	$(RUMPRUN_GENISOIMAGE) -o images/jre.iso $(JRE_DIR)/lib
 	
 jar/HelloWorld.jar:
+	mkdir -p jar
 	(cd examples; javac HelloWorld.java \
 	&& jar cfe ../jar/HelloWorld.jar HelloWorld HelloWorld.class)
 
