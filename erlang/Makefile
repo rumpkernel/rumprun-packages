@@ -72,6 +72,12 @@ BASIC_DISABLED_ERLANG_APPS_CONF_OPTS = \
 	--without-cosFileTransfer --without-cosNotification \
 	--without-cosProperty --without-cosTime --without-cosTransactions
 
+# Autoconf guesses (default behavior) that kqueue needs to
+# be disabled due to cross compilation, but it is an incorrect
+# assumption because Rumprun unikernel supports it (thanks to NetBSD).
+# Hence, set erl_xcomp_kqueue to yes (because it defaults to no).
+# see http://erlang.org/doc/installation_guide/INSTALL-CROSS.html
+# for details.
 ERLANG_CONF_OPTS += \
 	--prefix=$(RUMP_INSTALL_LOCATION) \
 	--with-ssl=$(RUMPRUN_PKGS_DIR) \
@@ -82,6 +88,7 @@ ERLANG_CONF_OPTS += \
 	--host=$(RUMPRUN_TOOLCHAIN_TUPLE) \
 	--build=$(ARCH) \
 	erl_xcomp_sysroot=$(RUMPRUN_SYSROOT) \
+	erl_xcomp_kqueue=yes \
 	--without-termcap \
 	$(BASIC_DISABLED_ERLANG_APPS_CONF_OPTS) \
 	--disable-dynamic-ssl-lib
