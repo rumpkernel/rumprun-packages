@@ -42,10 +42,10 @@ build/hostpython: | dl/$(TARBALL)
 	mv build/python build/hostpython
 
 build/Parser/hostpgen: build/hostpython
-	mv build/Parser/pgen build/Parser/hostpgen
+	cp build/Parser/pgen build/Parser/hostpgen
 
 build/Programs/host_freeze_importlib: build/Parser/hostpgen
-	mv build/Programs/_freeze_importlib build/Programs/host_freeze_importlib
+	cp build/Programs/_freeze_importlib build/Programs/host_freeze_importlib
 
 build/configure: build/Programs/host_freeze_importlib
 	(cd build; make distclean)
@@ -53,6 +53,7 @@ build/configure: build/Programs/host_freeze_importlib
 build/stamp_patch: build/configure patches/*
 	cp config.site build/
 	(cd build && ../../scripts/apply-patches.sh ./ ../patches/*)
+	cp -R files/* build/Modules/
 	touch $@
 
 build/Makefile: build/stamp_patch

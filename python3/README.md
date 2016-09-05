@@ -21,6 +21,9 @@ but not everything. If you have an ImportError while trying to import a module
 you feel should exist, please examine the `build/Modules/Setup` file to make
 sure it is compiled into Python.
 
+[Greenlets](https://greenlet.readthedocs.io/en/latest/) support is built into this
+package. Greenlets are like coroutines. The example script includes greenlets so
+you can see how they operate.
 
 Instructions
 ============
