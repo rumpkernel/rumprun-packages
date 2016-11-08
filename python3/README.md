@@ -1,9 +1,7 @@
 Overview
 ========
 
-Using the following instructions, you will cross-compile python 3.5.1
-for rumprun, compile a python program to C using `cython` and launch
-the result as a rumprun guest.
+Using the following instructions, you will cross-compile python 3.5.2 for rumprun.
 
 Maintainer
 ----------
@@ -32,7 +30,6 @@ Python installation, the build will attempt to install packages in `/usr/lib/pyt
 even though the install prefix doesn't point there.
 
 The build script requires `genisoimage` to create the `python.iso` image.
-The example program requires `cython` to compile the python script, and autotools to update the configure script.
 
 Run `make` from the python package directory:
 

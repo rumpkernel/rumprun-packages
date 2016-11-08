@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-UPSTREAM=https://www.python.org/ftp/python/3.5.1/Python-3.5.1.tar.xz
+UPSTREAM=https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz
 TARBALL=$(notdir $(UPSTREAM))
 ARCH=$(shell $(HOST_CC) -dumpmachine)
 
