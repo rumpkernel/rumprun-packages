@@ -18,6 +18,12 @@ Maintainer
 github: neeraj9, igalic
 
 
+Maintainer
+----------
+
+github: neeraj9, igalic
+
+
 Instructions
 ============
 
