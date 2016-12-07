@@ -1,0 +1,15 @@
+--- lib/socket-util-unix.c
++++ lib/socket-util-unix.c
+@@ -276,6 +276,12 @@ static int bind_unix_socket(int fd, struct sockaddr *sun, socklen_t sun_len)
+         }
+         return 0;
+     } else {
++        /* rumprun does not run fork; change permission in parent process */
++        VLOG_WARN("I am runing in rumprun unikernel!!");
++        umask(mode ^ 0777);
++        bind(fd, sun, sun_len);
++        return 0;
++
+         /* On FreeBSD and NetBSD, only the umask affects permissions.  The
+          * umask is process-wide rather than thread-specific, so we have to use
+          * a subprocess for safety. */
