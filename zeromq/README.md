@@ -8,7 +8,7 @@ This is zeromq 4.2.1 for Rumprun.
 * Github: @kvart2006
 
 ## Instructions
-
+Check ```Makefile```.
 ## Examples
 
 In order to run an example application on rumprun, you have to provide the paths to the ```zmq.h``` header file and library during compilation: 
