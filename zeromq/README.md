@@ -28,7 +28,7 @@ rumprun-bake hw_generic example1-rr.bin example1-rr
 
 rumprun qemu -i example1-rr.bin
 ```
-All other steps (baking,running) remain the same.
+All other steps (baking, running) remain the same.
 
 ### Example 1
 A simple one-way zeromq messaging using ZMQ_REQ and ZMQ_REP. 
