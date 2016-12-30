@@ -1,0 +1,10 @@
+--- a/setup.py.orig	2015-11-05 16:01:33.710271444 -0500
++++ b/setup.py	2015-11-05 16:03:00.054271065 -0500
+@@ -175,6 +175,7 @@
+         self.failed = []
+ 
+     def build_extensions(self):
++        return
+ 
+         # Detect which modules should be compiled
+         missing = self.detect_modules()

@@ -1,0 +1,273 @@
+diff -ruN a/acinclude.m4 b/acinclude.m4
+--- a/acinclude.m4	2016-06-23 03:22:55.000000000 -0600
++++ b/acinclude.m4	2016-06-23 03:47:09.839568448 -0600
+@@ -57,6 +57,7 @@
+   APACHE_SUBST(CC_FOR_BUILD)
+   APACHE_SUBST(CFLAGS_FOR_BUILD)
+   APACHE_SUBST(CXXFLAGS)
++  APACHE_SUBST(CC_FOR_BUILD)
+   APACHE_SUBST(LTFLAGS)
+   APACHE_SUBST(LDFLAGS)
+   APACHE_SUBST(LT_LDFLAGS)
+diff -ruN a/configure b/configure
+--- a/configure	2016-04-04 10:11:48.000000000 -0600
++++ b/configure	2016-06-23 17:50:51.000000000 -0600
+@@ -660,6 +660,7 @@
+ SH_LDFLAGS
+ LT_LDFLAGS
+ LTFLAGS
++CC_FOR_BUILD
+ CXXFLAGS
+ CXX
+ other_targets
+@@ -937,6 +938,7 @@
+ docdir
+ oldincludedir
+ includedir
++runstatedir
+ localstatedir
+ sharedstatedir
+ sysconfdir
+@@ -1183,6 +1185,7 @@
+ sysconfdir='${prefix}/etc'
+ sharedstatedir='${prefix}/com'
+ localstatedir='${prefix}/var'
++runstatedir='${localstatedir}/run'
+ includedir='${prefix}/include'
+ oldincludedir='/usr/include'
+ docdir='${datarootdir}/doc/${PACKAGE}'
+@@ -1435,6 +1438,15 @@
+   | -silent | --silent | --silen | --sile | --sil)
+     silent=yes ;;
+ 
++  -runstatedir | --runstatedir | --runstatedi | --runstated \
++  | --runstate | --runstat | --runsta | --runst | --runs \
++  | --run | --ru | --r)
++    ac_prev=runstatedir ;;
++  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
++  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
++  | --run=* | --ru=* | --r=*)
++    runstatedir=$ac_optarg ;;
++
+   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
+     ac_prev=sbindir ;;
+   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
+@@ -1572,7 +1584,7 @@
+ for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
+ 		datadir sysconfdir sharedstatedir localstatedir includedir \
+ 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
+-		libdir localedir mandir
++		libdir localedir mandir runstatedir
+ do
+   eval ac_val=\$$ac_var
+   # Remove trailing slashes.
+@@ -1725,6 +1737,7 @@
+   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
++  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
+   --libdir=DIR            object code libraries [EPREFIX/lib]
+   --includedir=DIR        C header files [PREFIX/include]
+   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+@@ -6060,6 +6073,16 @@
+ 
+ 
+ 
++if test "x${build_alias}" != "x${host_alias}"; then
++  if test "x${CC_FOR_BUILD}" = "x"; then
++    if test "x${HOST_CC}" = "x"; then
++      CC_FOR_BUILD=cc
++    else
++      CC_FOR_BUILD=${HOST_CC}
++    fi
++  fi
++fi
++
+ if test "x${cache_file}" = "x/dev/null"; then
+   # Likewise, ensure that CC and CPP are passed through to the pcre
+   # configure script iff caching is disabled (the autoconf 2.5x default).
+@@ -34254,6 +34277,10 @@
+ 
+ 
+ 
++  APACHE_VAR_SUBST="$APACHE_VAR_SUBST CC_FOR_BUILD"
++
++
++
+   APACHE_VAR_SUBST="$APACHE_VAR_SUBST LTFLAGS"
+ 
+ 
+diff -ruN a/configure.in b/configure.in
+--- a/configure.in	2015-09-05 11:02:03.000000000 -0600
++++ b/configure.in	2016-06-23 03:46:33.667001738 -0600
+@@ -206,6 +206,18 @@
+ dnl Try to get c99 support for variadic macros
+ ifdef([AC_PROG_CC_C99], [AC_PROG_CC_C99])
+ 
++dnl In case of cross compilation we set CC_FOR_BUILD to cc unless
++dnl we got already CC_FOR_BUILD from environment.
++if test "x${build_alias}" != "x${host_alias}"; then
++  if test "x${CC_FOR_BUILD}" = "x"; then
++    if test "x${HOST_CC}" = "x"; then
++      CC_FOR_BUILD=cc
++    else
++      CC_FOR_BUILD=${HOST_CC}
++    fi
++  fi
++fi
++
+ if test "x${cache_file}" = "x/dev/null"; then
+   # Likewise, ensure that CC and CPP are passed through to the pcre
+   # configure script iff caching is disabled (the autoconf 2.5x default).
+diff -ruN a/server/Makefile.in b/server/Makefile.in
+--- a/server/Makefile.in	2013-10-02 06:20:14.000000000 -0600
++++ b/server/Makefile.in	2016-06-23 03:14:30.662257418 -0600
+@@ -23,9 +23,14 @@
+ include $(top_builddir)/build/rules.mk
+ include $(top_srcdir)/build/library.mk
+ 
++ifdef CC_FOR_BUILD
++gen_test_char: gen_test_char.c
++	$(CC_FOR_BUILD) -DCROSS_COMPILE -o $@ $<
++else
+ gen_test_char_OBJECTS = gen_test_char.lo
+ gen_test_char: $(gen_test_char_OBJECTS)
+ 	$(LINK) $(EXTRA_LDFLAGS) $(gen_test_char_OBJECTS) $(EXTRA_LIBS)
++endif
+ 
+ test_char.h: gen_test_char
+ 	./gen_test_char > test_char.h
+diff -ruN a/srclib/apr/configure b/srclib/apr/configure
+--- a/srclib/apr/configure	2015-04-25 06:04:18.000000000 -0600
++++ b/srclib/apr/configure	2016-06-23 17:51:45.000000000 -0600
+@@ -655,6 +655,7 @@
+ apr_procattr_user_set_requires_password
+ apr_has_xthread_files
+ have_unicode_fs
++CC_FOR_BUILD
+ have_ipv6
+ have_sa_storage
+ have_sctp
+@@ -878,6 +879,7 @@
+ docdir
+ oldincludedir
+ includedir
++runstatedir
+ localstatedir
+ sharedstatedir
+ sysconfdir
+@@ -976,6 +978,7 @@
+ sysconfdir='${prefix}/etc'
+ sharedstatedir='${prefix}/com'
+ localstatedir='${prefix}/var'
++runstatedir='${localstatedir}/run'
+ includedir='${prefix}/include'
+ oldincludedir='/usr/include'
+ docdir='${datarootdir}/doc/${PACKAGE}'
+@@ -1228,6 +1231,15 @@
+   | -silent | --silent | --silen | --sile | --sil)
+     silent=yes ;;
+ 
++  -runstatedir | --runstatedir | --runstatedi | --runstated \
++  | --runstate | --runstat | --runsta | --runst | --runs \
++  | --run | --ru | --r)
++    ac_prev=runstatedir ;;
++  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
++  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
++  | --run=* | --ru=* | --r=*)
++    runstatedir=$ac_optarg ;;
++
+   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
+     ac_prev=sbindir ;;
+   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
+@@ -1365,7 +1377,7 @@
+ for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
+ 		datadir sysconfdir sharedstatedir localstatedir includedir \
+ 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
+-		libdir localedir mandir
++		libdir localedir mandir runstatedir
+ do
+   eval ac_val=\$$ac_var
+   # Remove trailing slashes.
+@@ -1518,6 +1530,7 @@
+   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
++  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
+   --libdir=DIR            object code libraries [EPREFIX/lib]
+   --includedir=DIR        C header files [PREFIX/include]
+   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+@@ -28427,6 +28440,18 @@
+ done
+ 
+ 
++if test "x${build_alias}" != "x${host_alias}"; then
++  if test "x${CC_FOR_BUILD}" = "x"; then
++    if test "x${HOST_CC}" = "x"; then
++      CC_FOR_BUILD=cc
++    else
++      CC_FOR_BUILD=${HOST_CC}
++    fi
++  fi
++fi
++
++
++
+ 
+ 
+   if test -z "$have_unicode_fs"; then
+diff -ruN a/srclib/apr/configure.in b/srclib/apr/configure.in
+--- a/srclib/apr/configure.in	2015-04-23 10:06:12.000000000 -0600
++++ b/srclib/apr/configure.in	2016-06-23 03:45:05.293505365 -0600
+@@ -2738,6 +2738,20 @@
+ AC_CHECK_HEADERS(langinfo.h)
+ AC_CHECK_FUNCS(nl_langinfo)
+ 
++dnl In case of cross compilation we set CC_FOR_BUILD to cc unless
++dnl we got already CC_FOR_BUILD from environment.
++if test "x${build_alias}" != "x${host_alias}"; then
++  if test "x${CC_FOR_BUILD}" = "x"; then
++    if test "x${HOST_CC}" = "x"; then
++      CC_FOR_BUILD=cc
++    else
++      CC_FOR_BUILD=${HOST_CC}
++    fi
++  fi
++fi
++
++AC_SUBST(CC_FOR_BUILD)
++
+ dnl ------------------------------ Defaults for some platform nuances
+ 
+ dnl Do we have a Win32-centric Unicode FS?
+diff -ruN a/srclib/apr/Makefile.in b/srclib/apr/Makefile.in
+--- a/srclib/apr/Makefile.in	2014-04-25 04:51:11.000000000 -0600
++++ b/srclib/apr/Makefile.in	2016-06-23 02:46:24.700378319 -0600
+@@ -8,6 +8,7 @@
+ # APR (Apache Portable Runtime) library Makefile.
+ #
+ CPP = @CPP@
++CC_FOR_BUILD = @CC_FOR_BUILD@
+ 
+ # get substituted into some targets
+ APR_MAJOR_VERSION=@APR_MAJOR_VERSION@
+@@ -129,13 +130,19 @@
+ etags:
+ 	etags `find . -name '*.[ch]'`
+ 
++ifdef CC_FOR_BUILD
++tools/gen_test_char@EXEEXT@: tools/gen_test_char.c
++	$(CC_FOR_BUILD) -DCROSS_COMPILE -o $@ $<
++else
+ OBJECTS_gen_test_char = tools/gen_test_char.lo $(LOCAL_LIBS)
+ tools/gen_test_char.lo: tools/gen_test_char.c
+ 	$(APR_MKDIR) tools
++	@echo cross_compiling is $(cross_compiling)
+ 	$(LT_COMPILE)
+ 
+ tools/gen_test_char@EXEEXT@: $(OBJECTS_gen_test_char)
+ 	$(LINK_PROG) $(OBJECTS_gen_test_char) $(ALL_LIBS)
++endif
+ 
+ include/private/apr_escape_test_char.h: tools/gen_test_char@EXEEXT@
+ 	$(APR_MKDIR) include/private

@@ -1,0 +1,18 @@
+--- include/my_global.h.orig	2015-02-23 17:19:48.864456818 +0100
++++ include/my_global.h	2015-02-23 17:20:10.073458197 +0100
+@@ -1105,6 +1105,7 @@
+ #endif
+ 
+ /* Provide __func__ macro definition for platforms that miss it. */
++#ifndef __func__
+ #if __STDC_VERSION__ < 199901L
+ #  if __GNUC__ >= 2
+ #    define __func__ __FUNCTION__
+@@ -1122,6 +1123,7 @@
+ #else
+ #  define __func__ "<unknown>"
+ #endif
++#endif
+ 
+ #ifndef HAVE_RINT
+ /**

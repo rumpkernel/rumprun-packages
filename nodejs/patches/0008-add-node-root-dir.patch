@@ -1,0 +1,9 @@
+--- node.gyp.orig	2015-10-23 21:10:25.880593818 +0100
++++ node.gyp	2015-10-23 21:11:15.373487929 +0100
+@@ -1,5 +1,6 @@
+ {
+   'variables': {
++    'node_root_dir%': '.',
+     'v8_use_snapshot%': 'false',
+     'node_use_dtrace%': 'false',
+     'node_use_lttng%': 'false',

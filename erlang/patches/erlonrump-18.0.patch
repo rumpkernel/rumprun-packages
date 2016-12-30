@@ -1,0 +1,33 @@
+--- otp_src_18.0.orig/lib/crypto/c_src/Makefile.in	2015-06-24 00:26:21.000000000 +0530
++++ otp_src_18.0/lib/crypto/c_src/Makefile.in	2015-09-02 14:48:45.121950282 +0530
+@@ -127,10 +127,19 @@
+ 
+ _create_dirs := $(shell mkdir -p $(OBJDIR) $(LIBDIR))
+ 
+-ifneq ($(findstring ose,$(TARGET)),ose)
++# build dynamic files only where they are useful
++DONT_BUILD_SHARED=
++ifeq ($(findstring ose,$(TARGET)),ose)
++DONT_BUILD_SHARED=yes
++endif
++ifeq ($(findstring rumprun,$(TARGET)),rumprun)
++DONT_BUILD_SHARED=yes
++endif
++
++ifneq ($(DONT_BUILD_SHARED),yes)
+ debug opt valgrind: $(NIF_LIB) $(CALLBACK_LIB)
+ else
+-# Do not build dynamic files on OSE
++# Do not build dynamic files on OSE and rumprun
+ debug opt valgrind:
+ endif
+ 
+@@ -203,7 +212,7 @@
+ 	$(INSTALL_DIR) "$(RELSYSDIR)/priv/obj"
+ 	$(INSTALL_DIR) "$(RELSYSDIR)/priv/lib"
+ 	$(INSTALL_DATA) $(NIF_MAKEFILE) "$(RELSYSDIR)/priv/obj"
+-ifneq ($(findstring ose,$(TARGET)),ose)
++ifneq ($(DONT_BUILD_SHARED),yes)
+ 	$(INSTALL_PROGRAM) $(CRYPTO_OBJS) "$(RELSYSDIR)/priv/obj"
+ 	$(INSTALL_PROGRAM) $(NIF_LIB) "$(RELSYSDIR)/priv/lib"
+ ifeq ($(DYNAMIC_CRYPTO_LIB),yes)

@@ -1,0 +1,12 @@
+--- deps/v8/build/toolchain.gypi.orig	2015-09-30 22:07:22.919437082 +0100
++++ deps/v8/build/toolchain.gypi	2015-10-05 09:31:04.615034281 +0100
+@@ -968,9 +968,6 @@
+       ['OS=="freebsd" or OS=="openbsd"', {
+         'cflags': [ '-I/usr/local/include' ],
+       }],
+-      ['OS=="netbsd"', {
+-        'cflags': [ '-I/usr/pkg/include' ],
+-      }],
+       ['OS=="aix"', {
+         'defines': [
+           # Support for malloc(0)

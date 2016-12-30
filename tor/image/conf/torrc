@@ -1,0 +1,18 @@
+#User tor
+RunAsDaemon 0
+SocksPort 0
+
+DataDirectory /tor/data
+Log notice stdout
+
+Nickname RumpTor
+ContactInfo Winston Smith <wsmith@minitrue.gov>
+ORPort 443
+DirPort 80
+ExitPolicy reject *:*
+
+NumCPUs 1
+AvoidDiskWrites 1
+
+GeoIPFile /tor/conf/geoip
+GeoIPv6File /tor/conf/geoip6

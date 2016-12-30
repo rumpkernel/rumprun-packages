@@ -1,0 +1,23 @@
+The erlang build is unhappy when system already has pcre built, so the
+patch avoids just that and let erlang use its own pcre.
+
+original source
+http://lists.busybox.net/pipermail/buildroot/2015-February/118966.html
+
+
+--- a/erts/emulator/Makefile.in.orig	2015-09-03 02:07:12.523750838 +0530
++++ b/erts/emulator/Makefile.in	2015-09-03 02:08:10.113113360 +0530
+@@ -669,11 +669,11 @@
+ # Usually the same as the default rule, but certain platforms (e.g. win32) mix
+ # different compilers
+ $(OBJDIR)/beam_emu.o: beam/beam_emu.c
+-	$(V_EMU_CC) $(subst -O2, $(GEN_OPT_FLGS), $(CFLAGS)) $(INCLUDES) -c $< -o $@
++	$(V_EMU_CC) $(INCLUDES) $(subst -O2, $(GEN_OPT_FLGS), $(CFLAGS)) -c $< -o $@
+ endif
+
+ $(OBJDIR)/%.o: beam/%.c
+-	$(V_CC) $(subst -O2, $(GEN_OPT_FLGS), $(CFLAGS)) $(INCLUDES) -c $< -o $@
++	$(V_CC) $(INCLUDES) $(subst -O2, $(GEN_OPT_FLGS), $(CFLAGS)) -c $< -o $@
+
+ $(OBJDIR)/%.o: $(TARGET)/%.c
+ 	$(V_CC) $(CFLAGS) $(INCLUDES) -Idrivers/common -c $< -o $@

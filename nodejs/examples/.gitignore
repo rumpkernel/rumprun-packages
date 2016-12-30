@@ -1,0 +1,11 @@
+node_modules
+/express-*
+/*.iso
+/nodekick
+/socket.io-chess
+/Ghost-*
+/ghost_data.img
+/bootstrap.js
+/*.fs
+/hello-world.js
+/ghost-*
