@@ -1,0 +1,22 @@
+--- a/configure.orig	2015-08-16 21:12:31.550765735 -0400
++++ b/configure	2015-08-16 21:14:04.646766940 -0400
+@@ -3297,6 +3297,9 @@
+ 	*-*-linux*)
+ 		ac_sys_system=Linux
+ 		;;
++	*-rumprun-netbsd*)
++		ac_sys_system=NetBSD
++		;;
+ 	*-*-cygwin*)
+ 		ac_sys_system=Cygwin
+ 		;;
+@@ -3342,6 +3345,9 @@
+ 			_host_cpu=$host_cpu
+ 		esac
+ 		;;
++	*-*-netbsd*)
++		_host_cpu=$host_cpu
++		;;
+ 	*-*-cygwin*)
+ 		_host_cpu=
+ 		;;

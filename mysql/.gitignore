@@ -1,0 +1,7 @@
+build/
+images/*.iso
+images/*.ffs
+images/data
+images/share
+dl/*.*
+bin/

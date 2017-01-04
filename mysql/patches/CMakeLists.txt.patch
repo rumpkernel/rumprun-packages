@@ -1,0 +1,12 @@
+--- CMakeLists.txt.orig	2015-02-23 16:17:00.846211866 +0100
++++ CMakeLists.txt	2015-02-18 14:29:19.577053532 +0100
+@@ -406,7 +406,8 @@
+ # Add bundled yassl/taocrypt or system openssl.
+ MYSQL_CHECK_SSL()
+ # Add system/bundled editline.
+-MYSQL_CHECK_EDITLINE()
++# XXX Disabled for rumprun (mysqld build only)
++# MYSQL_CHECK_EDITLINE()
+ # Add libevent
+ MYSQL_CHECK_LIBEVENT()
+ 

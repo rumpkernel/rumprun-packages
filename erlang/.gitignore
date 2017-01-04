@@ -1,0 +1,8 @@
+build/
+dl/
+images/*.iso
+
+bin/
+beam.*.bin
+*.beam
+examples/app.iso

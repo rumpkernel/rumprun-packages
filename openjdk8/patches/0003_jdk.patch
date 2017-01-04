@@ -1,0 +1,3537 @@
+diff -ruN -x '.*' old/jdk/make/CompileLaunchers.gmk new/jdk/make/CompileLaunchers.gmk
+--- old/jdk/make/CompileLaunchers.gmk	2016-08-16 10:50:21.141172861 -0600
++++ new/jdk/make/CompileLaunchers.gmk	2016-08-16 15:29:21.584339723 -0600
+@@ -90,15 +90,30 @@
+   $1_LDFLAGS := $3
+   $1_LDFLAGS_SUFFIX :=
+   ifeq ($(OPENJDK_TARGET_OS), bsd)
+-    ifeq ($(BSD_STATIC_LIBJLI), bsd)
++    ifeq ($(STATIC_BUILD), true)
++      $1_LDFLAGS += -L$(JDK_OUTPUTDIR)/objs \
++      -L$(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)/ \
++      -L$(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)/server/ \
++      -L$(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)/jli/ \
++      -Wl,--start-group \
++      -ljli_static -ljli -ljava -lnet -lnio -lverify -ldt_socket -lzip \
++      -lmanagement -lj2pkcs11 -lj2pcsc -lj2gss -ljaas_unix -lattach \
++      -ljdwp -ljvm -lfdlibm -lunpack -lsunec -ljsdt -linstrument \
++      -Wl,--end-group
++
++ifeq ($(JVM_VARIANT_ZERO), true)
++      $1_LDFLAGS_SUFFIX += $(LIBFFI_LIBS)
++endif
++    else
+       $1_LDFLAGS += -Wl,--whole-archive $(JDK_OUTPUTDIR)/objs/libjli_static.a \
+           -Wl,--no-whole-archive
+       $1_LDFLAGS_SUFFIX += -pthread
+-    else
+-      $1_LDFLAGS += \
+-          $(call SET_SHARED_LIBRARY_NAME,$(LIBRARY_PREFIX)$(SHARED_LIBRARY_SUFFIX))
+-      $1_LDFLAGS_SUFFIX += -L$(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)/jli -ljli -pthread
+     endif
++  else
++    $1_LDFLAGS += \
++        $(call SET_SHARED_LIBRARY_NAME,$(LIBRARY_PREFIX)$(SHARED_LIBRARY_SUFFIX))
++    $1_LDFLAGS_SUFFIX += -L$(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)/jli -ljli -pthread
++
+   endif
+ 
+   ifeq ($(OPENJDK_TARGET_OS), macosx)
+@@ -162,7 +177,7 @@
+   $(call SetupNativeCompilation,BUILD_LAUNCHER_$1, \
+       SRC := $(JDK_TOPDIR)/src/share/bin, \
+       INCLUDE_FILES := main.c, \
+-      LANG := C, \
++      LANG := C++, \
+       OPTIMIZATION := $$($1_OPTIMIZATION_ARG), \
+       CFLAGS := $$($1_CFLAGS) \
+           -I$(JDK_TOPDIR)/src/share/bin \
+@@ -221,7 +236,7 @@
+ 
+ ##########################################################################################
+ 
+-XLIBS := $(X_LIBS) -lX11
++#XLIBS := $(X_LIBS) -lX11
+ ifeq ($(OPENJDK_TARGET_OS), macosx)
+   DPACKAGEPATH := -DPACKAGE_PATH='"$(PACKAGE_PATH)"'
+   XLIBS :=
+@@ -255,445 +270,447 @@
+       $(JDK_TOPDIR)/src/windows/resource/java.rc,,true))
+ endif
+ 
+-
+-ifndef BUILD_HEADLESS_ONLY
+-  $(eval $(call SetupLauncher,appletviewer, \
+-      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.applet.Main"$(COMMA) }',, \
+-      $(XLIBS)))
+-endif
+-
+-$(eval $(call SetupLauncher,extcheck, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.extcheck.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,idlj, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.corba.se.idl.toJavaPortable.Compile"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jar, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jar.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jarsigner, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.tools.jarsigner.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,javac, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javac.Main"$(COMMA) }'))
+-
+-ifeq ($(ENABLE_SJAVAC), yes)
+-  $(eval $(call SetupLauncher,sjavac, \
++# only build java binary
++ifneq ($(STATIC_BUILD), true)
++  ifndef BUILD_HEADLESS_ONLY
++    $(eval $(call SetupLauncher,appletviewer, \
++        -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.applet.Main"$(COMMA) }',, \
++        $(XLIBS)))
++  endif
++  
++  $(eval $(call SetupLauncher,extcheck, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.extcheck.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,idlj, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.corba.se.idl.toJavaPortable.Compile"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jar, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jar.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jarsigner, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.tools.jarsigner.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,javac, \
+       -DEXPAND_CLASSPATH_WILDCARDS \
+       -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
+-      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.sjavac.Main"$(COMMA) }'))
+-endif
+-
+-$(eval $(call SetupLauncher,javadoc, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javadoc.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,javah, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javah.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,javap, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javap.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jdeps, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.jdeps.Main"$(COMMA) }'))
+-
+-BUILD_LAUNCHER_jconsole_CFLAGS_windows := -DJAVAW
+-BUILD_LAUNCHER_jconsole_LDFLAGS_windows := user32.lib
+-
+-$(eval $(call SetupLauncher,jconsole, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "-J-Djconsole.showOutputViewer"$(COMMA) "sun.tools.jconsole.JConsole"$(COMMA) }' \
+-    -DAPP_CLASSPATH='{ "/lib/jconsole.jar"$(COMMA) "/lib/tools.jar"$(COMMA) "/classes" }'))
+-
+-$(eval $(call SetupLauncher,jdb, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.example.debug.tty.TTY"$(COMMA) }' \
+-    -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }'))
+-
+-$(eval $(call SetupLauncher,jhat, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.hat.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jinfo, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
+-        "-J-Dsun.jvm.hotspot.debugger.useProcDebugger"$(COMMA) \
+-        "-J-Dsun.jvm.hotspot.debugger.useWindbgDebugger"$(COMMA) \
+-        "sun.tools.jinfo.JInfo"$(COMMA) }' \
+-    -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
+-    ,,,,,,,,,Info-privileged.plist))
+-
+-$(eval $(call SetupLauncher,jmap, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
+-        "-J-Dsun.jvm.hotspot.debugger.useProcDebugger"$(COMMA) \
+-        "-J-Dsun.jvm.hotspot.debugger.useWindbgDebugger"$(COMMA) \
+-        "sun.tools.jmap.JMap"$(COMMA) }' \
+-    -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
+-    ,,,,,,,,,Info-privileged.plist))
+-
+-$(eval $(call SetupLauncher,jps, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jps.Jps"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jrunscript, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.script.shell.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jjs, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "jdk.nashorn.tools.Shell"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jsadebugd, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.jvm.hotspot.jdi.SADebugServer"$(COMMA) }' \
+-    -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
+-    ,,,,,,,,,Info-privileged.plist))
+-
+-$(eval $(call SetupLauncher,jstack, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
+-        "-J-Dsun.jvm.hotspot.debugger.useProcDebugger"$(COMMA) \
+-        "-J-Dsun.jvm.hotspot.debugger.useWindbgDebugger"$(COMMA) \
+-        "sun.tools.jstack.JStack"$(COMMA) }' \
+-    -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
+-    ,,,,,,,,,Info-privileged.plist))
+-
+-$(eval $(call SetupLauncher,jstat, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jstat.Jstat"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jstatd, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jstatd.Jstatd"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,keytool, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.tools.keytool.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,native2ascii, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.native2ascii.Main"$(COMMA) }'))
+-
+-ifndef BUILD_HEADLESS_ONLY
+-  $(eval $(call SetupLauncher,policytool, \
+-      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.tools.policytool.PolicyTool"$(COMMA) }',, \
+-      $(XLIBS)))
+-endif
+-
+-$(eval $(call SetupLauncher,rmic, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.rmi.rmic.Main"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,schemagen, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.jxc.SchemaGenerator"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,serialver, \
+-    -DEXPAND_CLASSPATH_WILDCARDS \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.serialver.SerialVer"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,xjc, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.xjc.Driver"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,wsgen, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.ws.WsGen"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,wsimport, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.ws.WsImport"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,orbd, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
+-        "-J-Dcom.sun.CORBA.activation.DbDir=./orb.db"$(COMMA) \
+-        "-J-Dcom.sun.CORBA.activation.Port=1049"$(COMMA) \
+-        "-J-Dcom.sun.CORBA.POA.ORBServerId=1"$(COMMA) \
+-        "com.sun.corba.se.impl.activation.ORBD"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,servertool, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.corba.se.impl.activation.ServerTool"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,tnameserv, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
+-        "-J-Dcom.sun.CORBA.activation.DbDir=./orb.db"$(COMMA) \
+-        "-J-Djava.util.logging.LoggingPermission=contol"$(COMMA) \
+-        "-J-Dcom.sun.CORBA.POA.ORBServerId=1"$(COMMA) \
+-        "com.sun.corba.se.impl.naming.cosnaming.TransientNameServer"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,pack200, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.java.util.jar.pack.Driver"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,rmid, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.rmi.server.Activation"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,rmiregistry, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.rmi.registry.RegistryImpl"$(COMMA) }'))
+-
+-$(eval $(call SetupLauncher,jcmd, \
+-    -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jcmd.JCmd"$(COMMA) }'))
+-
+-ifeq ($(OPENJDK_TARGET_OS), windows)
+-  $(eval $(call SetupLauncher,kinit, \
+-      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.krb5.internal.tools.Kinit"$(COMMA) }'))
+-
+-  $(eval $(call SetupLauncher,klist, \
+-      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.krb5.internal.tools.Klist"$(COMMA) }'))
+-
+-  $(eval $(call SetupLauncher,ktab, \
+-      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.krb5.internal.tools.Ktab"$(COMMA) }'))
+-endif
+-
+-##########################################################################################
+-# The order of the object files on the link command line affects the size of the resulting
+-# binary (at least on linux) which causes the size to differ between old and new build.
+-ifeq ($(USE_EXTERNAL_LIBZ), true)
+-  UNPACKEXE_CFLAGS := -DSYSTEM_ZLIB
+-  UNPACKEXE_ZIPOBJS := -lz
+-else
+-  UNPACKEXE_CFLAGS := -I$(JDK_TOPDIR)/src/share/native/java/util/zip/zlib-1.2.8
+-  UNPACKEXE_ZIPOBJS := $(JDK_OUTPUTDIR)/objs/libzip/zcrc32$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/deflate$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/trees$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/zadler32$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/compress$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/zutil$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/inflate$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/infback$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/inftrees$(OBJ_SUFFIX) \
+-      $(JDK_OUTPUTDIR)/objs/libzip/inffast$(OBJ_SUFFIX)
+-
+-endif
+-
+-UNPACKEXE_LANG := C
+-ifeq ($(OPENJDK_TARGET_OS), solaris)
+-  UNPACKEXE_LANG := C++
+-endif
+-# On windows, unpack200 is linked completely differently to all other
+-# executables, using the compiler with the compiler arguments.
+-# It's also linked incrementally, producing a .ilk file that needs to
+-# be kept away.
+-ifeq ($(OPENJDK_TARGET_OS), windows)
+-  BUILD_UNPACKEXE_LDEXE := $(CC)
+-  EXE_OUT_OPTION_save := $(EXE_OUT_OPTION)
+-  EXE_OUT_OPTION := -Fe
+-endif
+-
+-# The linker on older SuSE distros (e.g. on SLES 10) complains with:
+-# "Invalid version tag `SUNWprivate_1.1'. Only anonymous version tag is allowed in executable."
+-# if feeded with a version script which contains named tags.
+-ifeq ($(USING_BROKEN_SUSE_LD), yes)
+-  UNPACK_MAPFILE = $(JDK_TOPDIR)/make/mapfiles/libunpack/mapfile-vers-unpack200.anonymous
+-else
+-  UNPACK_MAPFILE = $(JDK_TOPDIR)/make/mapfiles/libunpack/mapfile-vers-unpack200
+-endif
+-
+-$(eval $(call SetupNativeCompilation,BUILD_UNPACKEXE, \
+-    SRC := $(JDK_TOPDIR)/src/share/native/com/sun/java/util/jar/pack, \
+-    EXCLUDE_FILES := jni.cpp, \
+-    LANG := $(UNPACKEXE_LANG), \
+-    OPTIMIZATION := LOW, \
+-    CFLAGS := $(UNPACKEXE_CFLAGS) $(CXXFLAGS_JDKEXE) \
+-        -DFULL, \
+-    CFLAGS_release := -DPRODUCT, \
+-    CFLAGS_linux := -fPIC, \
+-    CFLAGS_solaris := -KPIC, \
+-    CFLAGS_bsd := -fPIC, \
+-    CFLAGS_macosx := -fPIC, \
+-    MAPFILE := $(UNPACK_MAPFILE),\
+-    LDFLAGS := $(UNPACKEXE_ZIPOBJS), \
+-    LDFLAGS_windows := $(CXXFLAGS_JDKEXE), \
+-    LDFLAGS_posix := $(LDFLAGS_JDKEXE) $(LDFLAGS_CXX_JDK) \
+-        $(call SET_SHARED_LIBRARY_NAME,$(LIBRARY_PREFIX)unpack$(SHARED_LIBRARY_SUFFIX)) \
+-        $(call SET_SHARED_LIBRARY_ORIGIN), \
+-    LDFLAGS_linux := -lc, \
+-    LDFLAGS_solaris := $(UNPACKEXE_LDFLAGS_solaris) -lc, \
+-    LDFLAGS_SUFFIX := $(LIBCXX), \
+-    OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/unpackexe$(OUTPUT_SUBDIR), \
+-    OUTPUT_DIR := $(JDK_OUTPUTDIR)/objs/unpackexe$(OUTPUT_SUBDIR), \
+-    PROGRAM := unpack200, \
+-    VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
+-    RC_FLAGS := $(RC_FLAGS) \
+-        -D "JDK_FNAME=unpack200.exe" \
+-        -D "JDK_INTERNAL_NAME=unpack200" \
+-        -D "JDK_FTYPE=0x1L", \
+-    DEBUG_SYMBOLS := true, \
+-    MANIFEST := $(JDK_TOPDIR)/src/windows/resource/unpack200_proto.exe.manifest))
+-
+-ifeq ($(OPENJDK_TARGET_OS), windows)
+-  EXE_OUT_OPTION := $(EXE_OUT_OPTION_save)
+-endif
+-
+-ifneq ($(USE_EXTERNAL_LIBZ), true)
+-
+-  $(BUILD_UNPACKEXE): $(UNPACKEXE_ZIPOBJS)
+-
+-endif
+-
+-# Build into object dir and copy executable afterwards to avoid .ilk file in
+-# image. The real fix would be clean up linking of unpack200 using
+-# -link -incremental:no
+-# like all other launchers.
+-$(JDK_OUTPUTDIR)/bin$(OUTPUT_SUBDIR)/unpack200$(EXE_SUFFIX): $(BUILD_UNPACKEXE)
+-	$(call install-file)
+-
+-BUILD_LAUNCHERS += $(JDK_OUTPUTDIR)/bin$(OUTPUT_SUBDIR)/unpack200$(EXE_SUFFIX)
+-
+-##########################################################################################
+-
+-
+-BUILD_JEXEC :=
+-BUILD_JEXEC_SRC :=
+-BUILD_JEXEC_INC :=
+-BUILD_JEXEC_DST_DIR := $(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)
+-
+-#
+-# UNHANDLED:
+-# - COMPILE_APPROACH = normal
+-#
+-
+-#
+-# jdk/make/java/Makefile
+-#
+-ifeq ($(OPENJDK_TARGET_OS), solaris)
+-  ifeq ($(OPENJDK_TARGET_CPU_BITS), 32)
+-    BUILD_JEXEC := 1
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javac.Main"$(COMMA) }'))
++  
++  ifeq ($(ENABLE_SJAVAC), yes)
++    $(eval $(call SetupLauncher,sjavac, \
++        -DEXPAND_CLASSPATH_WILDCARDS \
++        -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
++        -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.sjavac.Main"$(COMMA) }'))
+   endif
+-endif
+-
+-ifneq ($(findstring $(OPENJDK_TARGET_OS), linux bsd), )
+-  BUILD_JEXEC := 1
+-endif # OPENJDK_TARGET_OS
+-
+-#
+-# jdk/make/java/jexec/Makefile
+-#
+-ifeq ($(BUILD_JEXEC), 1)
+-
++  
++  $(eval $(call SetupLauncher,javadoc, \
++      -DEXPAND_CLASSPATH_WILDCARDS \
++      -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javadoc.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,javah, \
++      -DEXPAND_CLASSPATH_WILDCARDS \
++      -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javah.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,javap, \
++      -DEXPAND_CLASSPATH_WILDCARDS \
++      -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.javap.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jdeps, \
++      -DEXPAND_CLASSPATH_WILDCARDS \
++      -DNEVER_ACT_AS_SERVER_CLASS_MACHINE \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.jdeps.Main"$(COMMA) }'))
++  
++  BUILD_LAUNCHER_jconsole_CFLAGS_windows := -DJAVAW
++  BUILD_LAUNCHER_jconsole_LDFLAGS_windows := user32.lib
++  
++  $(eval $(call SetupLauncher,jconsole, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "-J-Djconsole.showOutputViewer"$(COMMA) "sun.tools.jconsole.JConsole"$(COMMA) }' \
++      -DAPP_CLASSPATH='{ "/lib/jconsole.jar"$(COMMA) "/lib/tools.jar"$(COMMA) "/classes" }'))
++  
++  $(eval $(call SetupLauncher,jdb, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.example.debug.tty.TTY"$(COMMA) }' \
++      -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }'))
++  
++  $(eval $(call SetupLauncher,jhat, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.hat.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jinfo, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
++          "-J-Dsun.jvm.hotspot.debugger.useProcDebugger"$(COMMA) \
++          "-J-Dsun.jvm.hotspot.debugger.useWindbgDebugger"$(COMMA) \
++          "sun.tools.jinfo.JInfo"$(COMMA) }' \
++      -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
++      ,,,,,,,,,Info-privileged.plist))
++  
++  $(eval $(call SetupLauncher,jmap, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
++          "-J-Dsun.jvm.hotspot.debugger.useProcDebugger"$(COMMA) \
++          "-J-Dsun.jvm.hotspot.debugger.useWindbgDebugger"$(COMMA) \
++          "sun.tools.jmap.JMap"$(COMMA) }' \
++      -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
++      ,,,,,,,,,Info-privileged.plist))
++  
++  $(eval $(call SetupLauncher,jps, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jps.Jps"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jrunscript, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.script.shell.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jjs, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "jdk.nashorn.tools.Shell"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jsadebugd, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.jvm.hotspot.jdi.SADebugServer"$(COMMA) }' \
++      -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
++      ,,,,,,,,,Info-privileged.plist))
++  
++  $(eval $(call SetupLauncher,jstack, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
++          "-J-Dsun.jvm.hotspot.debugger.useProcDebugger"$(COMMA) \
++          "-J-Dsun.jvm.hotspot.debugger.useWindbgDebugger"$(COMMA) \
++          "sun.tools.jstack.JStack"$(COMMA) }' \
++      -DAPP_CLASSPATH='{ "/lib/tools.jar"$(COMMA) "/lib/sa-jdi.jar"$(COMMA) "/classes" }' \
++      ,,,,,,,,,Info-privileged.plist))
++  
++  $(eval $(call SetupLauncher,jstat, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jstat.Jstat"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jstatd, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jstatd.Jstatd"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,keytool, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.tools.keytool.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,native2ascii, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.native2ascii.Main"$(COMMA) }'))
++  
++  ifndef BUILD_HEADLESS_ONLY
++    $(eval $(call SetupLauncher,policytool, \
++        -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.tools.policytool.PolicyTool"$(COMMA) }',, \
++        $(XLIBS)))
++  endif
++  
++  $(eval $(call SetupLauncher,rmic, \
++      -DEXPAND_CLASSPATH_WILDCARDS \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.rmi.rmic.Main"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,schemagen, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.jxc.SchemaGenerator"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,serialver, \
++      -DEXPAND_CLASSPATH_WILDCARDS \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.serialver.SerialVer"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,xjc, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.xjc.Driver"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,wsgen, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.ws.WsGen"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,wsimport, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.tools.internal.ws.WsImport"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,orbd, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
++          "-J-Dcom.sun.CORBA.activation.DbDir=./orb.db"$(COMMA) \
++          "-J-Dcom.sun.CORBA.activation.Port=1049"$(COMMA) \
++          "-J-Dcom.sun.CORBA.POA.ORBServerId=1"$(COMMA) \
++          "com.sun.corba.se.impl.activation.ORBD"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,servertool, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.corba.se.impl.activation.ServerTool"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,tnameserv, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) \
++          "-J-Dcom.sun.CORBA.activation.DbDir=./orb.db"$(COMMA) \
++          "-J-Djava.util.logging.LoggingPermission=contol"$(COMMA) \
++          "-J-Dcom.sun.CORBA.POA.ORBServerId=1"$(COMMA) \
++          "com.sun.corba.se.impl.naming.cosnaming.TransientNameServer"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,pack200, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "com.sun.java.util.jar.pack.Driver"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,rmid, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.rmi.server.Activation"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,rmiregistry, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.rmi.registry.RegistryImpl"$(COMMA) }'))
++  
++  $(eval $(call SetupLauncher,jcmd, \
++      -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.tools.jcmd.JCmd"$(COMMA) }'))
++  
+   ifeq ($(OPENJDK_TARGET_OS), windows)
+-  else ifeq ($(OPENJDK_TARGET_OS), macosx)
+-    BUILD_JEXEC_SRC := $(JDK_TOPDIR)/src/macosx/bin
++    $(eval $(call SetupLauncher,kinit, \
++        -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.krb5.internal.tools.Kinit"$(COMMA) }'))
++  
++    $(eval $(call SetupLauncher,klist, \
++        -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.krb5.internal.tools.Klist"$(COMMA) }'))
++  
++    $(eval $(call SetupLauncher,ktab, \
++        -DJAVA_ARGS='{ "-J-ms8m"$(COMMA) "sun.security.krb5.internal.tools.Ktab"$(COMMA) }'))
++  endif
++  
++  ##########################################################################################
++  # The order of the object files on the link command line affects the size of the resulting
++  # binary (at least on linux) which causes the size to differ between old and new build.
++  ifeq ($(USE_EXTERNAL_LIBZ), true)
++    UNPACKEXE_CFLAGS := -DSYSTEM_ZLIB
++    UNPACKEXE_ZIPOBJS := -lz
+   else
+-    BUILD_JEXEC_SRC := $(JDK_TOPDIR)/src/solaris/bin
++    UNPACKEXE_CFLAGS := -I$(JDK_TOPDIR)/src/share/native/java/util/zip/zlib-1.2.8
++    UNPACKEXE_ZIPOBJS := $(JDK_OUTPUTDIR)/objs/libzip/zcrc32$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/deflate$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/trees$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/zadler32$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/compress$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/zutil$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/inflate$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/infback$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/inftrees$(OBJ_SUFFIX) \
++        $(JDK_OUTPUTDIR)/objs/libzip/inffast$(OBJ_SUFFIX)
++  
++  endif
++  
++  UNPACKEXE_LANG := C
++  ifeq ($(OPENJDK_TARGET_OS), solaris)
++    UNPACKEXE_LANG := C++
++  endif
++  # On windows, unpack200 is linked completely differently to all other
++  # executables, using the compiler with the compiler arguments.
++  # It's also linked incrementally, producing a .ilk file that needs to
++  # be kept away.
++  ifeq ($(OPENJDK_TARGET_OS), windows)
++    BUILD_UNPACKEXE_LDEXE := $(CC)
++    EXE_OUT_OPTION_save := $(EXE_OUT_OPTION)
++    EXE_OUT_OPTION := -Fe
+   endif
+-
+-  ifeq ($(OPENJDK_TARGET_OS), linux)
+-    BUILD_JEXEC_DST_DIR := $(JDK_OUTPUTDIR)/lib
+-    BUILD_JEXEC_INC += -I$(JDK_TOPDIR)/src/share/bin
++  
++  # The linker on older SuSE distros (e.g. on SLES 10) complains with:
++  # "Invalid version tag `SUNWprivate_1.1'. Only anonymous version tag is allowed in executable."
++  # if feeded with a version script which contains named tags.
++  ifeq ($(USING_BROKEN_SUSE_LD), yes)
++    UNPACK_MAPFILE = $(JDK_TOPDIR)/make/mapfiles/libunpack/mapfile-vers-unpack200.anonymous
++  else
++    UNPACK_MAPFILE = $(JDK_TOPDIR)/make/mapfiles/libunpack/mapfile-vers-unpack200
+   endif
+-endif
+-
+-#
+-# Note that the two Makefile's seems to contradict each other,
+-# and that src/macosx/bin/jexec.c seems unused
+-#
+-ifneq ($(BUILD_JEXEC_SRC), )
+-  $(eval $(call SetupNativeCompilation,BUILD_JEXEC, \
+-      SRC := $(BUILD_JEXEC_SRC), \
+-      INCLUDE_FILES := jexec.c, \
+-      LANG := C, \
++  
++  $(eval $(call SetupNativeCompilation,BUILD_UNPACKEXE, \
++      SRC := $(JDK_TOPDIR)/src/share/native/com/sun/java/util/jar/pack, \
++      EXCLUDE_FILES := jni.cpp, \
++      LANG := $(UNPACKEXE_LANG), \
+       OPTIMIZATION := LOW, \
+-      CFLAGS := $(CFLAGS_JDKEXE) \
+-          $(BUILD_JEXEC_INC), \
++      CFLAGS := $(UNPACKEXE_CFLAGS) $(CXXFLAGS_JDKEXE) \
++          -DFULL, \
++      CFLAGS_release := -DPRODUCT, \
+       CFLAGS_linux := -fPIC, \
+       CFLAGS_solaris := -KPIC, \
+       CFLAGS_bsd := -fPIC, \
+-      LDFLAGS := $(LDFLAGS_JDKEXE) \
+-          $(call SET_SHARED_LIBRARY_NAME,$(LIBRARY_PREFIX)$(SHARED_LIBRARY_SUFFIX)), \
+-      OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/jexec_obj, \
+-      OUTPUT_DIR := $(BUILD_JEXEC_DST_DIR), \
++      CFLAGS_macosx := -fPIC, \
++      MAPFILE := $(UNPACK_MAPFILE),\
++      LDFLAGS := $(UNPACKEXE_ZIPOBJS), \
++      LDFLAGS_windows := $(CXXFLAGS_JDKEXE), \
++      LDFLAGS_posix := $(LDFLAGS_JDKEXE) $(LDFLAGS_CXX_JDK) \
++          $(call SET_SHARED_LIBRARY_NAME,$(LIBRARY_PREFIX)unpack$(SHARED_LIBRARY_SUFFIX)) \
++          $(call SET_SHARED_LIBRARY_ORIGIN), \
++      LDFLAGS_linux := -lc, \
++      LDFLAGS_solaris := $(UNPACKEXE_LDFLAGS_solaris) -lc, \
++      LDFLAGS_SUFFIX := $(LIBCXX), \
++      OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/unpackexe$(OUTPUT_SUBDIR), \
++      OUTPUT_DIR := $(JDK_OUTPUTDIR)/objs/unpackexe$(OUTPUT_SUBDIR), \
++      PROGRAM := unpack200, \
++      VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/resource/version.rc, \
++      RC_FLAGS := $(RC_FLAGS) \
++          -D "JDK_FNAME=unpack200.exe" \
++          -D "JDK_INTERNAL_NAME=unpack200" \
++          -D "JDK_FTYPE=0x1L", \
+       DEBUG_SYMBOLS := true, \
+-      PROGRAM := jexec))
+-
+-  BUILD_LAUNCHERS += $(BUILD_JEXEC)
+-endif
+-
+-##########################################################################################
+-
+-#
+-# The java-rmi.cgi script in bin/ only gets delivered in certain situations
+-#
+-JAVA_RMI_CGI := $(JDK_OUTPUTDIR)/bin$(OUTPUT_SUBDIR)/java-rmi.cgi
+-ifneq ($(findstring $(OPENJDK_TARGET_OS), linux solaris bsd), )
+-  BUILD_LAUNCHERS += $(JAVA_RMI_CGI)
+-endif
+-
+-# TODO:
+-# On windows java-rmi.cgi shouldn't be bundled since Java 1.2, but has been built all
+-# this time anyway. Since jdk6, it has been built from the wrong source and resulted
+-# in a (almost) copy of the standard java launcher named "java-rmi.exe" ending up in
+-# the final images bin dir. This weird behavior is mimicked here in the converted
+-# makefiles for now. Should probably just be deleted.
+-# http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6512052
+-ifeq ($(OPENJDK_TARGET_OS), windows)
+-  $(eval $(call SetupLauncher,java-rmi, , \
+-      $(call SET_SHARED_LIBRARY_MAPFILE,$(JDK_TOPDIR)/make/java/main/java/mapfile-$(OPENJDK_TARGET_CPU))))
+-else
+-  $(JAVA_RMI_CGI): $(JDK_TOPDIR)/src/solaris/bin/java-rmi.cgi.sh
+-	$(call install-file)
+-	$(CHMOD) a+x $@
+-endif
+-
+-##########################################################################################
+-
+-BUILD_JSPAWNHELPER :=
+-BUILD_JSPAWNHELPER_SRC := $(JDK_TOPDIR)/src/solaris/native/java/lang
+-BUILD_JSPAWNHELPER_DST_DIR := $(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)
+-LINK_JSPAWNHELPER_OBJECTS := $(JDK_OUTPUTDIR)/objs/libjava/childproc.o
+-LINK_JSPAWNHELPER_FLAGS :=
+-
+-ifneq ($(findstring $(OPENJDK_TARGET_OS), bsd macosx solaris aix), )
+-  BUILD_JSPAWNHELPER := 1
+-endif
+-
+-ifeq ($(OPENJDK_TARGET_OS), macosx)
+-  BUILD_JSPAWNHELPER_DST_DIR := $(JDK_OUTPUTDIR)/lib
+-endif
+-
+-ifeq ($(OPENJDK_TARGET_CPU_BITS), 64)
+-  LINK_JSPAWNHELPER_FLAGS += $(COMPILER_TARGET_BITS_FLAG)64
+-endif
+-
+-ifeq ($(BUILD_JSPAWNHELPER), 1)
+-  $(eval $(call SetupNativeCompilation,BUILD_JSPAWNHELPER, \
+-      SRC := $(BUILD_JSPAWNHELPER_SRC), \
+-      INCLUDE_FILES := jspawnhelper.c, \
+-      LANG := C, \
+-      OPTIMIZATION := LOW, \
+-      CFLAGS := $(CFLAGS_JDKEXE), \
+-      LDFLAGS := $(LDFLAGS_JDKEXE) $(LINK_JSPAWNHELPER_FLAGS), \
+-      LDFLAGS_SUFFIX := $(LINK_JSPAWNHELPER_OBJECTS), \
+-      OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/jspawnhelper, \
+-      OUTPUT_DIR := $(BUILD_JSPAWNHELPER_DST_DIR), \
+-      PROGRAM := jspawnhelper))
+-
+-  $(BUILD_JSPAWNHELPER): $(LINK_JSPAWNHELPER_OBJECTS)
+-
+-  BUILD_LAUNCHERS += $(BUILD_JSPAWNHELPER)
+-endif
+-
+-##########################################################################################
+-# jabswitch
+-
++      MANIFEST := $(JDK_TOPDIR)/src/windows/resource/unpack200_proto.exe.manifest))
++  
+   ifeq ($(OPENJDK_TARGET_OS), windows)
+-
+-    $(eval $(call SetupNativeCompilation,BUILD_JABSWITCH, \
+-      SRC := $(JDK_TOPDIR)/src/windows/native/sun/bridge, \
+-        INCLUDE_FILES := jabswitch.cpp, \
+-        LANG := C++, \
+-        CFLAGS := $(filter-out -Zc:wchar_t-, $(CFLAGS_JDKEXE)) -Zc:wchar_t \
+-            -analyze- -Od -Gd -D_WINDOWS \
+-            -D_UNICODE -DUNICODE -RTC1 -EHsc, \
++    EXE_OUT_OPTION := $(EXE_OUT_OPTION_save)
++  endif
++  
++  ifneq ($(USE_EXTERNAL_LIBZ), true)
++  
++    $(BUILD_UNPACKEXE): $(UNPACKEXE_ZIPOBJS)
++  
++  endif
++  
++  # Build into object dir and copy executable afterwards to avoid .ilk file in
++  # image. The real fix would be clean up linking of unpack200 using
++  # -link -incremental:no
++  # like all other launchers.
++  $(JDK_OUTPUTDIR)/bin$(OUTPUT_SUBDIR)/unpack200$(EXE_SUFFIX): $(BUILD_UNPACKEXE)
++  	$(call install-file)
++  
++  BUILD_LAUNCHERS += $(JDK_OUTPUTDIR)/bin$(OUTPUT_SUBDIR)/unpack200$(EXE_SUFFIX)
++  
++  ##########################################################################################
++  
++  
++  BUILD_JEXEC :=
++  BUILD_JEXEC_SRC :=
++  BUILD_JEXEC_INC :=
++  BUILD_JEXEC_DST_DIR := $(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)
++  
++  #
++  # UNHANDLED:
++  # - COMPILE_APPROACH = normal
++  #
++  
++  #
++  # jdk/make/java/Makefile
++  #
++  ifeq ($(OPENJDK_TARGET_OS), solaris)
++    ifeq ($(OPENJDK_TARGET_CPU_BITS), 32)
++      BUILD_JEXEC := 1
++    endif
++  endif
++  
++  ifneq ($(findstring $(OPENJDK_TARGET_OS), linux bsd), )
++    BUILD_JEXEC := 1
++  endif # OPENJDK_TARGET_OS
++  
++  #
++  # jdk/make/java/jexec/Makefile
++  #
++  ifeq ($(BUILD_JEXEC), 1)
++  
++    ifeq ($(OPENJDK_TARGET_OS), windows)
++    else ifeq ($(OPENJDK_TARGET_OS), macosx)
++      BUILD_JEXEC_SRC := $(JDK_TOPDIR)/src/macosx/bin
++    else
++      BUILD_JEXEC_SRC := $(JDK_TOPDIR)/src/solaris/bin
++    endif
++  
++    ifeq ($(OPENJDK_TARGET_OS), linux)
++      BUILD_JEXEC_DST_DIR := $(JDK_OUTPUTDIR)/lib
++      BUILD_JEXEC_INC += -I$(JDK_TOPDIR)/src/share/bin
++    endif
++  endif
++  
++  #
++  # Note that the two Makefile's seems to contradict each other,
++  # and that src/macosx/bin/jexec.c seems unused
++  #
++  ifneq ($(BUILD_JEXEC_SRC), )
++    $(eval $(call SetupNativeCompilation,BUILD_JEXEC, \
++        SRC := $(BUILD_JEXEC_SRC), \
++        INCLUDE_FILES := jexec.c, \
++        LANG := C, \
++        OPTIMIZATION := LOW, \
++        CFLAGS := $(CFLAGS_JDKEXE) \
++            $(BUILD_JEXEC_INC), \
++        CFLAGS_linux := -fPIC, \
++        CFLAGS_solaris := -KPIC, \
++        CFLAGS_bsd := -fPIC, \
+         LDFLAGS := $(LDFLAGS_JDKEXE) \
+-            Advapi32.lib Version.lib User32.lib, \
+-        OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/jabswitch, \
+-        OUTPUT_DIR := $(JDK_OUTPUTDIR)/bin, \
+-        PROGRAM := jabswitch, \
++            $(call SET_SHARED_LIBRARY_NAME,$(LIBRARY_PREFIX)$(SHARED_LIBRARY_SUFFIX)), \
++        OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/jexec_obj, \
++        OUTPUT_DIR := $(BUILD_JEXEC_DST_DIR), \
+         DEBUG_SYMBOLS := true, \
+-      VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/native/sun/bridge/AccessBridgeStatusWindow.rc, \
+-        RC_FLAGS := $(RC_FLAGS) \
+-            -D "JDK_FNAME=jabswitch.exe" \
+-            -D "JDK_INTERNAL_NAME=jabswitch" \
+-            -D "JDK_FTYPE=0x01L", \
+-      MANIFEST := $(JDK_TOPDIR)/src/windows/native/sun/bridge/jabswitch.manifest))
+-
+-    BUILD_LAUNCHERS += $(BUILD_JABSWITCH)
+-
++        PROGRAM := jexec))
++  
++    BUILD_LAUNCHERS += $(BUILD_JEXEC)
++  endif
++  
++  ##########################################################################################
++  
++  #
++  # The java-rmi.cgi script in bin/ only gets delivered in certain situations
++  #
++  JAVA_RMI_CGI := $(JDK_OUTPUTDIR)/bin$(OUTPUT_SUBDIR)/java-rmi.cgi
++  ifneq ($(findstring $(OPENJDK_TARGET_OS), linux solaris bsd), )
++    BUILD_LAUNCHERS += $(JAVA_RMI_CGI)
++  endif
++  
++  # TODO:
++  # On windows java-rmi.cgi shouldn't be bundled since Java 1.2, but has been built all
++  # this time anyway. Since jdk6, it has been built from the wrong source and resulted
++  # in a (almost) copy of the standard java launcher named "java-rmi.exe" ending up in
++  # the final images bin dir. This weird behavior is mimicked here in the converted
++  # makefiles for now. Should probably just be deleted.
++  # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6512052
++  ifeq ($(OPENJDK_TARGET_OS), windows)
++    $(eval $(call SetupLauncher,java-rmi, , \
++        $(call SET_SHARED_LIBRARY_MAPFILE,$(JDK_TOPDIR)/make/java/main/java/mapfile-$(OPENJDK_TARGET_CPU))))
++  else
++    $(JAVA_RMI_CGI): $(JDK_TOPDIR)/src/solaris/bin/java-rmi.cgi.sh
++  	$(call install-file)
++  	$(CHMOD) a+x $@
++  endif
++  
++  ##########################################################################################
++  
++  BUILD_JSPAWNHELPER :=
++  BUILD_JSPAWNHELPER_SRC := $(JDK_TOPDIR)/src/solaris/native/java/lang
++  BUILD_JSPAWNHELPER_DST_DIR := $(JDK_OUTPUTDIR)/lib$(OPENJDK_TARGET_CPU_LIBDIR)
++  LINK_JSPAWNHELPER_OBJECTS := $(JDK_OUTPUTDIR)/objs/libjava/childproc.o
++  LINK_JSPAWNHELPER_FLAGS :=
++  
++  ifneq ($(findstring $(OPENJDK_TARGET_OS), bsd macosx solaris aix), )
++    BUILD_JSPAWNHELPER := 1
+   endif
+-
+-##########################################################################################
++  
++  ifeq ($(OPENJDK_TARGET_OS), macosx)
++    BUILD_JSPAWNHELPER_DST_DIR := $(JDK_OUTPUTDIR)/lib
++  endif
++  
++  ifeq ($(OPENJDK_TARGET_CPU_BITS), 64)
++    LINK_JSPAWNHELPER_FLAGS += $(COMPILER_TARGET_BITS_FLAG)64
++  endif
++  
++  ifeq ($(BUILD_JSPAWNHELPER), 1)
++    $(eval $(call SetupNativeCompilation,BUILD_JSPAWNHELPER, \
++        SRC := $(BUILD_JSPAWNHELPER_SRC), \
++        INCLUDE_FILES := jspawnhelper.c, \
++        LANG := C, \
++        OPTIMIZATION := LOW, \
++        CFLAGS := $(CFLAGS_JDKEXE), \
++        LDFLAGS := $(LDFLAGS_JDKEXE) $(LINK_JSPAWNHELPER_FLAGS), \
++        LDFLAGS_SUFFIX := $(LINK_JSPAWNHELPER_OBJECTS), \
++        OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/jspawnhelper, \
++        OUTPUT_DIR := $(BUILD_JSPAWNHELPER_DST_DIR), \
++        PROGRAM := jspawnhelper))
++  
++    $(BUILD_JSPAWNHELPER): $(LINK_JSPAWNHELPER_OBJECTS)
++  
++    BUILD_LAUNCHERS += $(BUILD_JSPAWNHELPER)
++  endif
++  
++  ##########################################################################################
++  # jabswitch
++  
++    ifeq ($(OPENJDK_TARGET_OS), windows)
++  
++      $(eval $(call SetupNativeCompilation,BUILD_JABSWITCH, \
++        SRC := $(JDK_TOPDIR)/src/windows/native/sun/bridge, \
++          INCLUDE_FILES := jabswitch.cpp, \
++          LANG := C++, \
++          CFLAGS := $(filter-out -Zc:wchar_t-, $(CFLAGS_JDKEXE)) -Zc:wchar_t \
++              -analyze- -Od -Gd -D_WINDOWS \
++              -D_UNICODE -DUNICODE -RTC1 -EHsc, \
++          LDFLAGS := $(LDFLAGS_JDKEXE) \
++              Advapi32.lib Version.lib User32.lib, \
++          OBJECT_DIR := $(JDK_OUTPUTDIR)/objs/jabswitch, \
++          OUTPUT_DIR := $(JDK_OUTPUTDIR)/bin, \
++          PROGRAM := jabswitch, \
++          DEBUG_SYMBOLS := true, \
++        VERSIONINFO_RESOURCE := $(JDK_TOPDIR)/src/windows/native/sun/bridge/AccessBridgeStatusWindow.rc, \
++          RC_FLAGS := $(RC_FLAGS) \
++              -D "JDK_FNAME=jabswitch.exe" \
++              -D "JDK_INTERNAL_NAME=jabswitch" \
++              -D "JDK_FTYPE=0x01L", \
++        MANIFEST := $(JDK_TOPDIR)/src/windows/native/sun/bridge/jabswitch.manifest))
++  
++      BUILD_LAUNCHERS += $(BUILD_JABSWITCH)
++  
++    endif
++  
++  ##########################################################################################
++endif
+ 
+ $(BUILD_LAUNCHERS): $(JDK_TOPDIR)/make/CompileLaunchers.gmk
+ 
+diff -ruN -x '.*' old/jdk/make/CompileNativeLibraries.gmk new/jdk/make/CompileNativeLibraries.gmk
+--- old/jdk/make/CompileNativeLibraries.gmk	2016-08-16 10:50:21.141172861 -0600
++++ new/jdk/make/CompileNativeLibraries.gmk	2016-08-16 14:39:16.671069521 -0600
+@@ -83,9 +83,11 @@
+ 
+ include lib/ServiceabilityLibraries.gmk
+ 
+-include lib/Awt2dLibraries.gmk
+-
+-include lib/SoundLibraries.gmk
++ifneq ($(STATIC_BUILD), true)
++  include lib/Awt2dLibraries.gmk
++  
++  include lib/SoundLibraries.gmk
++endif
+ 
+ # Include the corresponding custom file, if present. 
+ -include $(CUSTOM_MAKE_DIR)/CompileNativeLibraries.gmk
+diff -ruN -x '.*' old/jdk/make/CopyFiles.gmk new/jdk/make/CopyFiles.gmk
+--- old/jdk/make/CopyFiles.gmk	2016-08-16 10:50:21.141172861 -0600
++++ new/jdk/make/CopyFiles.gmk	2016-08-16 14:39:16.671069521 -0600
+@@ -572,4 +572,11 @@
+ 
+ ##########################################################################################
+ 
++$(JDK_OUTPUTDIR)/lib/jndi.properties: $(CORBA_TOPDIR)/src/share/classes/com/sun/corba/se/impl/presentation/rmi/jndi.properties
++	$(call install-file)
++
++COPY_FILES += $(JDK_OUTPUTDIR)/lib/jndi.properties
++
++##########################################################################################
++
+ -include $(CUSTOM_MAKE_DIR)/CopyFiles.gmk
+diff -ruN -x '.*' old/jdk/make/gensrc/GensrcMisc.gmk new/jdk/make/gensrc/GensrcMisc.gmk
+--- old/jdk/make/gensrc/GensrcMisc.gmk	2016-08-16 10:50:21.213174979 -0600
++++ new/jdk/make/gensrc/GensrcMisc.gmk	2016-08-16 14:39:16.539063617 -0600
+@@ -76,7 +76,8 @@
+     INCLUDE_FILES := $(GENSRC_SOR_SRC_FILE), \
+     LANG := C, \
+     CC := $(BUILD_CC), \
+-    LDEXE := $(BUILD_LD), \
++    LDEXE := $(BUILD_CC), \
++    CFLAGS := $(filter -I%, $(CFLAGS_JDKEXE)), \
+     OBJECT_DIR := $(GENSRC_SOR_BIN), \
+     OUTPUT_DIR := $(GENSRC_SOR_BIN), \
+     PROGRAM := genSocketOptionRegistry))
+@@ -114,7 +115,7 @@
+       LANG := C, \
+       CC := $(BUILD_CC), \
+       LDEXE := $(BUILD_CC), \
+-      CFLAGS := $(filter -D%, $(CFLAGS_JDKEXE)), \
++      CFLAGS := $(filter -D% -I%, $(CFLAGS_JDKEXE)), \
+       OBJECT_DIR := $(GENSRC_UC_BIN), \
+       OUTPUT_DIR := $(GENSRC_UC_BIN), \
+       PROGRAM := genUnixConstants))
+diff -ruN -x '.*' old/jdk/make/Import.gmk new/jdk/make/Import.gmk
+--- old/jdk/make/Import.gmk	2016-08-16 10:50:21.141172861 -0600
++++ new/jdk/make/Import.gmk	2016-08-16 22:20:03.696945462 -0600
+@@ -114,7 +114,15 @@
+ #
+ # Import hotspot
+ #
+-HOTSPOT_IMPORT_FILES := $(addprefix $(LIBRARY_PREFIX), jvm.* saproc.* jsig.* sawindbg.* jvm_db.* jvm_dtrace.*) \
++
++# Don't import jsig library for static builds
++ifneq ($(STATIC_BUILD), true)
++  JSIG_IMPORT = jsig.*
++else
++  JSIG_IMPORT = 
++endif
++
++HOTSPOT_IMPORT_FILES := $(addprefix $(LIBRARY_PREFIX), jvm.* saproc.* $(JSIG_IMPORT) sawindbg.* jvm_db.* jvm_dtrace.*) \
+     Xusage.txt sa-jdi.jar
+ 
+ ifeq ($(OPENJDK_TARGET_OS), macosx)
+@@ -124,33 +132,35 @@
+ 
+ $(eval $(call CopyDir,HOTSPOT0, $(HOTSPOT_LIB_DIR), $(INSTALL_LIBRARIES_HERE), $(HOTSPOT_IMPORT_FILES)))
+ $(eval $(call CopyDir,HOTSPOT1, $(HOTSPOT_DIST)/lib, $(JDK_OUTPUTDIR)/lib, $(HOTSPOT_IMPORT_FILES)))
+-
+-ifeq ($(OPENJDK_TARGET_OS), macosx)
+-  JSIG_DEBUGINFO := $(strip $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig$(SHARED_LIBRARY_SUFFIX).dSYM) \
+-      $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig.diz) )
+-else
+-  JSIG_DEBUGINFO := $(strip $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig.debuginfo) \
+-      $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig.diz) )
+-endif
+-
+-ifneq ($(OPENJDK_TARGET_OS), windows)
+-  ifeq ($(JVM_VARIANT_SERVER), true)
+-    IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/server/$(LIBRARY_PREFIX)jsig$(SHARED_LIBRARY_SUFFIX)
+-    ifneq (, $(JSIG_DEBUGINFO))
+-      IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/server/$(foreach I,$(JSIG_DEBUGINFO),$(notdir $I))
+-    endif
++ 
++ifneq ($(STATIC_BUILD), true)
++  ifeq ($(OPENJDK_TARGET_OS), macosx)
++    JSIG_DEBUGINFO := $(strip $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig$(SHARED_LIBRARY_SUFFIX).dSYM) \
++        $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig.diz) )
++  else
++    JSIG_DEBUGINFO := $(strip $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig.debuginfo) \
++        $(wildcard $(HOTSPOT_DIST)/jre/lib$(OPENJDK_TARGET_CPU_LIBDIR)/libjsig.diz) )
+   endif
+-  ifeq ($(JVM_VARIANT_CLIENT), true)
+-    IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/client/$(LIBRARY_PREFIX)jsig$(SHARED_LIBRARY_SUFFIX)
+-    ifneq (, $(JSIG_DEBUGINFO))
+-      IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/client/$(foreach I,$(JSIG_DEBUGINFO),$(notdir $I))
++  
++  ifneq ($(OPENJDK_TARGET_OS), windows)
++    ifeq ($(JVM_VARIANT_SERVER), true)
++      IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/server/$(LIBRARY_PREFIX)jsig$(SHARED_LIBRARY_SUFFIX)
++      ifneq (, $(JSIG_DEBUGINFO))
++        IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/server/$(foreach I,$(JSIG_DEBUGINFO),$(notdir $I))
++      endif
+     endif
+-  endif
+-  ifneq ($(OPENJDK_TARGET_OS), macosx)
+-    ifeq ($(JVM_VARIANT_MINIMAL1), true)
+-      IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/minimal/$(LIBRARY_PREFIX)jsig$(SHARED_LIBRARY_SUFFIX)
+-      ifneq (,$(JSIG_DEBUGINFO))
+-        IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/minimal/$(foreach I,$(JSIG_DEBUGINFO),$(notdir $I))
++    ifeq ($(JVM_VARIANT_CLIENT), true)
++      IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/client/$(LIBRARY_PREFIX)jsig$(SHARED_LIBRARY_SUFFIX)
++      ifneq (, $(JSIG_DEBUGINFO))
++        IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/client/$(foreach I,$(JSIG_DEBUGINFO),$(notdir $I))
++      endif
++    endif
++    ifneq ($(OPENJDK_TARGET_OS), macosx)
++      ifeq ($(JVM_VARIANT_MINIMAL1), true)
++        IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/minimal/$(LIBRARY_PREFIX)jsig$(SHARED_LIBRARY_SUFFIX)
++        ifneq (,$(JSIG_DEBUGINFO))
++          IMPORT_TARGET_FILES += $(INSTALL_LIBRARIES_HERE)/minimal/$(foreach I,$(JSIG_DEBUGINFO),$(notdir $I))
++        endif
+       endif
+     endif
+   endif
+diff -ruN -x '.*' old/jdk/make/lib/NioLibraries.gmk new/jdk/make/lib/NioLibraries.gmk
+--- old/jdk/make/lib/NioLibraries.gmk	2016-08-16 10:50:21.213174979 -0600
++++ new/jdk/make/lib/NioLibraries.gmk	2016-08-16 14:39:16.543063797 -0600
+@@ -81,6 +81,7 @@
+   BUILD_LIBNIO_MAPFILE := $(JDK_TOPDIR)/make/mapfiles/libnio/mapfile-$(OPENJDK_TARGET_OS)
+   BUILD_LIBNIO_SRC += $(JDK_TOPDIR)/src/bsd/native/sun/nio/ch
+   BUILD_LIBNIO_FILES += \
++      nio_util.c \
+       BsdNativeDispatcher.c \
+       GnomeFileTypeDetector.c \
+       InheritedChannel.c \
+diff -ruN -x '.*' old/jdk/make/mapfiles/libnio/mapfile-bsd new/jdk/make/mapfiles/libnio/mapfile-bsd
+--- old/jdk/make/mapfiles/libnio/mapfile-bsd	2016-08-16 10:50:21.225175332 -0600
++++ new/jdk/make/mapfiles/libnio/mapfile-bsd	2016-08-16 14:39:16.591065943 -0600
+@@ -25,6 +25,7 @@
+ 
+ SUNWprivate_1.1 {
+ 	global:
++                JNI_OnLoad;
+ 		Java_java_nio_MappedByteBuffer_force0;
+ 		Java_java_nio_MappedByteBuffer_isLoaded0;
+ 		Java_java_nio_MappedByteBuffer_load0;
+diff -ruN -x '.*' old/jdk/make/mapfiles/libnio/mapfile-macosx new/jdk/make/mapfiles/libnio/mapfile-macosx
+--- old/jdk/make/mapfiles/libnio/mapfile-macosx	2016-08-16 10:50:21.225175332 -0600
++++ new/jdk/make/mapfiles/libnio/mapfile-macosx	2016-08-16 14:39:16.591065943 -0600
+@@ -73,6 +73,7 @@
+                 Java_sun_nio_ch_IOUtil_makePipe;
+                 Java_sun_nio_ch_IOUtil_randomBytes;
+                 Java_sun_nio_ch_IOUtil_setfdVal;
++                Java_sun_nio_ch_IOUtil_iovMax;
+ 		Java_sun_nio_ch_KQueue_kqueue;
+ 		Java_sun_nio_ch_KQueue_keventRegister;
+ 		Java_sun_nio_ch_KQueue_keventPoll;
+diff -ruN -x '.*' old/jdk/make/non-build-utils/reorder/tools/mcount.c new/jdk/make/non-build-utils/reorder/tools/mcount.c
+--- old/jdk/make/non-build-utils/reorder/tools/mcount.c	2016-08-16 10:50:21.245175921 -0600
++++ new/jdk/make/non-build-utils/reorder/tools/mcount.c	2016-08-16 14:39:16.659068984 -0600
+@@ -25,7 +25,11 @@
+ 
+ #include <stdio.h>
+ #include <sys/mman.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <libelf.h>
+ #include <strings.h>
+ #include <fcntl.h>
+diff -ruN -x '.*' old/jdk/make/non-build-utils/reorder/tools/remove_mcount.c new/jdk/make/non-build-utils/reorder/tools/remove_mcount.c
+--- old/jdk/make/non-build-utils/reorder/tools/remove_mcount.c	2016-08-16 10:50:21.245175921 -0600
++++ new/jdk/make/non-build-utils/reorder/tools/remove_mcount.c	2016-08-16 14:39:16.659068984 -0600
+@@ -25,7 +25,11 @@
+ 
+ #include <stdio.h>
+ #include <sys/mman.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <libelf.h>
+ #include <strings.h>
+ #include <fcntl.h>
+diff -ruN -x '.*' old/jdk/src/macosx/bin/java_md_macosx.c new/jdk/src/macosx/bin/java_md_macosx.c
+--- old/jdk/src/macosx/bin/java_md_macosx.c	2016-08-16 10:50:23.569244271 -0600
++++ new/jdk/src/macosx/bin/java_md_macosx.c	2016-08-16 14:39:09.254737848 -0600
+@@ -250,6 +250,8 @@
+     return sExportedJNIFunctions = fxns;
+ }
+ 
++#ifndef STATIC_BUILD
++
+ JNIEXPORT jint JNICALL
+ JNI_GetDefaultJavaVMInitArgs(void *args) {
+     InvocationFunctions *ifn = GetExportedJNIFunctions();
+@@ -270,6 +272,7 @@
+     if (ifn == NULL) return JNI_ERR;
+     return ifn->GetCreatedJavaVMs(vmBuf, bufLen, nVMs);
+ }
++#endif
+ 
+ /*
+  * Allow JLI-aware launchers to specify a client/server preference
+@@ -308,7 +311,12 @@
+     objc_registerThreadWithCollector();
+ 
+     if (main_fptr == NULL) {
++#ifdef STATIC_BUILD
++        extern int main(int argc, char **argv);
++        main_fptr = &main;
++#else
+         main_fptr = (int (*)())dlsym(RTLD_DEFAULT, "main");
++#endif
+         if (main_fptr == NULL) {
+             JLI_ReportErrorMessageSys("error locating main entrypoint\n");
+             exit(1);
+@@ -593,6 +601,9 @@
+ 
+     JLI_TraceLauncher("Does `%s' exist ... ", jvmpath);
+ 
++#ifdef STATIC_BUILD
++    return JNI_TRUE;
++#else
+     if (stat(jvmpath, &s) == 0) {
+         JLI_TraceLauncher("yes.\n");
+         return JNI_TRUE;
+@@ -600,6 +611,7 @@
+         JLI_TraceLauncher("no.\n");
+         return JNI_FALSE;
+     }
++#endif
+ }
+ 
+ /*
+@@ -612,10 +624,18 @@
+ 
+     if (GetApplicationHome(path, pathsize)) {
+         /* Is JRE co-located with the application? */
++#ifdef STATIC_BUILD
++        char jvm_cfg[MAXPATHLEN];
++        JLI_Snprintf(jvm_cfg, sizeof(jvm_cfg), "%s/lib/jvm.cfg", path);
++        if (access(jvm_cfg, F_OK) == 0) {
++            return JNI_TRUE;
++        }
++#else
+         JLI_Snprintf(libjava, sizeof(libjava), "%s/lib/" JAVA_DLL, path);
+         if (access(libjava, F_OK) == 0) {
+             return JNI_TRUE;
+         }
++#endif
+         /* ensure storage for path + /jre + NULL */
+         if ((JLI_StrLen(path) + 4 + 1) > pathsize) {
+             JLI_TraceLauncher("Insufficient space to store JRE path\n");
+@@ -634,6 +654,24 @@
+     Dl_info selfInfo;
+     dladdr(&GetJREPath, &selfInfo);
+ 
++#ifdef STATIC_BUILD
++    char jvm_cfg[MAXPATHLEN];
++    char *p = NULL;
++    strncpy(jvm_cfg, selfInfo.dli_fname, MAXPATHLEN);
++    p = strrchr(jvm_cfg, '/'); *p = '\0';
++    p = strrchr(jvm_cfg, '/');
++    if (strcmp(p, "/.") == 0) {
++      *p = '\0';
++      p = strrchr(jvm_cfg, '/'); *p = '\0';
++    }
++    else *p = '\0';
++    strncpy(path, jvm_cfg, pathsize);
++    strncat(jvm_cfg, "/lib/jvm.cfg", MAXPATHLEN);
++    if (access(jvm_cfg, F_OK) == 0) {
++      return JNI_TRUE;
++    }
++#endif
++
+     char *realPathToSelf = realpath(selfInfo.dli_fname, path);
+     if (realPathToSelf != path) {
+         return JNI_FALSE;
+@@ -719,9 +757,15 @@
+     char* exec_path = NULL;
+     {
+         Dl_info dlinfo;
++
++#ifdef STATIC_BUILD
++        void *fptr;
++        fptr = (void *)&SetExecname;
++#else
+         int (*fptr)();
+ 
+         fptr = (int (*)())dlsym(RTLD_DEFAULT, "main");
++#endif
+         if (fptr == NULL) {
+             JLI_ReportErrorMessage(DLL_ERROR3, dlerror());
+             return JNI_FALSE;
+diff -ruN -x '.*' old/jdk/src/share/back/debugInit.c new/jdk/src/share/back/debugInit.c
+--- old/jdk/src/share/back/debugInit.c	2016-08-16 10:50:23.421239919 -0600
++++ new/jdk/src/share/back/debugInit.c	2016-08-16 14:39:10.162778459 -0600
+@@ -194,7 +194,7 @@
+  *   Returning JNI_ERR will cause the java_g VM to core dump, be careful.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     jvmtiError error;
+     jvmtiCapabilities needed_capabilities;
+@@ -400,7 +400,7 @@
+ }
+ 
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+ 
+     gdata->isLoaded = JNI_FALSE;
+diff -ruN -x '.*' old/jdk/src/share/back/debugInit.h new/jdk/src/share/back/debugInit.h
+--- old/jdk/src/share/back/debugInit.h	2016-08-16 10:50:23.421239919 -0600
++++ new/jdk/src/share/back/debugInit.h	2016-08-16 14:39:10.146777744 -0600
+@@ -39,7 +39,4 @@
+ void debugInit_exit(jvmtiError, const char *);
+ void forceExit(int);
+ 
+-JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *, char *, void *);
+-JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *);
+-
+ #endif
+diff -ruN -x '.*' old/jdk/src/share/back/transport.c new/jdk/src/share/back/transport.c
+--- old/jdk/src/share/back/transport.c	2016-08-16 10:50:23.425240037 -0600
++++ new/jdk/src/share/back/transport.c	2016-08-16 14:39:10.158778280 -0600
+@@ -99,9 +99,10 @@
+ static void *
+ loadTransportLibrary(const char *libdir, const char *name)
+ {
++    char buf[MAXPATHLEN*2+100];
++#ifndef STATIC_BUILD
+     void *handle;
+     char libname[MAXPATHLEN+2];
+-    char buf[MAXPATHLEN*2+100];
+     const char *plibdir;
+ 
+     /* Convert libdir from UTF-8 to platform encoding */
+@@ -124,6 +125,9 @@
+     /* dlopen (unix) / LoadLibrary (windows) the transport library */
+     handle = dbgsysLoadLibrary(libname, buf, sizeof(buf));
+     return handle;
++#else
++    return (dbgsysLoadLibrary(NULL, buf, sizeof(buf)));
++#endif
+ }
+ 
+ /*
+diff -ruN -x '.*' old/jdk/src/share/back/vm_interface.h new/jdk/src/share/back/vm_interface.h
+--- old/jdk/src/share/back/vm_interface.h	2016-08-16 10:50:23.425240037 -0600
++++ new/jdk/src/share/back/vm_interface.h	2016-08-16 14:39:10.162778459 -0600
+@@ -33,6 +33,7 @@
+ #include <jni.h>
+ #include <jvm.h>
+ #include <jvmti.h>
++#include "jni_util.h"
+ 
+ #include "log_messages.h"
+ 
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/agent_util/agent_util.h new/jdk/src/share/demo/jvmti/agent_util/agent_util.h
+--- old/jdk/src/share/demo/jvmti/agent_util/agent_util.h	2016-08-16 10:50:23.473241448 -0600
++++ new/jdk/src/share/demo/jvmti/agent_util/agent_util.h	2016-08-16 14:39:10.266783110 -0600
+@@ -65,6 +65,51 @@
+ void *allocate(jvmtiEnv *jvmti, jint len);
+ void  add_demo_jar_to_bootclasspath(jvmtiEnv *jvmti, char *demo_name);
+ 
++#ifdef STATIC_BUILD
++/* Macros for handling declaration of static/dynamic
++ * Agent library Load/Attach/Unload functions
++ *
++ * DEF_Agent_OnLoad, DEF_Agent_OnAttach or DEF_Agent_OnUnload
++ * generate the appropriate entrypoint names based on static
++ * versus dynamic builds.
++ *
++ * STATIC_BUILD must be defined to build static versions of these libraries.
++ * LIBRARY_NAME must be set to the name of the library for static builds.
++ */
++#define ADD_LIB_NAME3(name, lib) name ## lib
++#define ADD_LIB_NAME2(name, lib) ADD_LIB_NAME3(name, lib)
++#define ADD_LIB_NAME(entry) ADD_LIB_NAME2(entry, LIBRARY_NAME)
++
++#define DEF_Agent_OnLoad \
++ADD_LIB_NAME(Agent_OnLoad_)(JavaVM *vm, char *options, void *reserved) \
++{ \
++  jint JNICALL ADD_LIB_NAME(Agent_OnLoad_dynamic_)(JavaVM *vm, char *options, void *reserved); \
++  return ADD_LIB_NAME(Agent_OnLoad_dynamic_)(vm, options, reserved); \
++} \
++jint JNICALL ADD_LIB_NAME(Agent_OnLoad_dynamic_)
++
++#define DEF_Agent_OnAttach \
++ADD_LIB_NAME(Agent_OnAttach_)(JavaVM *vm, char *options, void *reserved) \
++{ \
++  jint JNICALL ADD_LIB_NAME(Agent_OnAttach_dynamic_)(JavaVM *vm, char *options, void *reserved); \
++  return ADD_LIB_NAME(Agent_OnAttach_dynamic_)(vm, options, reserved); \
++} \
++jint JNICALL ADD_LIB_NAME(Agent_OnAttach_dynamic_)
++
++#define DEF_Agent_OnUnload \
++ADD_LIB_NAME(Agent_OnUnload_)(JavaVM *vm) \
++{ \
++  void JNICALL ADD_LIB_NAME(Agent_OnUnload_dynamic_)(JavaVM *vm); \
++  ADD_LIB_NAME(Agent_OnUnload_dynamic_)(vm); \
++} \
++void JNICALL ADD_LIB_NAME(Agent_OnUnload_dynamic_)
++
++#else
++#define DEF_Agent_OnLoad Agent_OnLoad
++#define DEF_Agent_OnAttach Agent_OnAttach
++#define DEF_Agent_OnUnload Agent_OnUnload
++#endif
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif /* __cplusplus */
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/compiledMethodLoad/compiledMethodLoad.c new/jdk/src/share/demo/jvmti/compiledMethodLoad/compiledMethodLoad.c
+--- old/jdk/src/share/demo/jvmti/compiledMethodLoad/compiledMethodLoad.c	2016-08-16 10:50:23.473241448 -0600
++++ new/jdk/src/share/demo/jvmti/compiledMethodLoad/compiledMethodLoad.c	2016-08-16 14:39:10.266783110 -0600
+@@ -225,7 +225,7 @@
+  * event here.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     jint                rc;
+     jvmtiError          err;
+@@ -272,6 +272,6 @@
+ 
+ /* Agent_OnUnload() is called last */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+ }
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/gctest/gctest.c new/jdk/src/share/demo/jvmti/gctest/gctest.c
+--- old/jdk/src/share/demo/jvmti/gctest/gctest.c	2016-08-16 10:50:23.473241448 -0600
++++ new/jdk/src/share/demo/jvmti/gctest/gctest.c	2016-08-16 14:39:10.270783290 -0600
+@@ -148,7 +148,7 @@
+ 
+ /* Agent_OnLoad() is called first, we prepare for a VM_INIT event here. */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     jint                rc;
+     jvmtiError          err;
+@@ -193,6 +193,6 @@
+ 
+ /* Agent_OnUnload() is called last */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+ }
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/heapTracker/heapTracker.c new/jdk/src/share/demo/jvmti/heapTracker/heapTracker.c
+--- old/jdk/src/share/demo/jvmti/heapTracker/heapTracker.c	2016-08-16 10:50:23.477241566 -0600
++++ new/jdk/src/share/demo/jvmti/heapTracker/heapTracker.c	2016-08-16 14:39:10.270783290 -0600
+@@ -894,7 +894,7 @@
+  *   loaded. This is the first code executed.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     static GlobalAgentData data;
+     jvmtiEnv              *jvmti;
+@@ -1010,7 +1010,7 @@
+  *   unloaded. This is the last code executed.
+  */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+     /* Skip any cleanup, VM is about to die anyway */
+ }
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/heapTracker/heapTracker.h new/jdk/src/share/demo/jvmti/heapTracker/heapTracker.h
+--- old/jdk/src/share/demo/jvmti/heapTracker/heapTracker.h	2016-08-16 10:50:23.477241566 -0600
++++ new/jdk/src/share/demo/jvmti/heapTracker/heapTracker.h	2016-08-16 14:39:10.270783290 -0600
+@@ -64,9 +64,4 @@
+ 
+ #include "agent_util.h"
+ 
+-/* Agent library externals to export. */
+-
+-JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
+-JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm);
+-
+ #endif
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/heapViewer/heapViewer.c new/jdk/src/share/demo/jvmti/heapViewer/heapViewer.c
+--- old/jdk/src/share/demo/jvmti/heapViewer/heapViewer.c	2016-08-16 10:50:23.477241566 -0600
++++ new/jdk/src/share/demo/jvmti/heapViewer/heapViewer.c	2016-08-16 14:39:10.270783290 -0600
+@@ -235,7 +235,7 @@
+ 
+ /* Agent_OnLoad() is called first, we prepare for a VM_INIT event here. */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     jint                rc;
+     jvmtiError          err;
+@@ -283,6 +283,6 @@
+ 
+ /* Agent_OnUnload() is called last */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+ }
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/hprof/hprof.h new/jdk/src/share/demo/jvmti/hprof/hprof.h
+--- old/jdk/src/share/demo/jvmti/hprof/hprof.h	2016-08-16 10:50:23.477241566 -0600
++++ new/jdk/src/share/demo/jvmti/hprof/hprof.h	2016-08-16 14:39:10.270783290 -0600
+@@ -207,7 +207,7 @@
+ 
+     jvmtiEnv            *jvmti; /* JVMTI env for this session */
+     JavaVM              *jvm;   /* JavaVM* for this session */
+-#ifndef SKIP_NPT
++#if !defined(SKIP_NPT) && !defined(STATIC_BUILD)
+     NptEnv              *npt;   /* NptEnv* for this session, see npt.h */
+ #endif
+     jint                cachedJvmtiVersion; /* JVMTI version number */
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/hprof/hprof_init.c new/jdk/src/share/demo/jvmti/hprof/hprof_init.c
+--- old/jdk/src/share/demo/jvmti/hprof/hprof_init.c	2016-08-16 10:50:23.477241566 -0600
++++ new/jdk/src/share/demo/jvmti/hprof/hprof_init.c	2016-08-16 14:39:10.278783647 -0600
+@@ -743,7 +743,7 @@
+         /* UTF-8 to platform encoding (fill in gdata->output_filename) */
+         ulen = (int)strlen(gdata->utf8_output_filename);
+         gdata->output_filename = (char*)HPROF_MALLOC(ulen*3+3);
+-#ifdef SKIP_NPT
++#if defined(SKIP_NPT) || defined(STATIC_BUILD)
+         (void)strcpy(gdata->output_filename, gdata->utf8_output_filename);
+ #else
+         (void)(gdata->npt->utf8ToPlatform)
+@@ -1946,7 +1946,7 @@
+ /* The OnLoad interface */
+ 
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     char *boot_path = NULL;
+     char npt_lib[JVM_MAXPATHLEN];
+@@ -1970,7 +1970,7 @@
+     /* Get the JVMTI environment */
+     getJvmti();
+ 
+-#ifndef SKIP_NPT
++#if !defined(SKIP_NPT) && !defined(STATIC_BUILD)
+     getSystemProperty("sun.boot.library.path", &boot_path);
+     /* Load in NPT library for character conversions */
+     md_build_library_name(npt_lib, sizeof(npt_lib), boot_path, NPT_LIBNAME);
+@@ -2054,7 +2054,9 @@
+     if ( gdata->bci ) {
+ 
+         /* Load the library or get the handle to it */
++#ifndef STATIC_BUILD
+         gdata->java_crw_demo_library = load_library("java_crw_demo");
++#endif
+ 
+         { /* "java_crw_demo" */
+             static char *symbols[]  = JAVA_CRW_DEMO_SYMBOLS;
+@@ -2074,7 +2076,7 @@
+ }
+ 
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+     Stack *stack;
+ 
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/hprof/hprof_init.h new/jdk/src/share/demo/jvmti/hprof/hprof_init.h
+--- old/jdk/src/share/demo/jvmti/hprof/hprof_init.h	2016-08-16 10:50:23.477241566 -0600
++++ new/jdk/src/share/demo/jvmti/hprof/hprof_init.h	2016-08-16 14:39:10.274783468 -0600
+@@ -41,7 +41,9 @@
+ #ifndef HPROF_INIT_H
+ #define HPROF_INIT_H
+ 
+-JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
+-JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm);
++#include "jni_util.h"
++
++JNIEXPORT jint JNICALL Agent_OnLoad_hprof(JavaVM *vm, char *options, void *reserved);
++JNIEXPORT void JNICALL Agent_OnUnload_hprof(JavaVM *vm);
+ 
+ #endif
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/hprof/hprof_util.h new/jdk/src/share/demo/jvmti/hprof/hprof_util.h
+--- old/jdk/src/share/demo/jvmti/hprof/hprof_util.h	2016-08-16 10:50:23.481241684 -0600
++++ new/jdk/src/share/demo/jvmti/hprof/hprof_util.h	2016-08-16 14:39:10.286784005 -0600
+@@ -78,6 +78,27 @@
+             HPROF_ERROR(JNI_TRUE, "Unexpected Exception found afterward");\
+         }                                                               \
+     }
++#ifdef STATIC_BUILD
++#define ADD_LIB_DEF3(name, lib) name ## lib
++#define ADD_LIB_DEF2(name, lib) ADD_LIB_DEF3(name, lib)
++#define ADD_LIB_DEF(entry) ADD_LIB_DEF2(entry, LIBRARY_NAME)
++#define ADD_LIB_CALL(entry, ...) ADD_LIB_DEF(entry)(__VA_ARGS__)
++
++#define getObjectSize ADD_LIB_DEF(getObjectSize)
++//#define getObjectSize(...) ADD_LIB_CALL(getObjectSize, __VA_ARGS__)
++#define getMethodClass ADD_LIB_DEF(getMethodClass)
++//#define getMethodClass(...) ADD_LIB_CALL(getMethodClass, __VA_ARGS__)
++#define jvmtiDeallocate ADD_LIB_DEF(jvmtiDeallocate)
++//#define jvmtiDeallocate(...) ADD_LIB_CALL(jvmtiDeallocate, __VA_ARGS__)
++#define getEnv ADD_LIB_DEF(getEnv)
++//#define getEnv(...) ADD_LIB_CALL(getEnv, __VA_ARGS__)
++#define jvmtiAllocate ADD_LIB_DEF(jvmtiAllocate)
++//#define jvmtiAllocate(...) ADD_LIB_CALL(jvmtiAllocate, __VA_ARGS__)
++#define isMethodNative ADD_LIB_DEF(isMethodNative)
++//#define isMethodNative(...) ADD_LIB_CALL(isMethodNative, __VA_ARGS__)
++#define isSameObject ADD_LIB_DEF(isSameObject)
++//#define isSameObject(...) ADD_LIB_CALL(isSameObject, __VA_ARGS__)
++#endif
+ 
+ JNIEnv *   getEnv(void);
+ 
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/minst/minst.c new/jdk/src/share/demo/jvmti/minst/minst.c
+--- old/jdk/src/share/demo/jvmti/minst/minst.c	2016-08-16 10:50:23.481241684 -0600
++++ new/jdk/src/share/demo/jvmti/minst/minst.c	2016-08-16 14:39:10.298784542 -0600
+@@ -373,7 +373,7 @@
+  *   loaded. This is the first code executed.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     static GlobalAgentData data;
+     jvmtiEnv              *jvmti;
+@@ -467,7 +467,7 @@
+  *   unloaded. This is the last code executed.
+  */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+     /* Make sure all malloc/calloc/strdup space is freed */
+     if ( gdata->include != NULL ) {
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/minst/minst.h new/jdk/src/share/demo/jvmti/minst/minst.h
+--- old/jdk/src/share/demo/jvmti/minst/minst.h	2016-08-16 10:50:23.481241684 -0600
++++ new/jdk/src/share/demo/jvmti/minst/minst.h	2016-08-16 14:39:10.298784542 -0600
+@@ -64,9 +64,4 @@
+ 
+ #include "agent_util.h"
+ 
+-/* Agent library externals to export. */
+-
+-JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
+-JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm);
+-
+ #endif
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/mtrace/mtrace.c new/jdk/src/share/demo/jvmti/mtrace/mtrace.c
+--- old/jdk/src/share/demo/jvmti/mtrace/mtrace.c	2016-08-16 10:50:23.485241801 -0600
++++ new/jdk/src/share/demo/jvmti/mtrace/mtrace.c	2016-08-16 14:39:10.298784542 -0600
+@@ -697,7 +697,7 @@
+  *   loaded. This is the first code executed.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     static GlobalAgentData data;
+     jvmtiEnv              *jvmti;
+@@ -795,7 +795,7 @@
+  *   unloaded. This is the last code executed.
+  */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+     /* Make sure all malloc/calloc/strdup space is freed */
+     if ( gdata->include != NULL ) {
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/mtrace/mtrace.h new/jdk/src/share/demo/jvmti/mtrace/mtrace.h
+--- old/jdk/src/share/demo/jvmti/mtrace/mtrace.h	2016-08-16 10:50:23.485241801 -0600
++++ new/jdk/src/share/demo/jvmti/mtrace/mtrace.h	2016-08-16 14:39:10.298784542 -0600
+@@ -64,9 +64,4 @@
+ 
+ #include "agent_util.h"
+ 
+-/* Agent library externals to export. */
+-
+-JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
+-JNIEXPORT void JNICALL Agent_OnUnload(JavaVM *vm);
+-
+ #endif
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/versionCheck/versionCheck.c new/jdk/src/share/demo/jvmti/versionCheck/versionCheck.c
+--- old/jdk/src/share/demo/jvmti/versionCheck/versionCheck.c	2016-08-16 10:50:23.485241801 -0600
++++ new/jdk/src/share/demo/jvmti/versionCheck/versionCheck.c	2016-08-16 14:39:10.302784721 -0600
+@@ -89,7 +89,7 @@
+ 
+ /* Agent_OnLoad() is called first, we prepare for a VM_INIT event here. */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+ {
+     jint                rc;
+     jvmtiError          err;
+@@ -116,6 +116,6 @@
+ 
+ /* Agent_OnUnload() is called last */
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm)
++DEF_Agent_OnUnload(JavaVM *vm)
+ {
+ }
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/waiters/Monitor.hpp new/jdk/src/share/demo/jvmti/waiters/Monitor.hpp
+--- old/jdk/src/share/demo/jvmti/waiters/Monitor.hpp	2016-08-16 10:50:23.485241801 -0600
++++ new/jdk/src/share/demo/jvmti/waiters/Monitor.hpp	2016-08-16 14:39:10.302784721 -0600
+@@ -37,6 +37,10 @@
+  * this sample code.
+  */
+ 
++#ifdef STATIC_BUILD
++#define Monitor WaiterMonitor
++#endif
++
+ 
+ /* C++ Monitor class */
+ 
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/waiters/Thread.cpp new/jdk/src/share/demo/jvmti/waiters/Thread.cpp
+--- old/jdk/src/share/demo/jvmti/waiters/Thread.cpp	2016-08-16 10:50:23.485241801 -0600
++++ new/jdk/src/share/demo/jvmti/waiters/Thread.cpp	2016-08-16 14:39:10.302784721 -0600
+@@ -37,6 +37,9 @@
+  * this sample code.
+  */
+ 
++#ifdef STATIC_BUILD
++#define Thread WaiterThread
++#endif
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+diff -ruN -x '.*' old/jdk/src/share/demo/jvmti/waiters/waiters.cpp new/jdk/src/share/demo/jvmti/waiters/waiters.cpp
+--- old/jdk/src/share/demo/jvmti/waiters/waiters.cpp	2016-08-16 10:50:23.485241801 -0600
++++ new/jdk/src/share/demo/jvmti/waiters/waiters.cpp	2016-08-16 14:39:10.306784899 -0600
+@@ -243,7 +243,7 @@
+ 
+     /* Agent_OnLoad() is called first, we prepare for a VM_INIT event here. */
+     JNIEXPORT jint JNICALL
+-    Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
++    DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
+     {
+         jvmtiEnv           *jvmti;
+         jint                rc;
+@@ -288,7 +288,7 @@
+ 
+     /* Agent_OnUnload() is called last */
+     JNIEXPORT void JNICALL
+-    Agent_OnUnload(JavaVM *vm)
++    DEF_Agent_OnUnload(JavaVM *vm)
+     {
+     }
+ 
+diff -ruN -x '.*' old/jdk/src/share/instrument/InstrumentationImplNativeMethods.c new/jdk/src/share/instrument/InstrumentationImplNativeMethods.c
+--- old/jdk/src/share/instrument/InstrumentationImplNativeMethods.c	2016-08-16 10:50:23.501242271 -0600
++++ new/jdk/src/share/instrument/InstrumentationImplNativeMethods.c	2016-08-16 14:39:10.362787404 -0600
+@@ -50,6 +50,11 @@
+  */
+ 
+ /*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
++/*
+  * Class:     sun_instrument_InstrumentationImpl
+  * Method:    isModifiableClass0
+  * Signature: (Ljava/lang/Class;)Z
+diff -ruN -x '.*' old/jdk/src/share/instrument/InvocationAdapter.c new/jdk/src/share/instrument/InvocationAdapter.c
+--- old/jdk/src/share/instrument/InvocationAdapter.c	2016-08-16 10:50:23.501242271 -0600
++++ new/jdk/src/share/instrument/InvocationAdapter.c	2016-08-16 14:39:10.366787583 -0600
+@@ -141,7 +141,7 @@
+  *  to create boot class path segments to append to the boot class path.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnLoad(JavaVM *vm, char *tail, void * reserved) {
++DEF_Agent_OnLoad(JavaVM *vm, char *tail, void * reserved) {
+     JPLISInitializationError initerror  = JPLIS_INIT_ERROR_NONE;
+     jint                     result     = JNI_OK;
+     JPLISAgent *             agent      = NULL;
+@@ -291,7 +291,7 @@
+  *  the JPLIS library.
+  */
+ JNIEXPORT jint JNICALL
+-Agent_OnAttach(JavaVM* vm, char *args, void * reserved) {
++DEF_Agent_OnAttach(JavaVM* vm, char *args, void * reserved) {
+     JPLISInitializationError initerror  = JPLIS_INIT_ERROR_NONE;
+     jint                     result     = JNI_OK;
+     JPLISAgent *             agent      = NULL;
+@@ -436,7 +436,7 @@
+ 
+ 
+ JNIEXPORT void JNICALL
+-Agent_OnUnload(JavaVM *vm) {
++DEF_Agent_OnUnload(JavaVM *vm) {
+ }
+ 
+ 
+diff -ruN -x '.*' old/jdk/src/share/instrument/JarFacade.h new/jdk/src/share/instrument/JarFacade.h
+--- old/jdk/src/share/instrument/JarFacade.h	2016-08-16 10:50:23.501242271 -0600
++++ new/jdk/src/share/instrument/JarFacade.h	2016-08-16 14:39:10.362787404 -0600
+@@ -23,6 +23,10 @@
+  * questions.
+  */
+ 
++#ifdef STATIC_BUILD
++#define getAttribute JarGetAttribute
++#endif
++
+ typedef struct _jarAttribute {
+     char* name;
+     char* value;
+diff -ruN -x '.*' old/jdk/src/share/instrument/Utilities.h new/jdk/src/share/instrument/Utilities.h
+--- old/jdk/src/share/instrument/Utilities.h	2016-08-16 10:50:23.501242271 -0600
++++ new/jdk/src/share/instrument/Utilities.h	2016-08-16 14:39:10.362787404 -0600
+@@ -32,6 +32,13 @@
+ 
+ #include    <jni.h>
+ #include    <jvmti.h>
++#include    "jni_util.h"
++
++#ifdef STATIC_BUILD
++#define allocate instAllocate
++#define deallocate instDeallocate
++#endif
++
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff -ruN -x '.*' old/jdk/src/share/native/com/sun/java/util/jar/pack/jni.cpp new/jdk/src/share/native/com/sun/java/util/jar/pack/jni.cpp
+--- old/jdk/src/share/native/com/sun/java/util/jar/pack/jni.cpp	2016-08-16 10:50:23.369238390 -0600
++++ new/jdk/src/share/native/com/sun/java/util/jar/pack/jni.cpp	2016-08-16 14:39:09.634754844 -0600
+@@ -56,6 +56,11 @@
+ 
+ #define THROW_IOE(x) JNU_ThrowIOException(env,x)
+ 
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ #define CHECK_EXCEPTION_RETURN_VOID_THROW_IOE(CERVTI_exception, CERVTI_message) \
+     do { \
+         if ((env)->ExceptionOccurred()) { \
+diff -ruN -x '.*' old/jdk/src/share/native/com/sun/java/util/jar/pack/utils.cpp new/jdk/src/share/native/com/sun/java/util/jar/pack/utils.cpp
+--- old/jdk/src/share/native/com/sun/java/util/jar/pack/utils.cpp	2016-08-16 10:50:23.369238390 -0600
++++ new/jdk/src/share/native/com/sun/java/util/jar/pack/utils.cpp	2016-08-16 14:39:09.638755023 -0600
+@@ -77,7 +77,11 @@
+ 
+ 
+ #ifndef PRODUCT
++#ifndef STATIC_BUILD
+ void breakpoint() { }  // hook for debugger
++#else
++extern void breakpoint();
++#endif //STATIC_BUILD
+ int assert_failed(const char* p) {
+   char message[1<<12];
+   sprintf(message, "@assert failed: %s\n", p);
+diff -ruN -x '.*' old/jdk/src/share/native/com/sun/media/sound/Platform.c new/jdk/src/share/native/com/sun/media/sound/Platform.c
+--- old/jdk/src/share/native/com/sun/media/sound/Platform.c	2016-08-16 10:50:23.373238508 -0600
++++ new/jdk/src/share/native/com/sun/media/sound/Platform.c	2016-08-16 14:39:09.638755023 -0600
+@@ -28,6 +28,10 @@
+ // Platform.java includes
+ #include "com_sun_media_sound_Platform.h"
+ 
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
+ 
+ /*
+  * Class:     com_sun_media_sound_Platform
+diff -ruN -x '.*' old/jdk/src/share/native/com/sun/media/sound/Utilities.h new/jdk/src/share/native/com/sun/media/sound/Utilities.h
+--- old/jdk/src/share/native/com/sun/media/sound/Utilities.h	2016-08-16 10:50:23.373238508 -0600
++++ new/jdk/src/share/native/com/sun/media/sound/Utilities.h	2016-08-16 14:39:09.642755202 -0600
+@@ -24,6 +24,7 @@
+  */
+ 
+ #include <jni.h>
++#include "jni_util.h"
+ #include "SoundDefs.h"
+ #include "Configure.h"          // put flags for debug msgs etc. here
+ 
+diff -ruN -x '.*' old/jdk/src/share/native/common/check_code.c new/jdk/src/share/native/common/check_code.c
+--- old/jdk/src/share/native/common/check_code.c	2016-08-16 10:50:23.373238508 -0600
++++ new/jdk/src/share/native/common/check_code.c	2016-08-16 14:39:09.646755380 -0600
+@@ -86,6 +86,7 @@
+ #include <stdlib.h>
+ 
+ #include "jni.h"
++#include "jni_util.h"
+ #include "jvm.h"
+ #include "classfile_constants.h"
+ #include "opcodes.in_out"
+@@ -480,6 +481,11 @@
+ static void print_formatted_methodname(context_type *context, int index);
+ #endif
+ 
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ void initialize_class_hash(context_type *context)
+ {
+     hash_table_type *class_hash = &(context->class_hash);
+diff -ruN -x '.*' old/jdk/src/share/native/common/check_version.c new/jdk/src/share/native/common/check_version.c
+--- old/jdk/src/share/native/common/check_version.c	2016-08-16 10:50:23.373238508 -0600
++++ new/jdk/src/share/native/common/check_version.c	2016-08-16 14:39:09.646755380 -0600
+@@ -24,10 +24,11 @@
+  */
+ 
+ #include "jni.h"
++#include "jni_util.h"
+ #include "jvm.h"
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     jint vm_version = JVM_GetInterfaceVersion();
+     if (vm_version != JVM_INTERFACE_VERSION) {
+diff -ruN -x '.*' old/jdk/src/share/native/common/jio.c new/jdk/src/share/native/common/jio.c
+--- old/jdk/src/share/native/common/jio.c	2016-08-16 10:50:23.373238508 -0600
++++ new/jdk/src/share/native/common/jio.c	2016-08-16 14:39:09.650755560 -0600
+@@ -27,6 +27,7 @@
+ 
+ #include "jni.h"
+ 
++#ifndef STATIC_BUILD
+ 
+ /* This is a temporary solution until we figure out how to let native
+  * libraries use jio_* without linking with the VM.
+@@ -63,3 +64,6 @@
+ 
+     return len;
+ }
++
++#endif
++
+diff -ruN -x '.*' old/jdk/src/share/native/common/jni_util.h new/jdk/src/share/native/common/jni_util.h
+--- old/jdk/src/share/native/common/jni_util.h	2016-08-16 10:50:23.377238625 -0600
++++ new/jdk/src/share/native/common/jni_util.h	2016-08-16 14:39:09.650755560 -0600
+@@ -392,6 +392,117 @@
+                           char *jniEntryName);
+ 
+ extern int getErrorString(int err, char *buf, size_t len);
++
++#ifdef STATIC_BUILD
++/* Macros for handling declaration of static/dynamic
++ * JNI library Load/Unload functions
++ *
++ * Use DEF_JNI_On{Un}Load when you want a static and non-static entry points.
++ * Use DEF_STATIC_JNI_On{Un}Load when you only want a static one.
++ *
++ * LIBRARY_NAME must be set to the name of the library
++ */
++
++/* These three macros are needed to get proper concatenation of
++ * the LIBRARY_NAME
++ *
++ * NOTE: LIBRARY_NAME must be set for static builds.
++ */
++#define ADD_LIB_NAME3(name, lib) name ## lib
++#define ADD_LIB_NAME2(name, lib) ADD_LIB_NAME3(name, lib)
++#define ADD_LIB_NAME(entry) ADD_LIB_NAME2(entry, LIBRARY_NAME)
++
++#define DEF_JNI_OnLoad \
++ADD_LIB_NAME(JNI_OnLoad_)(JavaVM *vm, void *reserved) \
++{ \
++  jint JNICALL ADD_LIB_NAME(JNI_OnLoad_dynamic_)(JavaVM *vm, void *reserved); \
++  ADD_LIB_NAME(JNI_OnLoad_dynamic_)(vm, reserved); \
++  return JNI_VERSION_1_8; \
++} \
++jint JNICALL ADD_LIB_NAME(JNI_OnLoad_dynamic_)
++
++#define DEF_STATIC_JNI_OnLoad \
++JNIEXPORT jint JNICALL ADD_LIB_NAME(JNI_OnLoad_)(JavaVM *vm, void *reserved) { \
++    return JNI_VERSION_1_8; \
++}
++
++#define DEF_JNI_OnUnload \
++ADD_LIB_NAME(JNI_OnUnload_)(JavaVM *vm, void *reserved) \
++{ \
++  void JNICALL ADD_LIB_NAME(JNI_OnUnload_dynamic_)(JavaVM *vm, void *reserved); \
++  ADD_LIB_NAME(JNI_OnUnload_dynamic_)(vm, reserved); \
++} \
++void JNICALL ADD_LIB_NAME(JNI_OnUnload_dynamic_)
++
++#define DEF_STATIC_JNI_OnUnload \
++ADD_LIB_NAME(JNI_OnUnload_)
++
++#else
++
++#define DEF_JNI_OnLoad JNI_OnLoad
++#define DEF_STATIC_JNI_OnLoad
++#define DEF_JNI_OnUnload JNI_OnUnload
++#define DEF_STATIC_JNI_OnUnload
++#endif
++
++#ifdef STATIC_BUILD
++/* Macros for handling declaration of static/dynamic
++ * Agent library Load/Attach/Unload functions
++ *
++ * Use DEF_Agent_OnLoad, DEF_Agent_OnAttach or DEF_Agent_OnUnload
++ *     when you want both static and non-static entry points.
++ * Use DEF_STATIC_Agent_OnLoad, DEF_STATIC_Agent_OnAttach or
++ *     DEF_STATIC_Agent_OnUnload when you only want a static one.
++ *
++ * LIBRARY_NAME must be set to the name of the library for static builds.
++ */
++
++#define DEF_Agent_OnLoad \
++ADD_LIB_NAME(Agent_OnLoad_)(JavaVM *vm, char *options, void *reserved) \
++{ \
++  jint JNICALL ADD_LIB_NAME(Agent_OnLoad_dynamic_)(JavaVM *vm, char *options, void *reserved); \
++  return ADD_LIB_NAME(Agent_OnLoad_dynamic_)(vm, options, reserved); \
++} \
++jint JNICALL ADD_LIB_NAME(Agent_OnLoad_dynamic_)
++
++#define DEF_STATIC_Agent_OnLoad \
++JNIEXPORT jint JNICALL ADD_LIB_NAME(Agent_OnLoad_)(JavaVM *vm, char *options, void *reserved) { \
++    return JNI_FALSE; \
++}
++
++#define DEF_Agent_OnAttach \
++ADD_LIB_NAME(Agent_OnAttach_)(JavaVM *vm, char *options, void *reserved) \
++{ \
++  jint JNICALL ADD_LIB_NAME(Agent_OnAttach_dynamic_)(JavaVM *vm, char *options, void *reserved); \
++  return ADD_LIB_NAME(Agent_OnAttach_dynamic_)(vm, options, reserved); \
++} \
++jint JNICALL ADD_LIB_NAME(Agent_OnAttach_dynamic_)
++
++#define DEF_STATIC_Agent_OnAttach \
++JNIEXPORT jint JNICALL ADD_LIB_NAME(Agent_OnLoad_)(JavaVM *vm, char *options, void *reserved) { \
++    return JNI_FALSE; \
++}
++
++#define DEF_Agent_OnUnload \
++ADD_LIB_NAME(Agent_OnUnload_)(JavaVM *vm) \
++{ \
++  void JNICALL ADD_LIB_NAME(Agent_OnUnload_dynamic_)(JavaVM *vm); \
++  ADD_LIB_NAME(Agent_OnUnload_dynamic_)(vm); \
++} \
++void JNICALL ADD_LIB_NAME(Agent_OnUnload_dynamic_)
++
++#define DEF_STATIC_Agent_OnUnload \
++ADD_LIB_NAME(Agent_OnUnload_)
++
++#else
++#define DEF_Agent_OnLoad Agent_OnLoad
++#define DEF_Agent_OnAttach Agent_OnAttach
++#define DEF_Agent_OnUnload Agent_OnUnload
++#define DEF_STATIC_Agent_OnLoad
++#define DEF_STATIC_Agent_OnAttach
++#define DEF_STATIC_Agent_OnUnload
++#endif
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif /* __cplusplus */
+diff -ruN -x '.*' old/jdk/src/share/native/java/lang/Class.c new/jdk/src/share/native/java/lang/Class.c
+--- old/jdk/src/share/native/java/lang/Class.c	2016-08-16 10:50:23.245234745 -0600
++++ new/jdk/src/share/native/java/lang/Class.c	2016-08-16 14:39:09.690757349 -0600
+@@ -66,12 +66,12 @@
+     {"getDeclaredMethods0","(Z)[" MHD,      (void *)&JVM_GetClassDeclaredMethods},
+     {"getDeclaredConstructors0","(Z)[" CTR, (void *)&JVM_GetClassDeclaredConstructors},
+     {"getProtectionDomain0", "()" PD,       (void *)&JVM_GetProtectionDomain},
+-    {"getDeclaredClasses0",  "()[" CLS,      (void *)&JVM_GetDeclaredClasses},
++    {"getDeclaredClasses0",  "()[" CLS,     (void *)&JVM_GetDeclaredClasses},
+     {"getDeclaringClass0",   "()" CLS,      (void *)&JVM_GetDeclaringClass},
+     {"getGenericSignature0", "()" STR,      (void *)&JVM_GetClassSignature},
+-    {"getRawAnnotations",      "()" BA,        (void *)&JVM_GetClassAnnotations},
++    {"getRawAnnotations",      "()" BA,     (void *)&JVM_GetClassAnnotations},
+     {"getConstantPool",     "()" CPL,       (void *)&JVM_GetClassConstantPool},
+-    {"desiredAssertionStatus0","("CLS")Z",(void *)&JVM_DesiredAssertionStatus},
++    {"desiredAssertionStatus0","(" CLS ")Z",(void *)&JVM_DesiredAssertionStatus},
+     {"getEnclosingMethod0", "()[" OBJ,      (void *)&JVM_GetEnclosingMethodInfo},
+     {"getRawTypeAnnotations", "()" BA,      (void *)&JVM_GetClassTypeAnnotations},
+ };
+diff -ruN -x '.*' old/jdk/src/share/native/java/lang/ClassLoader.c new/jdk/src/share/native/java/lang/ClassLoader.c
+--- old/jdk/src/share/native/java/lang/ClassLoader.c	2016-08-16 10:50:23.245234745 -0600
++++ new/jdk/src/share/native/java/lang/ClassLoader.c	2016-08-16 14:39:09.658755917 -0600
+@@ -380,8 +380,12 @@
+     cname = JNU_GetStringPlatformChars(env, name, 0);
+     if (cname == 0)
+         return;
++#ifndef STATIC_BUILD
+     handle = isBuiltin ? procHandle : JVM_LoadLibrary(cname);
+     if (handle) {
++#else
++    handle = NULL;
++#endif
+         JNI_OnLoad_t JNI_OnLoad;
+         JNI_OnLoad = (JNI_OnLoad_t)findJniFunction(env, handle,
+                                                isBuiltin ? cname : NULL,
+@@ -417,6 +421,7 @@
+             goto done;
+         }
+         (*env)->SetIntField(env, this, jniVersionID, jniVersion);
++#ifndef STATIC_BUILD
+     } else {
+         cause = (*env)->ExceptionOccurred(env);
+         if (cause) {
+@@ -426,6 +431,7 @@
+         }
+         goto done;
+     }
++#endif
+     (*env)->SetLongField(env, this, handleID, ptr_to_jlong(handle));
+     (*env)->SetBooleanField(env, this, loadedID, JNI_TRUE);
+ 
+diff -ruN -x '.*' old/jdk/src/share/native/java/net/net_util.c new/jdk/src/share/native/java/net/net_util.c
+--- old/jdk/src/share/native/java/net/net_util.c	2016-08-16 10:50:23.245234745 -0600
++++ new/jdk/src/share/native/java/net/net_util.c	2016-08-16 14:39:09.690757349 -0600
+@@ -38,7 +38,7 @@
+ }
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     JNIEnv *env;
+     jclass iCls;
+diff -ruN -x '.*' old/jdk/src/share/native/java/util/zip/ZipFile.c new/jdk/src/share/native/java/util/zip/ZipFile.c
+--- old/jdk/src/share/native/java/util/zip/ZipFile.c	2016-08-16 10:50:23.249234862 -0600
++++ new/jdk/src/share/native/java/util/zip/ZipFile.c	2016-08-16 14:39:09.702757886 -0600
+@@ -55,6 +55,12 @@
+ static int OPEN_READ = java_util_zip_ZipFile_OPEN_READ;
+ static int OPEN_DELETE = java_util_zip_ZipFile_OPEN_DELETE;
+ 
++
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ JNIEXPORT void JNICALL
+ Java_java_util_zip_ZipFile_initIDs(JNIEnv *env, jclass cls)
+ {
+diff -ruN -x '.*' old/jdk/src/share/native/sun/awt/image/jpeg/jpegdecoder.c new/jdk/src/share/native/sun/awt/image/jpeg/jpegdecoder.c
+--- old/jdk/src/share/native/sun/awt/image/jpeg/jpegdecoder.c	2016-08-16 10:50:23.265235332 -0600
++++ new/jdk/src/share/native/sun/awt/image/jpeg/jpegdecoder.c	2016-08-16 14:39:09.758760390 -0600
+@@ -67,7 +67,7 @@
+ JavaVM *jvm;
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     jvm = vm;
+     return JNI_VERSION_1_2;
+diff -ruN -x '.*' old/jdk/src/share/native/sun/awt/medialib/mlib_ImageUtils.c new/jdk/src/share/native/sun/awt/medialib/mlib_ImageUtils.c
+--- old/jdk/src/share/native/sun/awt/medialib/mlib_ImageUtils.c	2016-08-16 10:50:23.289236038 -0600
++++ new/jdk/src/share/native/sun/awt/medialib/mlib_ImageUtils.c	2016-08-16 14:39:09.830763611 -0600
+@@ -26,6 +26,14 @@
+ 
+ #include "mlib_image.h"
+ 
++#include <jni.h>
++#include "jni_util.h"
++
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ /***************************************************************/
+ typedef union {
+   mlib_d64 db;
+diff -ruN -x '.*' old/jdk/src/share/native/sun/awt/splashscreen/java_awt_SplashScreen.c new/jdk/src/share/native/sun/awt/splashscreen/java_awt_SplashScreen.c
+--- old/jdk/src/share/native/sun/awt/splashscreen/java_awt_SplashScreen.c	2016-08-16 10:50:23.293236155 -0600
++++ new/jdk/src/share/native/sun/awt/splashscreen/java_awt_SplashScreen.c	2016-08-16 14:39:09.858764863 -0600
+@@ -30,7 +30,7 @@
+ #include <sizecalc.h>
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM * vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM * vm, void *reserved)
+ {
+     return JNI_VERSION_1_2;
+ }
+diff -ruN -x '.*' old/jdk/src/share/native/sun/font/sunFont.c new/jdk/src/share/native/sun/font/sunFont.c
+--- old/jdk/src/share/native/sun/font/sunFont.c	2016-08-16 10:50:23.297236273 -0600
++++ new/jdk/src/share/native/sun/font/sunFont.c	2016-08-16 14:39:09.862765041 -0600
+@@ -37,6 +37,10 @@
+ static void *theNullScalerContext = NULL;
+ extern void AccelGlyphCache_RemoveAllCellInfos(GlyphInfo *glyph);
+ 
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
+ 
+ JNIEXPORT jlong JNICALL
+ Java_sun_font_NullFontScaler_getNullScalerContext
+diff -ruN -x '.*' old/jdk/src/share/native/sun/java2d/cmm/lcms/LCMS.c new/jdk/src/share/native/sun/java2d/cmm/lcms/LCMS.c
+--- old/jdk/src/share/native/sun/java2d/cmm/lcms/LCMS.c	2016-08-16 10:50:23.321236979 -0600
++++ new/jdk/src/share/native/sun/java2d/cmm/lcms/LCMS.c	2016-08-16 14:39:09.938768441 -0600
+@@ -134,7 +134,7 @@
+     JNU_ThrowByName(env, "java/awt/color/CMMException", errMsg);
+ }
+ 
+-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved) {
++JNIEXPORT jint JNICALL DEF_JNI_OnLoad(JavaVM *jvm, void *reserved) {
+     javaVM = jvm;
+ 
+     cmsSetLogErrorHandler(errorHandler);
+diff -ruN -x '.*' old/jdk/src/share/native/sun/java2d/opengl/OGLFuncs.h new/jdk/src/share/native/sun/java2d/opengl/OGLFuncs.h
+--- old/jdk/src/share/native/sun/java2d/opengl/OGLFuncs.h	2016-08-16 10:50:23.341237567 -0600
++++ new/jdk/src/share/native/sun/java2d/opengl/OGLFuncs.h	2016-08-16 14:39:09.998771124 -0600
+@@ -27,7 +27,11 @@
+ #define OGLFuncs_h_Included
+ 
+ #ifdef MACOSX
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #endif
+ #include "jni.h"
+ #include "J2D_GL/gl.h"
+diff -ruN -x '.*' old/jdk/src/share/native/sun/management/management.c new/jdk/src/share/native/sun/management/management.c
+--- old/jdk/src/share/native/sun/management/management.c	2016-08-16 10:50:23.349237802 -0600
++++ new/jdk/src/share/native/sun/management/management.c	2016-08-16 14:39:10.006771482 -0600
+@@ -25,6 +25,7 @@
+ 
+ #include <stdio.h>
+ #include <jni.h>
++#include "jni_util.h"
+ #include "jvm.h"
+ #include "management.h"
+ 
+@@ -35,7 +36,7 @@
+ jint jmm_version = 0;
+ 
+ JNIEXPORT jint JNICALL
+-   JNI_OnLoad(JavaVM *vm, void *reserved) {
++   DEF_JNI_OnLoad(JavaVM *vm, void *reserved) {
+     JNIEnv* env;
+ 
+     jvm = vm;
+diff -ruN -x '.*' old/jdk/src/share/native/sun/misc/VM.c new/jdk/src/share/native/sun/misc/VM.c
+--- old/jdk/src/share/native/sun/misc/VM.c	2016-08-16 10:50:23.349237802 -0600
++++ new/jdk/src/share/native/sun/misc/VM.c	2016-08-16 14:39:10.010771660 -0600
+@@ -127,7 +127,11 @@
+         return;
+     }
+ 
++#ifndef STATIC_BUILD
+     func_p = (GetJvmVersionInfo_fp) JDK_FindJvmEntry("JVM_GetVersionInfo");
++#else
++    func_p = (GetJvmVersionInfo_fp) JVM_GetVersionInfo;
++#endif
+      if (func_p != NULL) {
+         jvm_version_info info;
+ 
+diff -ruN -x '.*' old/jdk/src/share/native/sun/security/ec/ECC_JNI.cpp new/jdk/src/share/native/sun/security/ec/ECC_JNI.cpp
+--- old/jdk/src/share/native/sun/security/ec/ECC_JNI.cpp	2016-08-16 10:50:23.353237920 -0600
++++ new/jdk/src/share/native/sun/security/ec/ECC_JNI.cpp	2016-08-16 14:39:10.042773092 -0600
+@@ -24,6 +24,7 @@
+  */
+ 
+ #include <jni.h>
++#include "jni_util.h"
+ #include "impl/ecc_impl.h"
+ 
+ #define ILLEGAL_STATE_EXCEPTION "java/lang/IllegalStateException"
+@@ -36,6 +37,11 @@
+ extern "C" {
+ 
+ /*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
++/*
+  * Throws an arbitrary Java exception.
+  */
+ void ThrowException(JNIEnv *env, const char *exceptionName)
+diff -ruN -x '.*' old/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.c new/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.c
+--- old/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.c	2016-08-16 10:50:23.361238155 -0600
++++ new/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.c	2016-08-16 14:39:10.042773092 -0600
+@@ -27,6 +27,7 @@
+ #include "NativeFunc.h"
+ #include "jlong.h"
+ #include <jni.h>
++#include "jni_util.h"
+ 
+ const int JAVA_DUPLICATE_TOKEN_CODE = 19; /* DUPLICATE_TOKEN */
+ const int JAVA_OLD_TOKEN_CODE = 20; /* OLD_TOKEN */
+@@ -94,7 +95,7 @@
+ int JGSS_DEBUG;
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *jvm, void *reserved) {
++DEF_JNI_OnLoad(JavaVM *jvm, void *reserved) {
+   JNIEnv *env;
+   jclass cls;
+ 
+@@ -363,7 +364,7 @@
+ }
+ 
+ JNIEXPORT void JNICALL
+-JNI_OnUnload(JavaVM *jvm, void *reserved) {
++DEF_JNI_OnUnload(JavaVM *jvm, void *reserved) {
+   JNIEnv *env;
+ 
+   if ((*jvm)->GetEnv(jvm, (void **)&env, JNI_VERSION_1_2)) {
+@@ -440,7 +441,7 @@
+   return GSS_S_COMPLETE;
+ }
+ 
+-
++#ifndef STATIC_BUILD
+ /* Throws a Java Exception by name */
+ void throwByName(JNIEnv *env, const char *name, const char *msg) {
+     jclass cls = (*env)->FindClass(env, name);
+@@ -453,6 +454,9 @@
+ void throwOutOfMemoryError(JNIEnv *env, const char *message) {
+     throwByName(env, "java/lang/OutOfMemoryError", message);
+ }
++#else
++extern void throwOutOfMemoryError(JNIEnv *env, const char *message);
++#endif //STATIC_BUILD
+ 
+ /*
+  * Utility routine for creating a java.lang.String object
+diff -ruN -x '.*' old/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.h new/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.h
+--- old/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.h	2016-08-16 10:50:23.361238155 -0600
++++ new/jdk/src/share/native/sun/security/jgss/wrapper/NativeUtil.h	2016-08-16 14:39:10.046773271 -0600
+@@ -54,8 +54,6 @@
+   extern jstring getMinorMessage(JNIEnv *, jobject, OM_uint32);
+   extern int sameMech(gss_OID, gss_OID);
+ 
+-  JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *, void *);
+-  JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *, void *);
+ 
+   extern int JGSS_DEBUG;
+ 
+diff -ruN -x '.*' old/jdk/src/share/native/sun/security/krb5/nativeccache.c new/jdk/src/share/native/sun/security/krb5/nativeccache.c
+--- old/jdk/src/share/native/sun/security/krb5/nativeccache.c	2016-08-16 10:50:23.365238273 -0600
++++ new/jdk/src/share/native/sun/security/krb5/nativeccache.c	2016-08-16 14:39:10.046773271 -0600
+@@ -25,6 +25,7 @@
+ 
+ #import "sun_security_krb5_Credentials.h"
+ #import <Kerberos/Kerberos.h>
++#include "jni_util.h"
+ 
+ /*
+  * Based largely on klist.c,
+@@ -93,7 +94,7 @@
+  * Class:     sun_security_krb5_KrbCreds
+  * Method:    JNI_OnLoad
+  */
+-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved)
++JNIEXPORT jint JNICALL DEF_JNI_OnLoad(JavaVM *jvm, void *reserved)
+ {
+     JNIEnv *env;
+ 
+@@ -223,7 +224,7 @@
+  * Class:     sun_security_jgss_KrbCreds
+  * Method:    JNI_OnUnload
+  */
+-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *jvm, void *reserved)
++JNIEXPORT void JNICALL DEF_JNI_OnUnload(JavaVM *jvm, void *reserved)
+ {
+     JNIEnv *env;
+ 
+diff -ruN -x '.*' old/jdk/src/share/native/sun/security/pkcs11/wrapper/p11_general.c new/jdk/src/share/native/sun/security/pkcs11/wrapper/p11_general.c
+--- old/jdk/src/share/native/sun/security/pkcs11/wrapper/p11_general.c	2016-08-16 10:50:23.365238273 -0600
++++ new/jdk/src/share/native/sun/security/pkcs11/wrapper/p11_general.c	2016-08-16 14:39:10.058773808 -0600
+@@ -71,9 +71,13 @@
+ jclass jByteArrayClass;
+ jclass jLongClass;
+ 
++#ifndef STATIC_BUILD
+ JavaVM* jvm = NULL;
++#else
++extern JavaVM* jvm;
++#endif //STATIC_BUILD
+ 
+-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
++JNIEXPORT jint JNICALL DEF_JNI_OnLoad(JavaVM *vm, void *reserved) {
+     jvm = vm;
+     return JNI_VERSION_1_4;
+ }
+diff -ruN -x '.*' old/jdk/src/share/native/sun/security/smartcardio/pcsc.c new/jdk/src/share/native/sun/security/smartcardio/pcsc.c
+--- old/jdk/src/share/native/sun/security/smartcardio/pcsc.c	2016-08-16 10:50:23.365238273 -0600
++++ new/jdk/src/share/native/sun/security/smartcardio/pcsc.c	2016-08-16 14:39:10.062773986 -0600
+@@ -55,6 +55,8 @@
+ 
+ #include "pcsc_md.h"
+ 
++#include "jni_util.h"
++
+ #define MAX_STACK_BUFFER_SIZE 8192
+ 
+ // make the buffers larger than what should be necessary, just in case
+@@ -64,6 +66,7 @@
+ 
+ #define J2PCSC_EXCEPTION_NAME "sun/security/smartcardio/PCSCException"
+ 
++#ifndef STATIC_BUILD
+ void throwOutOfMemoryError(JNIEnv *env, const char *msg) {
+     jclass cls = (*env)->FindClass(env, "java/lang/OutOfMemoryError");
+ 
+@@ -71,6 +74,9 @@
+         (*env)->ThrowNew(env, cls, msg);
+ 
+ }
++#else
++extern void throwOutOfMemoryError(JNIEnv *env, const char *msg);
++#endif //STATIC_BUILD
+ 
+ void throwPCSCException(JNIEnv* env, LONG code) {
+     jclass pcscClass;
+@@ -101,7 +107,7 @@
+     }
+ }
+ 
+-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
++JNIEXPORT jint JNICALL DEF_JNI_OnLoad(JavaVM *vm, void *reserved) {
+     return JNI_VERSION_1_4;
+ }
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/back/linker_md.c new/jdk/src/solaris/back/linker_md.c
+--- old/jdk/src/solaris/back/linker_md.c	2016-08-16 10:50:23.821251680 -0600
++++ new/jdk/src/solaris/back/linker_md.c	2016-08-16 14:39:08.902722104 -0600
+@@ -37,7 +37,11 @@
+  */
+ 
+ #include <stdio.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <string.h>
+diff -ruN -x '.*' old/jdk/src/solaris/bin/java_md_common.c new/jdk/src/solaris/bin/java_md_common.c
+--- old/jdk/src/solaris/bin/java_md_common.c	2016-08-16 10:50:23.821251680 -0600
++++ new/jdk/src/solaris/bin/java_md_common.c	2016-08-16 14:39:08.910722463 -0600
+@@ -491,8 +491,12 @@
+ FindBootStrapClass(JNIEnv *env, const char* classname)
+ {
+    if (findBootClass == NULL) {
++#ifndef STATIC_BUILD
+        findBootClass = (FindClassFromBootLoader_t *)dlsym(RTLD_DEFAULT,
+           "JVM_FindClassFromBootLoader");
++#else
++       findBootClass = (FindClassFromBootLoader_t *)JVM_FindClassFromBootLoader;
++#endif
+        if (findBootClass == NULL) {
+            JLI_ReportErrorMessage(DLL_ERROR4,
+                "JVM_FindClassFromBootLoader");
+diff -ruN -x '.*' old/jdk/src/solaris/bin/java_md_solinux.c new/jdk/src/solaris/bin/java_md_solinux.c
+--- old/jdk/src/solaris/bin/java_md_solinux.c	2016-08-16 10:50:23.821251680 -0600
++++ new/jdk/src/solaris/bin/java_md_solinux.c	2016-08-16 14:39:08.906722283 -0600
+@@ -26,7 +26,11 @@
+ #include "java.h"
+ #include "jvm_md.h"
+ #include <dirent.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <fcntl.h>
+ #include <inttypes.h>
+ #include <stdio.h>
+@@ -41,9 +45,14 @@
+ #include "manifest_info.h"
+ #include "version_comp.h"
+ 
+-
++#ifdef STATIC_BUILD
++#define JVM_DLL "libjvm.a"
++#define JAVA_DLL "libjava.a"
++#else
+ #define JVM_DLL "libjvm.so"
+ #define JAVA_DLL "libjava.so"
++#endif
++
+ #ifdef AIX
+ #define LD_LIBRARY_PATH "LIBPATH"
+ #else
+@@ -802,6 +811,9 @@
+ 
+     JLI_TraceLauncher("Does `%s' exist ... ", jvmpath);
+ 
++#ifdef STATIC_BUILD
++    return JNI_TRUE;
++#else
+     if (stat(jvmpath, &s) == 0) {
+         JLI_TraceLauncher("yes.\n");
+         return JNI_TRUE;
+@@ -809,6 +821,7 @@
+         JLI_TraceLauncher("no.\n");
+         return JNI_FALSE;
+     }
++#endif
+ }
+ 
+ /*
+@@ -821,11 +834,19 @@
+ 
+     if (GetApplicationHome(path, pathsize)) {
+         /* Is JRE co-located with the application? */
++#ifdef STATIC_BUILD
++        char jvm_cfg[MAXPATHLEN];
++        JLI_Snprintf(jvm_cfg, sizeof(jvm_cfg), "%s/lib/%s/jvm.cfg", path, arch);
++        if (access(jvm_cfg, F_OK) == 0) {
++            return JNI_TRUE;
++        }
++#else
+         JLI_Snprintf(libjava, sizeof(libjava), "%s/lib/%s/" JAVA_DLL, path, arch);
+         if (access(libjava, F_OK) == 0) {
+             JLI_TraceLauncher("JRE path is %s\n", path);
+             return JNI_TRUE;
+         }
++#endif
+         /* ensure storage for path + /jre + NULL */
+         if ((JLI_StrLen(path) + 4  + 1) > pathsize) {
+             JLI_TraceLauncher("Insufficient space to store JRE path\n");
+@@ -845,6 +866,10 @@
+     return JNI_FALSE;
+ }
+ 
++#ifdef STATIC_BUILD
++#include "jni.h"
++#endif
++
+ jboolean
+ LoadJavaVM(const char *jvmpath, InvocationFunctions *ifn)
+ {
+@@ -904,22 +929,34 @@
+         return JNI_FALSE;
+     }
+ 
++#ifdef STATIC_BUILD
++    ifn->CreateJavaVM = (CreateJavaVM_t) JNI_CreateJavaVM;
++#else
+     ifn->CreateJavaVM = (CreateJavaVM_t)
+         dlsym(libjvm, "JNI_CreateJavaVM");
++#endif
+     if (ifn->CreateJavaVM == NULL) {
+         JLI_ReportErrorMessage(DLL_ERROR2, jvmpath, dlerror());
+         return JNI_FALSE;
+     }
+ 
++#ifdef STATIC_BUILD
++    ifn->GetDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs_t) JNI_GetDefaultJavaVMInitArgs;
++#else
+     ifn->GetDefaultJavaVMInitArgs = (GetDefaultJavaVMInitArgs_t)
+         dlsym(libjvm, "JNI_GetDefaultJavaVMInitArgs");
++#endif
+     if (ifn->GetDefaultJavaVMInitArgs == NULL) {
+         JLI_ReportErrorMessage(DLL_ERROR2, jvmpath, dlerror());
+         return JNI_FALSE;
+     }
+ 
++#ifdef STATIC_BUILD
++    ifn->GetCreatedJavaVMs = (GetCreatedJavaVMs_t) JNI_GetCreatedJavaVMs;
++#else
+     ifn->GetCreatedJavaVMs = (GetCreatedJavaVMs_t)
+         dlsym(libjvm, "JNI_GetCreatedJavaVMs");
++#endif
+     if (ifn->GetCreatedJavaVMs == NULL) {
+         JLI_ReportErrorMessage(DLL_ERROR2, jvmpath, dlerror());
+         return JNI_FALSE;
+@@ -994,7 +1031,13 @@
+ #endif
+ 
+     if (exec_path == NULL) {
++#ifdef STATIC_BUILD
++        char path[PATH_MAX+1];
++        sprintf(path, "%s%s", getenv("JAVA_HOME"), "/jre/bin/java");
++        exec_path = JLI_StringDup(path);
++#else
+         exec_path = FindExecName(argv[0]);
++#endif
+     }
+     execname = exec_path;
+     return exec_path;
+diff -ruN -x '.*' old/jdk/src/solaris/bin/java_md_solinux.h new/jdk/src/solaris/bin/java_md_solinux.h
+--- old/jdk/src/solaris/bin/java_md_solinux.h	2016-08-16 10:50:23.821251680 -0600
++++ new/jdk/src/solaris/bin/java_md_solinux.h	2016-08-16 14:39:08.906722283 -0600
+@@ -65,7 +65,11 @@
+ static const char *user_dir     = "/java";
+ #endif
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #ifdef __solaris__
+ #include <thread.h>
+ #else
+diff -ruN -x '.*' old/jdk/src/solaris/demo/jvmti/hprof/hprof_md.c new/jdk/src/solaris/demo/jvmti/hprof/hprof_md.c
+--- old/jdk/src/solaris/demo/jvmti/hprof/hprof_md.c	2016-08-16 10:50:23.897253915 -0600
++++ new/jdk/src/solaris/demo/jvmti/hprof/hprof_md.c	2016-08-16 14:39:09.062729260 -0600
+@@ -53,7 +53,11 @@
+ #include <sys/errno.h>
+ #include <unistd.h>
+ #include <errno.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/time.h>
+ 
+ #include <netdb.h>
+@@ -285,6 +289,7 @@
+ void
+ md_get_prelude_path(char *path, int path_len, char *filename)
+ {
++#ifndef STATIC_BUILD
+     void *addr;
+     char libdir[FILENAME_MAX+1];
+     Dl_info dlinfo;
+@@ -327,6 +332,9 @@
+ #endif /* __APPLE__ */
+     }
+     (void)snprintf(path, path_len, "%s/%s", libdir, filename);
++#else
++    (void)snprintf(path, path_len, "/jdk/jre/lib/%s", filename);
++#endif
+ }
+ 
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/com/sun/media/sound/PLATFORM_API_LinuxOS_ALSA_CommonUtils.c new/jdk/src/solaris/native/com/sun/media/sound/PLATFORM_API_LinuxOS_ALSA_CommonUtils.c
+--- old/jdk/src/solaris/native/com/sun/media/sound/PLATFORM_API_LinuxOS_ALSA_CommonUtils.c	2016-08-16 10:50:23.917254503 -0600
++++ new/jdk/src/solaris/native/com/sun/media/sound/PLATFORM_API_LinuxOS_ALSA_CommonUtils.c	2016-08-16 14:39:09.110731408 -0600
+@@ -44,6 +44,11 @@
+ static int alsa_enumerate_pcm_subdevices = FALSE; // default: no
+ static int alsa_enumerate_midi_subdevices = FALSE; // default: no
+ 
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ void initAlsaSupport() {
+     char* enumerate;
+     if (!alsa_inited) {
+diff -ruN -x '.*' old/jdk/src/solaris/native/com/sun/security/auth/module/Unix.c new/jdk/src/solaris/native/com/sun/security/auth/module/Unix.c
+--- old/jdk/src/solaris/native/com/sun/security/auth/module/Unix.c	2016-08-16 10:50:23.917254503 -0600
++++ new/jdk/src/solaris/native/com/sun/security/auth/module/Unix.c	2016-08-16 14:39:09.110731408 -0600
+@@ -28,6 +28,7 @@
+ #endif
+ 
+ #include <jni.h>
++#include "jni_util.h"
+ #include "com_sun_security_auth_module_UnixSystem.h"
+ #include <stdio.h>
+ #include <pwd.h>
+@@ -36,6 +37,11 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ JNIEXPORT void JNICALL
+ Java_com_sun_security_auth_module_UnixSystem_getUnixInfo
+                                                 (JNIEnv *env, jobject obj) {
+diff -ruN -x '.*' old/jdk/src/solaris/native/common/jdk_util_md.c new/jdk/src/solaris/native/common/jdk_util_md.c
+--- old/jdk/src/solaris/native/common/jdk_util_md.c	2016-08-16 10:50:23.921254620 -0600
++++ new/jdk/src/solaris/native/common/jdk_util_md.c	2016-08-16 14:39:09.114731586 -0600
+@@ -23,7 +23,11 @@
+  * questions.
+  */
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include "jdk_util.h"
+ 
+ int JDK_InitJvmHandle() {
+diff -ruN -x '.*' old/jdk/src/solaris/native/common/jlong_md.h new/jdk/src/solaris/native/common/jlong_md.h
+--- old/jdk/src/solaris/native/common/jlong_md.h	2016-08-16 10:50:23.921254620 -0600
++++ new/jdk/src/solaris/native/common/jlong_md.h	2016-08-16 14:39:09.114731586 -0600
+@@ -65,11 +65,19 @@
+ #define jlong_zero_init  ((jlong) 0L)
+ 
+ #ifdef _LP64
+-#define jlong_to_ptr(a) ((void*)(a))
+-#define ptr_to_jlong(a) ((jlong)(a))
++  #ifndef jlong_to_ptr
++    #define jlong_to_ptr(a) ((void*)(a))
++  #endif
++  #ifndef ptr_to_jlong
++    #define ptr_to_jlong(a) ((jlong)(a))
++  #endif
+ #else
+-#define jlong_to_ptr(a) ((void*)(int)(a))
+-#define ptr_to_jlong(a) ((jlong)(int)(a))
++  #ifndef jlong_to_ptr
++    #define jlong_to_ptr(a) ((void*)(int)(a))
++  #endif
++  #ifndef ptr_to_jlong
++    #define ptr_to_jlong(a) ((jlong)(int)(a))
++  #endif
+ #endif
+ 
+ #define jint_to_jlong(a)        ((jlong)(a))
+diff -ruN -x '.*' old/jdk/src/solaris/native/common/jni_util_md.c new/jdk/src/solaris/native/common/jni_util_md.c
+--- old/jdk/src/solaris/native/common/jni_util_md.c	2016-08-16 10:50:23.921254620 -0600
++++ new/jdk/src/solaris/native/common/jni_util_md.c	2016-08-16 14:39:09.114731586 -0600
+@@ -27,7 +27,11 @@
+ 
+ #include "jni.h"
+ #include "jni_util.h"
++#ifndef STATIC_BUILD
+ #include "dlfcn.h"
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <string.h>
+ 
+ jstring nativeNewStringPlatform(JNIEnv *env, const char *str) {
+@@ -46,6 +50,7 @@
+ #endif
+ 
+ void* getProcessHandle() {
++#ifndef STATIC_BUILD
+     static void *procHandle = NULL;
+     if (procHandle != NULL) {
+         return procHandle;
+@@ -56,6 +61,9 @@
+     procHandle = (void*)dlopen(NULL, RTLD_LAZY);
+ #endif
+     return procHandle;
++#else
++    return NULL;
++#endif
+ }
+ 
+ void buildJniFunctionName(const char *sym, const char *cname,
+diff -ruN -x '.*' old/jdk/src/solaris/native/java/io/UnixFileSystem_md.c new/jdk/src/solaris/native/java/io/UnixFileSystem_md.c
+--- old/jdk/src/solaris/native/java/io/UnixFileSystem_md.c	2016-08-16 10:50:23.921254620 -0600
++++ new/jdk/src/solaris/native/java/io/UnixFileSystem_md.c	2016-08-16 14:39:09.118731766 -0600
+@@ -30,7 +30,11 @@
+ #include <sys/statvfs.h>
+ #include <string.h>
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <limits.h>
+ 
+ #include "jni.h"
+diff -ruN -x '.*' old/jdk/src/solaris/native/java/lang/java_props_macosx.c new/jdk/src/solaris/native/java/lang/java_props_macosx.c
+--- old/jdk/src/solaris/native/java/lang/java_props_macosx.c	2016-08-16 10:50:23.921254620 -0600
++++ new/jdk/src/solaris/native/java/lang/java_props_macosx.c	2016-08-16 14:39:09.118731766 -0600
+@@ -23,7 +23,11 @@
+  * questions.
+  */
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/socket.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -39,9 +43,12 @@
+ // need dlopen/dlsym trick to avoid pulling in JavaRuntimeSupport before libjava.dylib is loaded
+ static void *getJRSFramework() {
+     static void *jrsFwk = NULL;
++#ifndef STATIC_BUILD
++// JavaRuntimeSupport doesn't support static Java runtimes
+     if (jrsFwk == NULL) {
+        jrsFwk = dlopen("/System/Library/Frameworks/JavaVM.framework/Frameworks/JavaRuntimeSupport.framework/JavaRuntimeSupport", RTLD_LAZY | RTLD_LOCAL);
+     }
++#endif
+     return jrsFwk;
+ }
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/java/lang/java_props_md.c new/jdk/src/solaris/native/java/lang/java_props_md.c
+--- old/jdk/src/solaris/native/java/lang/java_props_md.c	2016-08-16 10:50:23.921254620 -0600
++++ new/jdk/src/solaris/native/java/lang/java_props_md.c	2016-08-16 14:39:09.122731944 -0600
+@@ -69,7 +69,11 @@
+ #endif /* !_ALLBSD_SOURCE */
+ 
+ #ifdef JAVASE_EMBEDDED
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/stat.h>
+ #endif
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/java/net/net_util_md.c new/jdk/src/solaris/native/java/net/net_util_md.c
+--- old/jdk/src/solaris/native/java/net/net_util_md.c	2016-08-16 10:50:23.925254738 -0600
++++ new/jdk/src/solaris/native/java/net/net_util_md.c	2016-08-16 14:39:09.130732303 -0600
+@@ -32,7 +32,11 @@
+ #include <net/if.h>
+ #include <netdb.h>
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #ifndef _ALLBSD_SOURCE
+ #include <values.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/java/nio/nio_util.c new/jdk/src/solaris/native/java/nio/nio_util.c
+--- old/jdk/src/solaris/native/java/nio/nio_util.c	1969-12-31 17:00:00.000000000 -0700
++++ new/jdk/src/solaris/native/java/nio/nio_util.c	2016-08-16 14:39:09.130732303 -0600
+@@ -0,0 +1,6 @@
++#include "jni_util.h"
++
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/awt_GraphicsEnv.c new/jdk/src/solaris/native/sun/awt/awt_GraphicsEnv.c
+--- old/jdk/src/solaris/native/sun/awt/awt_GraphicsEnv.c	2016-08-16 10:50:23.925254738 -0600
++++ new/jdk/src/solaris/native/sun/awt/awt_GraphicsEnv.c	2016-08-16 14:39:09.138732660 -0600
+@@ -49,7 +49,11 @@
+ #include "awt_GraphicsEnv.h"
+ #include "awt_util.h"
+ #include "gdefs.h"
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include "Trace.h"
+ 
+ #ifdef NETSCAPE
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/awt_LoadLibrary.c new/jdk/src/solaris/native/sun/awt/awt_LoadLibrary.c
+--- old/jdk/src/solaris/native/sun/awt/awt_LoadLibrary.c	2016-08-16 10:50:23.925254738 -0600
++++ new/jdk/src/solaris/native/sun/awt/awt_LoadLibrary.c	2016-08-16 14:39:09.134732481 -0600
+@@ -24,7 +24,11 @@
+  */
+ 
+ #include <stdio.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <string.h>
+ #include <stdlib.h>
+ #include <jni.h>
+@@ -174,7 +178,7 @@
+ }
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     return AWT_OnLoad(vm, reserved);
+ }
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/awt_Mlib.c new/jdk/src/solaris/native/sun/awt/awt_Mlib.c
+--- old/jdk/src/solaris/native/sun/awt/awt_Mlib.c	2016-08-16 10:50:23.929254856 -0600
++++ new/jdk/src/solaris/native/sun/awt/awt_Mlib.c	2016-08-16 14:39:09.142732839 -0600
+@@ -29,7 +29,11 @@
+ #include <sys/utsname.h>
+ #include <sys/types.h>
+ #include <errno.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include "jni.h"
+ #include <jni_util.h>
+ #include "jvm_md.h"
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/awt_UNIXToolkit.c new/jdk/src/solaris/native/sun/awt/awt_UNIXToolkit.c
+--- old/jdk/src/solaris/native/sun/awt/awt_UNIXToolkit.c	2016-08-16 10:50:23.929254856 -0600
++++ new/jdk/src/solaris/native/sun/awt/awt_UNIXToolkit.c	2016-08-16 14:39:09.142732839 -0600
+@@ -26,7 +26,11 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include <jni.h>
+ #include <sizecalc.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/CUPSfuncs.c new/jdk/src/solaris/native/sun/awt/CUPSfuncs.c
+--- old/jdk/src/solaris/native/sun/awt/CUPSfuncs.c	2016-08-16 10:50:23.925254738 -0600
++++ new/jdk/src/solaris/native/sun/awt/CUPSfuncs.c	2016-08-16 14:39:09.134732481 -0600
+@@ -26,7 +26,11 @@
+ #include <jni.h>
+ #include <jni_util.h>
+ #include <jvm_md.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <cups/cups.h>
+ #include <cups/ppd.h>
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/fontpath.c new/jdk/src/solaris/native/sun/awt/fontpath.c
+--- old/jdk/src/solaris/native/sun/awt/fontpath.c	2016-08-16 10:50:23.929254856 -0600
++++ new/jdk/src/solaris/native/sun/awt/fontpath.c	2016-08-16 14:39:09.146733018 -0600
+@@ -584,7 +584,11 @@
+     return ret;
+ }
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include "fontconfig.h"
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/gtk2_interface.c new/jdk/src/solaris/native/sun/awt/gtk2_interface.c
+--- old/jdk/src/solaris/native/sun/awt/gtk2_interface.c	2016-08-16 10:50:23.929254856 -0600
++++ new/jdk/src/solaris/native/sun/awt/gtk2_interface.c	2016-08-16 14:39:09.150733196 -0600
+@@ -22,7 +22,11 @@
+  * or visit www.oracle.com if you need additional information or have any
+  * questions.
+  */
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <setjmp.h>
+ #include <X11/Xlib.h>
+ #include <limits.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/HeadlessToolkit.c new/jdk/src/solaris/native/sun/awt/HeadlessToolkit.c
+--- old/jdk/src/solaris/native/sun/awt/HeadlessToolkit.c	2016-08-16 10:50:23.925254738 -0600
++++ new/jdk/src/solaris/native/sun/awt/HeadlessToolkit.c	2016-08-16 14:39:09.142732839 -0600
+@@ -31,14 +31,17 @@
+ extern JavaVM *jvm;
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     jvm = vm;
+     return JNI_VERSION_1_2;
+ }
+ 
++#ifndef STATIC_BUILD
++// The same function exists in libawt.a::awt_LoadLibrary.c
+ JNIEXPORT jboolean JNICALL AWTIsHeadless() {
+     return JNI_TRUE;
+ }
++#endif
+ 
+ #endif
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/awt/jawt.c new/jdk/src/solaris/native/sun/awt/jawt.c
+--- old/jdk/src/solaris/native/sun/awt/jawt.c	2016-08-16 10:50:23.929254856 -0600
++++ new/jdk/src/solaris/native/sun/awt/jawt.c	2016-08-16 14:39:09.134732481 -0600
+@@ -24,10 +24,16 @@
+  */
+ 
+ #include <jawt.h>
++#include "jni_util.h"
+ 
+ #include "awt_DrawingSurface.h"
+ 
+ /*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
++/*
+  * Get the AWT native structure.  This function returns JNI_FALSE if
+  * an error occurs.
+  */
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/java2d/opengl/OGLFuncs_md.h new/jdk/src/solaris/native/sun/java2d/opengl/OGLFuncs_md.h
+--- old/jdk/src/solaris/native/sun/java2d/opengl/OGLFuncs_md.h	2016-08-16 10:50:23.957255679 -0600
++++ new/jdk/src/solaris/native/sun/java2d/opengl/OGLFuncs_md.h	2016-08-16 14:39:09.210735880 -0600
+@@ -28,7 +28,11 @@
+ 
+ #include <stdlib.h>
+ #ifndef MACOSX
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #endif
+ #include "jvm_md.h"
+ #include "J2D_GL/glx.h"
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/java2d/x11/X11SurfaceData.c new/jdk/src/solaris/native/sun/java2d/x11/X11SurfaceData.c
+--- old/jdk/src/solaris/native/sun/java2d/x11/X11SurfaceData.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/java2d/x11/X11SurfaceData.c	2016-08-16 14:39:09.218736238 -0600
+@@ -36,7 +36,11 @@
+ #include "awt_Component.h"
+ #include "awt_GraphicsEnv.h"
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #ifndef HEADLESS
+ static JDgaLibInfo DgaLibInfoStub;
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/java2d/x11/XRBackendNative.c new/jdk/src/solaris/native/sun/java2d/x11/XRBackendNative.c
+--- old/jdk/src/solaris/native/sun/java2d/x11/XRBackendNative.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/java2d/x11/XRBackendNative.c	2016-08-16 14:39:09.218736238 -0600
+@@ -70,7 +70,11 @@
+ } XRadialGradient;
+ #endif
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #if defined(__solaris__) || defined(_AIX)
+ /* Solaris 10 and AIX will not have these symbols at runtime */
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/java2d/x11/XRSurfaceData.c new/jdk/src/solaris/native/sun/java2d/x11/XRSurfaceData.c
+--- old/jdk/src/solaris/native/sun/java2d/x11/XRSurfaceData.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/java2d/x11/XRSurfaceData.c	2016-08-16 14:39:09.218736238 -0600
+@@ -40,7 +40,11 @@
+ 
+ 
+ #include <sys/uio.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <setjmp.h>
+ 
+ #ifndef HEADLESS
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/jdga/dgalock.c new/jdk/src/solaris/native/sun/jdga/dgalock.c
+--- old/jdk/src/solaris/native/sun/jdga/dgalock.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/jdga/dgalock.c	2016-08-16 14:39:09.218736238 -0600
+@@ -48,7 +48,11 @@
+ #include "jdga.h"
+ #include "jdgadevice.h"
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #define min(x, y)       ((x) < (y) ? (x) : (y))
+ #define max(x, y)       ((x) > (y) ? (x) : (y))
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/management/LinuxOperatingSystem.c new/jdk/src/solaris/native/sun/management/LinuxOperatingSystem.c
+--- old/jdk/src/solaris/native/sun/management/LinuxOperatingSystem.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/management/LinuxOperatingSystem.c	2016-08-16 14:39:09.218736238 -0600
+@@ -33,7 +33,11 @@
+ #include <sys/types.h>
+ #include <dirent.h>
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <pthread.h>
+ #include "sun_management_OperatingSystemImpl.h"
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/management/SolarisOperatingSystem.c new/jdk/src/solaris/native/sun/management/SolarisOperatingSystem.c
+--- old/jdk/src/solaris/native/sun/management/SolarisOperatingSystem.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/management/SolarisOperatingSystem.c	2016-08-16 14:39:09.222736417 -0600
+@@ -34,7 +34,11 @@
+ #include <sys/lwp.h>
+ #include <pthread.h>
+ #include <utmpx.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/loadavg.h>
+ #include <jni.h>
+ #include "jvm.h"
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/net/spi/DefaultProxySelector.c new/jdk/src/solaris/native/sun/net/spi/DefaultProxySelector.c
+--- old/jdk/src/solaris/native/sun/net/spi/DefaultProxySelector.c	2016-08-16 10:50:23.961255797 -0600
++++ new/jdk/src/solaris/native/sun/net/spi/DefaultProxySelector.c	2016-08-16 14:39:09.222736417 -0600
+@@ -29,7 +29,11 @@
+ #include "jvm_md.h"
+ #include "jlong.h"
+ #include "sun_net_spi_DefaultProxySelector.h"
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <stdio.h>
+ #include <stdlib.h>
+ #if defined(__linux__) || defined(_ALLBSD_SOURCE)
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/ch/EPoll.c new/jdk/src/solaris/native/sun/nio/ch/EPoll.c
+--- old/jdk/src/solaris/native/sun/nio/ch/EPoll.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/ch/EPoll.c	2016-08-16 14:39:09.222736417 -0600
+@@ -31,7 +31,11 @@
+ 
+ #include "sun_nio_ch_EPoll.h"
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <unistd.h>
+ #include <sys/types.h>
+ #include <sys/epoll.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/ch/FileChannelImpl.c new/jdk/src/solaris/native/sun/nio/ch/FileChannelImpl.c
+--- old/jdk/src/solaris/native/sun/nio/ch/FileChannelImpl.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/ch/FileChannelImpl.c	2016-08-16 14:39:09.226736596 -0600
+@@ -35,7 +35,11 @@
+ #include "java_lang_Integer.h"
+ #include "nio.h"
+ #include "nio_util.h"
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #if defined(__linux__) || defined(__solaris__)
+ #include <sys/sendfile.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/ch/sctp/SctpNet.c new/jdk/src/solaris/native/sun/nio/ch/sctp/SctpNet.c
+--- old/jdk/src/solaris/native/sun/nio/ch/sctp/SctpNet.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/ch/sctp/SctpNet.c	2016-08-16 14:39:09.230736774 -0600
+@@ -25,7 +25,11 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include "Sctp.h"
+ #include "jni.h"
+@@ -43,7 +47,7 @@
+ static const char* nativeSctpLib = "libsctp.so.1";
+ static jboolean funcsLoaded = JNI_FALSE;
+ 
+-JNIEXPORT jint JNICALL JNI_OnLoad
++JNIEXPORT jint JNICALL DEF_JNI_OnLoad
+   (JavaVM *vm, void *reserved) {
+     return JNI_VERSION_1_2;
+ }
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/ch/SolarisEventPort.c new/jdk/src/solaris/native/sun/nio/ch/SolarisEventPort.c
+--- old/jdk/src/solaris/native/sun/nio/ch/SolarisEventPort.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/ch/SolarisEventPort.c	2016-08-16 14:39:09.226736596 -0600
+@@ -30,7 +30,11 @@
+ #include "nio_util.h"
+ 
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/types.h>
+ #include <port.h>
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/fs/GnomeFileTypeDetector.c new/jdk/src/solaris/native/sun/nio/fs/GnomeFileTypeDetector.c
+--- old/jdk/src/solaris/native/sun/nio/fs/GnomeFileTypeDetector.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/fs/GnomeFileTypeDetector.c	2016-08-16 14:39:09.230736774 -0600
+@@ -29,7 +29,11 @@
+ #include "jlong.h"
+ 
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #ifdef __solaris__
+ #include <strings.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/fs/LinuxNativeDispatcher.c new/jdk/src/solaris/native/sun/nio/fs/LinuxNativeDispatcher.c
+--- old/jdk/src/solaris/native/sun/nio/fs/LinuxNativeDispatcher.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/fs/LinuxNativeDispatcher.c	2016-08-16 14:39:09.230736774 -0600
+@@ -30,7 +30,11 @@
+ 
+ #include <stdio.h>
+ #include <string.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <errno.h>
+ #include <mntent.h>
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/fs/LinuxWatchService.c new/jdk/src/solaris/native/sun/nio/fs/LinuxWatchService.c
+--- old/jdk/src/solaris/native/sun/nio/fs/LinuxWatchService.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/fs/LinuxWatchService.c	2016-08-16 14:39:09.234736954 -0600
+@@ -29,7 +29,11 @@
+ #include "jlong.h"
+ 
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <sys/poll.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/fs/MagicFileTypeDetector.c new/jdk/src/solaris/native/sun/nio/fs/MagicFileTypeDetector.c
+--- old/jdk/src/solaris/native/sun/nio/fs/MagicFileTypeDetector.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/fs/MagicFileTypeDetector.c	2016-08-16 14:39:09.234736954 -0600
+@@ -28,7 +28,11 @@
+ #include "jvm.h"
+ #include "jlong.h"
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <string.h>
+ 
+ #ifdef __FreeBSD__
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/fs/SolarisWatchService.c new/jdk/src/solaris/native/sun/nio/fs/SolarisWatchService.c
+--- old/jdk/src/solaris/native/sun/nio/fs/SolarisWatchService.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/fs/SolarisWatchService.c	2016-08-16 14:39:09.234736954 -0600
+@@ -29,7 +29,11 @@
+ #include "jlong.h"
+ 
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/types.h>
+ #include <port.h>       // Solaris 10
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/nio/fs/UnixNativeDispatcher.c new/jdk/src/solaris/native/sun/nio/fs/UnixNativeDispatcher.c
+--- old/jdk/src/solaris/native/sun/nio/fs/UnixNativeDispatcher.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/nio/fs/UnixNativeDispatcher.c	2016-08-16 14:39:09.230736774 -0600
+@@ -32,7 +32,11 @@
+ #include <pwd.h>
+ #include <grp.h>
+ #include <errno.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/statvfs.h>
+@@ -242,16 +246,28 @@
+ 
+ #if (defined(__solaris__) && defined(_LP64)) || defined(_ALLBSD_SOURCE)
+     /* Solaris 64-bit does not have openat64/fstatat64 */
++#ifndef STATIC_BUILD
+     my_openat64_func = (openat64_func*)dlsym(RTLD_DEFAULT, "openat");
+     my_fstatat64_func = (fstatat64_func*)dlsym(RTLD_DEFAULT, "fstatat");
+ #else
++    my_openat64_func = (openat64_func*) openat;
++    my_fstatat64_func = (fstatat64_func*) fstatat;
++#endif /*** STATIC_BUILD ***/
++#else
+     my_openat64_func = (openat64_func*) dlsym(RTLD_DEFAULT, "openat64");
+     my_fstatat64_func = (fstatat64_func*) dlsym(RTLD_DEFAULT, "fstatat64");
+ #endif
++#ifndef STATIC_BUILD
+     my_unlinkat_func = (unlinkat_func*) dlsym(RTLD_DEFAULT, "unlinkat");
+     my_renameat_func = (renameat_func*) dlsym(RTLD_DEFAULT, "renameat");
+     my_futimesat_func = (futimesat_func*) dlsym(RTLD_DEFAULT, "futimesat");
+     my_fdopendir_func = (fdopendir_func*) dlsym(RTLD_DEFAULT, "fdopendir");
++#else
++    my_unlinkat_func = (unlinkat_func*) unlinkat;
++    my_renameat_func = (renameat_func*) renameat;
++    my_futimesat_func = NULL; // unimplemented
++    my_fdopendir_func = (fdopendir_func*) fdopendir;
++#endif /*** STATIC_BUILD ***/
+ 
+ #if defined(FSTATAT64_SYSCALL_AVAILABLE)
+     /* fstatat64 missing from glibc */
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/security/jgss/wrapper/NativeFunc.c new/jdk/src/solaris/native/sun/security/jgss/wrapper/NativeFunc.c
+--- old/jdk/src/solaris/native/sun/security/jgss/wrapper/NativeFunc.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/security/jgss/wrapper/NativeFunc.c	2016-08-16 14:39:09.234736954 -0600
+@@ -25,7 +25,11 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include "NativeFunc.h"
+ 
+ /* standard GSS method names (ordering is from mapfile) */
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/security/pkcs11/j2secmod_md.c new/jdk/src/solaris/native/sun/security/pkcs11/j2secmod_md.c
+--- old/jdk/src/solaris/native/sun/security/pkcs11/j2secmod_md.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/security/pkcs11/j2secmod_md.c	2016-08-16 14:39:09.234736954 -0600
+@@ -27,7 +27,11 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include <jni_util.h>
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/security/pkcs11/wrapper/p11_md.c new/jdk/src/solaris/native/sun/security/pkcs11/wrapper/p11_md.c
+--- old/jdk/src/solaris/native/sun/security/pkcs11/wrapper/p11_md.c	2016-08-16 10:50:23.965255914 -0600
++++ new/jdk/src/solaris/native/sun/security/pkcs11/wrapper/p11_md.c	2016-08-16 14:39:09.238737133 -0600
+@@ -63,7 +63,11 @@
+ #include <string.h>
+ #include <assert.h>
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include <jni.h>
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/security/smartcardio/pcsc_md.c new/jdk/src/solaris/native/sun/security/smartcardio/pcsc_md.c
+--- old/jdk/src/solaris/native/sun/security/smartcardio/pcsc_md.c	2016-08-16 10:50:23.969256032 -0600
++++ new/jdk/src/solaris/native/sun/security/smartcardio/pcsc_md.c	2016-08-16 14:39:09.238737133 -0600
+@@ -28,7 +28,11 @@
+ #include <string.h>
+ #include <assert.h>
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include <winscard.h>
+ 
+@@ -48,6 +52,7 @@
+ FPTR_SCardEndTransaction scardEndTransaction;
+ FPTR_SCardControl scardControl;
+ 
++#ifndef STATIC_BUILD
+ /*
+  * Throws a Java Exception by name
+  */
+@@ -85,6 +90,7 @@
+     }
+     return fAddress;
+ }
++#endif // STATIC_BUILD
+ 
+ JNIEXPORT void JNICALL Java_sun_security_smartcardio_PlatformPCSC_initialize
+         (JNIEnv *env, jclass thisClass, jstring jLibName) {
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/tracing/dtrace/jvm_symbols_md.c new/jdk/src/solaris/native/sun/tracing/dtrace/jvm_symbols_md.c
+--- old/jdk/src/solaris/native/sun/tracing/dtrace/jvm_symbols_md.c	2016-08-16 10:50:23.969256032 -0600
++++ new/jdk/src/solaris/native/sun/tracing/dtrace/jvm_symbols_md.c	2016-08-16 14:39:09.242737311 -0600
+@@ -23,7 +23,11 @@
+  * questions.
+  */
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <stdlib.h>
+ 
+ #include <jvm.h>
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/xawt/gnome_interface.h new/jdk/src/solaris/native/sun/xawt/gnome_interface.h
+--- old/jdk/src/solaris/native/sun/xawt/gnome_interface.h	2016-08-16 10:50:23.969256032 -0600
++++ new/jdk/src/solaris/native/sun/xawt/gnome_interface.h	2016-08-16 14:39:09.242737311 -0600
+@@ -26,7 +26,11 @@
+ #ifndef _GNOME_INTERFACE_H
+ #define _GNOME_INTERFACE_H
+ #include "gtk2_interface.h"
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <jvm_md.h>
+ #include <jni.h>
+ 
+diff -ruN -x '.*' old/jdk/src/solaris/native/sun/xawt/XToolkit.c new/jdk/src/solaris/native/sun/xawt/XToolkit.c
+--- old/jdk/src/solaris/native/sun/xawt/XToolkit.c	2016-08-16 10:50:23.969256032 -0600
++++ new/jdk/src/solaris/native/sun/xawt/XToolkit.c	2016-08-16 14:39:09.242737311 -0600
+@@ -151,7 +151,7 @@
+ 
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     jvm = vm;
+     return JNI_VERSION_1_2;
+@@ -342,7 +342,11 @@
+ #include <locale.h>
+ #include <pthread.h>
+ 
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <fcntl.h>
+ 
+ #include <poll.h>
+diff -ruN -x '.*' old/jdk/src/solaris/npt/npt_md.h new/jdk/src/solaris/npt/npt_md.h
+--- old/jdk/src/solaris/npt/npt_md.h	2016-08-16 10:50:23.969256032 -0600
++++ new/jdk/src/solaris/npt/npt_md.h	2016-08-16 14:39:09.242737311 -0600
+@@ -31,7 +31,11 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <errno.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ #include <jvm_md.h>
+ 
+ #define NPT_LIBNAME "npt"
+diff -ruN -x '.*' old/jdk/src/windows/native/com/sun/security/auth/module/nt.c new/jdk/src/windows/native/com/sun/security/auth/module/nt.c
+--- old/jdk/src/windows/native/com/sun/security/auth/module/nt.c	2016-08-16 10:50:24.013257326 -0600
++++ new/jdk/src/windows/native/com/sun/security/auth/module/nt.c	2016-08-16 14:39:09.498748761 -0600
+@@ -24,6 +24,7 @@
+  */
+ 
+ #include <jni.h>
++#include "jni_util.h"
+ #include "com_sun_security_auth_module_NTSystem.h"
+ 
+ #include <windows.h>
+@@ -43,6 +44,12 @@
+ BOOL getTextualSid(PSID pSid, LPTSTR TextualSid, LPDWORD lpdwBufferLen);
+ void DisplayErrorText(DWORD dwLastError);
+ 
++
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+ JNIEXPORT jlong JNICALL
+ Java_com_sun_security_auth_module_NTSystem_getImpersonationToken0
+         (JNIEnv *env, jobject obj) {
+diff -ruN -x '.*' old/jdk/src/windows/native/java/util/WindowsPreferences.c new/jdk/src/windows/native/java/util/WindowsPreferences.c
+--- old/jdk/src/windows/native/java/util/WindowsPreferences.c	2016-08-16 10:50:24.021257560 -0600
++++ new/jdk/src/windows/native/java/util/WindowsPreferences.c	2016-08-16 14:39:09.514749477 -0600
+@@ -31,6 +31,12 @@
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
++
++/*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
+     JNIEXPORT jintArray JNICALL Java_java_util_prefs_WindowsPreferences_WindowsRegOpenKey
+                (JNIEnv* env, jclass this_class, jint hKey, jbyteArray lpSubKey, jint securityMask) {
+         HKEY handle;
+diff -ruN -x '.*' old/jdk/src/windows/native/sun/security/krb5/NativeCreds.c new/jdk/src/windows/native/sun/security/krb5/NativeCreds.c
+--- old/jdk/src/windows/native/sun/security/krb5/NativeCreds.c	2016-08-16 10:50:24.053258501 -0600
++++ new/jdk/src/windows/native/sun/security/krb5/NativeCreds.c	2016-08-16 14:39:09.562751624 -0600
+@@ -42,6 +42,7 @@
+ #include <lmcons.h>
+ #include <lmapibuf.h>
+ #include <jni.h>
++#include "jni_util.h"
+ #include <winsock.h>
+ 
+ #undef LSA_SUCCESS
+@@ -107,7 +108,7 @@
+  * Method:    JNI_OnLoad
+  */
+ 
+-JNIEXPORT jint JNICALL JNI_OnLoad(
++JNIEXPORT jint JNICALL DEF_JNI_OnLoad(
+         JavaVM  *jvm,
+         void    *reserved) {
+ 
+@@ -329,7 +330,7 @@
+  * Method:    JNI_OnUnload
+  */
+ 
+-JNIEXPORT void JNICALL JNI_OnUnload(
++JNIEXPORT void JNICALL DEF_JNI_OnUnload(
+         JavaVM  *jvm,
+         void    *reserved) {
+ 
+diff -ruN -x '.*' old/jdk/src/windows/native/sun/security/mscapi/security.cpp new/jdk/src/windows/native/sun/security/mscapi/security.cpp
+--- old/jdk/src/windows/native/sun/security/mscapi/security.cpp	2016-08-16 10:50:24.053258501 -0600
++++ new/jdk/src/windows/native/sun/security/mscapi/security.cpp	2016-08-16 14:39:09.566751802 -0600
+@@ -29,6 +29,7 @@
+ //
+ 
+ #include <jni.h>
++#include "jni_util.h"
+ #include <stdlib.h>
+ #include <string.h>
+ #include <windows.h>
+@@ -51,6 +52,11 @@
+ extern "C" {
+ 
+ /*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
++/*
+  * Throws an arbitrary Java exception.
+  * The exception message is a Windows system error message.
+  */
+diff -ruN -x '.*' old/jdk/src/windows/native/sun/windows/awt_Toolkit.cpp new/jdk/src/windows/native/sun/windows/awt_Toolkit.cpp
+--- old/jdk/src/windows/native/sun/windows/awt_Toolkit.cpp	2016-08-16 10:50:24.085259442 -0600
++++ new/jdk/src/windows/native/sun/windows/awt_Toolkit.cpp	2016-08-16 14:39:09.570751981 -0600
+@@ -91,7 +91,7 @@
+ JavaVM *jvm = NULL;
+ 
+ JNIEXPORT jint JNICALL
+-JNI_OnLoad(JavaVM *vm, void *reserved)
++DEF_JNI_OnLoad(JavaVM *vm, void *reserved)
+ {
+     TRY;
+ 
+diff -ruN -x '.*' old/jdk/src/windows/native/sun/windows/jawt.cpp new/jdk/src/windows/native/sun/windows/jawt.cpp
+--- old/jdk/src/windows/native/sun/windows/jawt.cpp	2016-08-16 10:50:24.093259677 -0600
++++ new/jdk/src/windows/native/sun/windows/jawt.cpp	2016-08-16 14:39:09.606753591 -0600
+@@ -25,11 +25,17 @@
+ 
+ #define _JNI_IMPLEMENTATION_
+ #include <jawt.h>
++#include "jni_util.h"
+ 
+ #include "awt.h"
+ #include "awt_DrawingSurface.h"
+ 
+ /*
++ * Declare library specific JNI_Onload entry if static build
++ */
++DEF_STATIC_JNI_OnLoad
++
++/*
+  * Get the AWT native structure.  This function returns JNI_FALSE if
+  * an error occurs.
+  */
+diff -ruN -x '.*' old/jdk/test/java/lang/management/MemoryMXBean/MemoryTestAllGC.sh new/jdk/test/java/lang/management/MemoryMXBean/MemoryTestAllGC.sh
+--- old/jdk/test/java/lang/management/MemoryMXBean/MemoryTestAllGC.sh	2016-08-16 10:50:29.149408218 -0600
++++ new/jdk/test/java/lang/management/MemoryMXBean/MemoryTestAllGC.sh	2016-08-16 14:39:16.391056998 -0600
+@@ -52,5 +52,7 @@
+ # Test MemoryTest with parallel scavenger collector
+ runOne -XX:+UseParallelGC MemoryTest 2
+ 
++# Test MemoryTest with concurrent collector
++#runOne -XX:+UseConcMarkSweepGC MemoryTest 3
+ 
+ exit 0
+diff -ruN -x '.*' old/jdk/test/sun/management/jmxremote/bootstrap/launcher.c new/jdk/test/sun/management/jmxremote/bootstrap/launcher.c
+--- old/jdk/test/sun/management/jmxremote/bootstrap/launcher.c	2016-08-16 10:50:29.801427359 -0600
++++ new/jdk/test/sun/management/jmxremote/bootstrap/launcher.c	2016-08-16 14:39:14.434969522 -0600
+@@ -27,7 +27,11 @@
+  */
+ #include <stdlib.h>
+ #include <strings.h>
++#ifndef STATIC_BUILD
+ #include <dlfcn.h>
++#else
++#include "dlfcn_static.h"
++#endif
+ 
+ #include "jni.h"
+ 

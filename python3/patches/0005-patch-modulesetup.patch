@@ -1,0 +1,20 @@
+--- a/Modules/Setup.dist	2015-12-17 15:36:54.146371555 -0500
++++ b/Modules/Setup.dist	2015-12-17 15:36:46.350371589 -0500
+@@ -198,7 +198,7 @@
+ #mmap mmapmodule.c
+ 
+ # CSV file helper
+-#_csv _csv.c
++_csv _csv.c
+ 
+ # Socket module helper for socket(2)
+ _socket socketmodule.c
+@@ -372,7 +372,7 @@
+ #
+ # More information on Expat can be found at www.libexpat.org.
+ #
+-#pyexpat expat/xmlparse.c expat/xmlrole.c expat/xmltok.c pyexpat.c -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI
++pyexpat expat/xmlparse.c expat/xmlrole.c expat/xmltok.c pyexpat.c -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI
+ 
+ # Hye-Shik Chang's CJKCodecs
+ 

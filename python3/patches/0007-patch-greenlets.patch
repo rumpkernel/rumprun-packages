@@ -1,0 +1,8 @@
+--- a/Modules/Setup.dist.orig	2016-09-05 15:18:53.277060406 -0400
++++ b/Modules/Setup.dist	2016-09-05 15:18:58.021010684 -0400
+@@ -400,3 +400,5 @@
+   -IModules/_sqlite \
+   -I../../sqlite -L../../pkgs/lib -lsqlite3 \
+   -DMODULE_NAME$(SQLITE_MODULE_NAME)
++
++greenlet greenlet.c -I$(prefix)/include -L$(exec_prefix)/lib

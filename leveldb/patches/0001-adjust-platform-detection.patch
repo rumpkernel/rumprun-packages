@@ -1,0 +1,11 @@
+--- build/build_detect_platform.orig	2015-06-23 23:57:32.965248133 +0530
++++ build/build_detect_platform	2015-06-23 23:56:28.801250843 +0530
+@@ -107,7 +107,7 @@
+     NetBSD)
+         PLATFORM=OS_NETBSD
+         COMMON_FLAGS="$MEMCMP_FLAG -D_REENTRANT -DOS_NETBSD"
+-        PLATFORM_LIBS="-lpthread -lgcc_s"
++        PLATFORM_LIBS="-lpthread"
+         PORT_FILE=port/port_posix.cc
+         ;;
+     OpenBSD)

@@ -1,0 +1,31 @@
+--- build/Makefile.orig	2015-07-06 17:12:58.777512939 +0530
++++ build/Makefile	2015-07-06 17:21:42.113949691 +0530
+@@ -97,7 +97,7 @@
+ 
+ endif  # PLATFORM_SHARED_EXT
+ 
+-all: $(SHARED) $(LIBRARY)
++all: $(LIBRARY) $(PROGRAMS)
+ 
+ check: all $(PROGRAMS) $(TESTS)
+ 	for t in $(TESTS); do echo "***** Running $$t"; ./$$t || exit 1; done
+@@ -106,6 +106,19 @@
+ 	-rm -f $(PROGRAMS) $(BENCHMARKS) $(LIBRARY) $(SHARED) $(MEMENVLIBRARY) */*.o */*/*.o ios-x86/*/*.o ios-arm/*/*.o build_config.mk
+ 	-rm -rf ios-x86/* ios-arm/*
+ 
++install: all installdirs
++	install -t $(PREFIX)/bin $(PROGRAMS)
++	install -t $(PREFIX)/lib $(LIBRARY)
++	cp -r include/leveldb $(PREFIX)/include
++
++installdirs:
++	@mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include 
++
++uninstall:
++	(cd $(PREFIX)/bin && rm -f $(PROGRAMS))
++	(cd $(PREFIX)/lib && rm -f $(LIBRARY))
++	(cd $(PREFIX)/include && rm -rf leveldb)
++	
+ $(LIBRARY): $(LIBOBJECTS)
+ 	rm -f $@
+ 	$(AR) -rs $@ $(LIBOBJECTS)

@@ -1,0 +1,20 @@
+--- ../ruby-old/build/configure	2015-08-18 15:05:00.000000000 +0100
++++ build/configure	2015-10-30 18:07:41.000000000 +0000
+@@ -2951,7 +2951,7 @@
+ #
+ # TODO: remove this hack when AC_PREREQ() becomes 2.70 or later.
+ case $build_os in #(
+-  darwin*) :
++  notdarwin*) :
+ 
+ rm() {
+     rm_recursive=''
+@@ -16941,6 +16941,8 @@
+ # ifdef _MSC_VER
+ #  include <malloc.h>
+ #  define alloca _alloca
++# elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__)
++#   include <stdlib.h>
+ # else
+ #  ifdef HAVE_ALLOCA_H
+ #   include <alloca.h>
