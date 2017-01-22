@@ -46,6 +46,7 @@ env:
     - PACKAGE=libffi
     - PACKAGE=openjdk8
     - PACKAGE=ovs
+    - PACKAGE=zeromq
 
 notifications:
   irc:
