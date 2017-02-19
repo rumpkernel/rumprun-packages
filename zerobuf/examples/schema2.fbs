@@ -1,0 +1,4 @@
+
+table DoubleTable {
+  doublearray: [double:125];
+}

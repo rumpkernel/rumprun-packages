@@ -13,7 +13,7 @@ ZMQMSG_CONF_OPTS += \
 	--prefix=$(RUMPRUN_PKGS_DIR) \
 	--disable-shared
 
-# /root/git/rumprun-packages/pkgs/lib/libzmq.a
+# rumprun-packages/pkgs/lib/libzmq.a
 bin/zmq: build/zmq
 
 build/zmq: build/Makefile
