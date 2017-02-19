@@ -14,12 +14,19 @@ Use the included``Makefile`` by typing ```make```.
 ## Examples
 
 The schema compiler, ```zerobufCxx.py```, is located in 
-```/path_to/rumprun-packages/zerobuf/ZeroBuf/bin/```.
+```
+/path_to/rumprun-packages/zerobuf/ZeroBuf/bin/
+```
 
 To compile a schema file, called in this case ```aschema.fbs```, type:
-```/path_to/rumprun-packages/zerobuf/ZeroBuf/bin/zerobufCxx.py -o=. aschema.fbs```. 
+```
+/path_to/rumprun-packages/zerobuf/ZeroBuf/bin/zerobufCxx.py -o=. aschema.fbs
+``` 
 
-Example1: ```/root/git/rumprun-packages/zerobuf/ZeroBuf/bin/zerobufCxx.py -o=. schema1.fbs.fbs```:
+Example1: (compiling the schema file) 
+```
+/root/git/rumprun-packages/zerobuf/ZeroBuf/bin/zerobufCxx.py -o=. schema1.fbs.fbs
+```
 
 In order to run an example application on rumprun, you have to provide the paths to the zerobuf include directory located in rumprun-packages/pkgs/include, and to the ```libServus``` and ```libZeroBuf``` libraries during compilation. Both are located in rumprun-packages/pkgs/lib: 
 
@@ -62,7 +69,6 @@ table KeyValue {
   doublevalue: double;
 }
 ```
-
 
 ### Example 2 - schema2
 A record for 125 double:
