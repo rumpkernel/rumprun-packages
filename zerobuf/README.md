@@ -23,7 +23,7 @@ To compile a schema file, called in this case ```aschema.fbs```, type:
 /path_to/rumprun-packages/zerobuf/ZeroBuf/bin/zerobufCxx.py -o=. aschema.fbs
 ``` 
 
-Example1: (compiling the schema file) 
+Example1: (compiling the schema file number 1) 
 ```
 /root/git/rumprun-packages/zerobuf/ZeroBuf/bin/zerobufCxx.py -o=. schema1.fbs.fbs
 ```
@@ -56,7 +56,7 @@ Rumprun baking step:
 ```
 rumprun-bake hw_generic schema1-rr.bin schema1-rr
 ```
-Rumprun running step:
+Rumprun running step for qemu:
 ```
 rumprun qemu -i schema1-rr.bin
 ```
@@ -71,14 +71,14 @@ table KeyValue {
 ```
 
 ### Example 2 - schema2
-A record for 125 double:
+A record for 125 doubles:
 ```
 table DoubleTable {
   doublearray: [double:125];
 }
 
 ```
-Use the following for compiling the example2:
+Use the following for compiling the example2 code:
 ```
 x86_64-rumprun-netbsd-g++ -std=c++17 schema2_test.cpp schema2.cpp \
 /root/git/rumprun-packages/zerobuf/ZeroBuf/Servus/servus/serializable.cpp \
@@ -94,6 +94,6 @@ and for baking the example2:
 ```
 rumprun-bake hw_generic schema2-rr.bin schema2-rr
 ```
-Finally, the Rumprun running step:
+Finally, the Rumprun running step for qemu:
 ```
 rumprun qemu -i schema2-rr.bin
