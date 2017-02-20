@@ -7,10 +7,12 @@ all: bin/servus
 
 bin/servus: Servus/build/servus
 	#Copying files to pkgs directory 
-	(cd Servus/servus && ../../../pkgs/include/servus/. && cd ../../ \
-	 cd Servus/build && \
+	(cd Servus/build && \
+	 mkdir -p ../../../pkgs/lib && \
 	 cp lib/*.a ../../../pkgs/lib/. && \
-	 cp -a include/servus ../../../pkgs/include/servus)
+	 mkdir -p ../../../pkgs/include && \
+	 cp -a include/servus ../../../pkgs/include/servus && \
+	 cd .. && cp servus/*.h ../../pkgs/include/servus/.)
 
 Servus/build/servus: Servus/build/Makefile
 	$(MAKE) -C Servus/build

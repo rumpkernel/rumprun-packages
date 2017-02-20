@@ -44,8 +44,6 @@ leads to:
 ```
 x86_64-rumprun-netbsd-g++ -std=c++17 schema1_test.cpp schema1.cpp \
 /root/git/rumprun-packages/zerobuf/ZeroBuf/Servus/servus/serializable.cpp \
--I/root/git/rumprun-packages/servus/Servus/servus \
--I/root/git/rumprun-packages/zerobuf/ZeroBuf/zerobuf \
 -I/root/git/rumprun-packages/pkgs/include/zerobuf \
 -I/root/git/rumprun-packages/pkgs/include/servus \
 -I/root/git/rumprun-packages/pkgs/include \
@@ -82,8 +80,6 @@ Use the following for compiling the example2 code:
 ```
 x86_64-rumprun-netbsd-g++ -std=c++17 schema2_test.cpp schema2.cpp \
 /root/git/rumprun-packages/zerobuf/ZeroBuf/Servus/servus/serializable.cpp \
--I/root/git/rumprun-packages/servus/Servus/servus \
--I/root/git/rumprun-packages/zerobuf/ZeroBuf/zerobuf \
 -I/root/git/rumprun-packages/pkgs/include/zerobuf \
 -I/root/git/rumprun-packages/pkgs/include/servus \
 -I/root/git/rumprun-packages/pkgs/include \

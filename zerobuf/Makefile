@@ -7,10 +7,12 @@ all: bin/zerobuf
 
 bin/zerobuf: ZeroBuf/build/zerobuf
 	#Copying files to pkgs directory
-	(cd ZeroBuf/zerobuf && ../../../pkgs/include/zerobuf/. && cd ../../ \ 
-	 cd ZeroBuf/build && \
+	(cd ZeroBuf/build && \
+	 mkdir -p ../../../pkgs/lib && \
 	 cp lib/*.a ../../../pkgs/lib/. && \
-	 cp -a include/zerobuf ../../../pkgs/include/zerobuf)
+	 mkdir -p ../../../pkgs/include && \
+	 cp -a include/zerobuf ../../../pkgs/include/zerobuf && \
+	 cd .. && cp zerobuf/*.h ../../pkgs/include/zerobuf/.)
 
 ZeroBuf/build/zerobuf: ZeroBuf/build/Makefile
 	$(MAKE) -C ZeroBuf/build
