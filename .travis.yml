@@ -4,6 +4,10 @@ language: generic
 cache:
   directories:
     - $HOME/.ccache
+addons:
+  apt:
+    packages:
+      - genisoimage
 install: bash -ex ./.travis-install.sh
 script: bash -ex ./.travis-script.sh
 

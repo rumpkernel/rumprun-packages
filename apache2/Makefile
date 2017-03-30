@@ -1,10 +1,10 @@
 include ../Makefile.inc
 
-UPSTREAM_HTTPD=http://apache.mirrors.lucidnetworks.net//httpd/httpd-2.4.23.tar.gz
+UPSTREAM_HTTPD=http://archive.apache.org/dist/httpd/httpd-2.4.23.tar.gz
 TARBALL_HTTPD=dl/$(notdir $(UPSTREAM_HTTPD))
-UPSTREAM_APR=http://apache.mirrors.lucidnetworks.net//apr/apr-1.5.2.tar.gz
+UPSTREAM_APR=http://archive.apache.org/dist/apr/apr-1.5.2.tar.gz
 TARBALL_APR=dl/$(notdir $(UPSTREAM_APR))
-UPSTREAM_APR_UTIL=http://apache.mirrors.lucidnetworks.net//apr/apr-util-1.5.4.tar.gz
+UPSTREAM_APR_UTIL=http://archive.apache.org/dist/apr/apr-util-1.5.4.tar.gz
 TARBALL_APR_UTIL=dl/$(notdir $(UPSTREAM_APR_UTIL))
 TARBALLS=$(TARBALL_HTTPD) $(TARBALL_APR) $(TARBALL_APR_UTIL)
 
