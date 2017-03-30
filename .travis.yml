@@ -47,8 +47,8 @@ env:
     - PACKAGE=openjdk8
     - PACKAGE=ovs
     - PACKAGE=zeromq
-    - PACKAGE=servus
-    - PACKAGE=zerobuf
+  #  - PACKAGE=servus
+  #  - PACKAGE=zerobuf
 
 notifications:
   irc:
