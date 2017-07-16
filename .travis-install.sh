@@ -5,6 +5,14 @@ sudo apt-get update
 sudo apt-get install makefs
 sudo apt-get install openjdk-7-jdk
 
+# ovs: python-six
+sudo apt-get install python-pip
+sudo pip install six --upgrade
+
+#debug data, please ignore
+python -c 'import six'
+echo $?
+
 # Build and install rumprun toolchain from source
 RUMPRUN_PLATFORM=${RUMPRUN_PLATFORM:-hw}
 RUMPRUN_TOOLCHAIN_TUPLE=${RUMPRUN_TOOLCHAIN_TUPLE:-x86_64-rumprun-netbsd}
