@@ -49,7 +49,8 @@ env:
     - PACKAGE=apache2
     - PACKAGE=libffi
     - PACKAGE=openjdk8
-    - PACKAGE=ovs
+  # broken: issue #140
+  #  - PACKAGE=ovs
     - PACKAGE=zeromq
   #  - PACKAGE=servus
   #  - PACKAGE=zerobuf
