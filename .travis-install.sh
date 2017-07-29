@@ -5,6 +5,9 @@ sudo apt-get update
 sudo apt-get install makefs
 sudo apt-get install openjdk-7-jdk
 
+# ovs: build process requires 'six' module
+pip install six
+
 # Build and install rumprun toolchain from source
 RUMPRUN_PLATFORM=${RUMPRUN_PLATFORM:-hw}
 RUMPRUN_TOOLCHAIN_TUPLE=${RUMPRUN_TOOLCHAIN_TUPLE:-x86_64-rumprun-netbsd}
