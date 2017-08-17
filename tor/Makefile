@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-UPSTREAM=https://www.torproject.org/dist/tor-0.2.7.6.tar.gz
+UPSTREAM=https://archive.torproject.org/tor-package-archive/tor-0.2.7.6.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
 all: libssl $(RUMPRUN_PKGS_DIR)/lib/libevent.a build/tor
