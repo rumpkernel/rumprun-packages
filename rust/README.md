@@ -28,11 +28,11 @@ Makefile to build Rust from source.
 
 The Rust distribution offers daily updated builds of the standard
 library for the Rumprun target. You can obtain them using
-[multirust](https://github.com/brson/multirust) 0.8.0 or newer.
+[rustup](https://www.rustup.rs/).
 
-    multirust update nightly
-    multirust add-target nightly x86_64-rumprun-netbsd
-    multirust override nightly
+    rustup install nightly
+    rustup default nightly
+    rustup target add x86_64-rumprun-netbsd
 
 This will set up a Rust cross-compiler which is able to compile binaries
 for Rumprun. The cargo package manager will also be installed, so you should
