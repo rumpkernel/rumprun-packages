@@ -1,5 +1,5 @@
 include ../Makefile.inc
-UPSTREAM=ftp://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz
+UPSTREAM=https://gcc.gnu.org/pub/libffi/libffi-3.2.1.tar.gz
 TARBALL=$(notdir $(UPSTREAM))
 
 all: build/libffi
