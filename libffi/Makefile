@@ -21,7 +21,7 @@ build/Makefile: build/stamp_patch
 build/stamp_patch: build/configure
 	../scripts/apply-patches.sh build/ patches/*
 	touch $@
-	
+
 dl/$(TARBALL):
 	mkdir -p dl
 	../scripts/fetch.sh ${UPSTREAM} dl/$(TARBALL)
