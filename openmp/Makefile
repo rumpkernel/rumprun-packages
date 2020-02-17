@@ -21,13 +21,13 @@ build/configure:	build/getsource
 	
 build/getsource:	build/gcc-branch
 	mkdir -p gcc-source
-	$(eval RET_CODE=$(shell git clone -b $(GCC_BRANCH) $(UPSTREAM) gcc-source))
+	$(eval RET_CODE=`bash git clone -b $(GCC_BRANCH) $(UPSTREAM) gcc-source`)
 	$(if $(RET_CODE)==0,,$(error Clone of Git Repository failed!))
 	
 build/gcc-branch:
 	
 #Call Shell Script that determines GCC Version and exports it as gcc_branch variable
-	$(eval GCC_BRANCH:=$(shell ./scripts/get_gcc_ver.sh $(CC)))
+	$(eval GCC_BRANCH:=`bash ./scripts/get_gcc_ver.sh $(CC)`)
 	$(if $(GCC_BRANCH),,$(error GCC_BRANCH variable is not set!))
 
 .PHONY: clean
